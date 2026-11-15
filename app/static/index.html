@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#f6f4ef" />
+<link rel="manifest" href="/manifest.webmanifest" />
+<link rel="icon" href="/static/icon.svg" type="image/svg+xml" />
+<title>Bocina CoDi · Mostrador</title>
+<style>
+  :root {
+    --bg: #f6f4ef; --card: #fff; --ink: #17161a; --muted: #6d6a73; --line: #e6e2d9;
+    --ok: #12945a; --ok-deep: #0d7a49; --sim: #7c3aed; --blue: #1f5eff; --blue-bg: #e9efff; --warn: #b7791f; --warn-bg: #fdf3e1;
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--ink); overflow: hidden; }
+  button { font: inherit; cursor: pointer; }
+
+  .top { position: fixed; top: 0; left: 0; right: 0; display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; z-index: 3; }
+  .live { display: flex; align-items: center; gap: 7px; font-size: 13px; color: var(--muted); }
+  .live i { width: 9px; height: 9px; border-radius: 50%; background: #bbb; }
+  .live.on i { background: var(--ok); box-shadow: 0 0 0 4px rgba(18,148,90,.15); }
+  .to-caja { font-size: 13px; color: var(--muted); text-decoration: none; padding: 7px 12px; border-radius: 10px; border: 1px solid transparent; }
+  .to-caja:hover { border-color: var(--line); background: var(--card); }
+
+  .screen { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px 170px; text-align: center; }
+  .biz { font-size: clamp(24px, 4vw, 34px); font-weight: 760; letter-spacing: -.01em; }
+  .sub { color: var(--muted); margin: 6px 0 20px; font-size: 16px; }
+  .qr { width: min(440px, 78vw, 52vh); background: #fff; padding: 10px; border-radius: 22px; box-shadow: 0 1px 0 var(--line), 0 18px 50px rgba(20,18,25,.08); }
+  .qr svg { width: 100%; height: auto; display: block; }
+  .badge { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; font-size: 14px; font-weight: 600; margin-top: 18px; }
+  .badge.listen { background: #e7f6ee; color: var(--ok); }
+  .badge.listen i { width: 8px; height: 8px; border-radius: 50%; background: currentColor; animation: pulse-dot 1.6s infinite; }
+  @keyframes pulse-dot { 0% { box-shadow: 0 0 0 0 rgba(18,148,90,.5); } 70% { box-shadow: 0 0 0 7px rgba(18,148,90,0); } 100% { box-shadow: 0 0 0 0 rgba(18,148,90,0); } }
+  @keyframes blink { 50% { opacity: .25; } }
+  .badge.wait { background: var(--warn-bg); color: var(--warn); }
+  .spinner { width: 13px; height: 13px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .to-pay { font-size: clamp(34px, 6vw, 52px); font-weight: 800; letter-spacing: -.02em; }
+  .x { margin-top: 12px; border: 1px solid var(--line); background: transparent; color: var(--muted); border-radius: 12px; padding: 8px 14px; font-size: 14px; }
+
+  /* momento del pago */
+  .paid-screen { position: fixed; inset: 0; background: var(--ok); color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; z-index: 5; animation: in .25s ease-out; padding: 20px 20px 150px; }
+  .paid-screen.sim { background: var(--sim); }
+  @keyframes in { from { opacity: 0; transform: scale(1.03); } to { opacity: 1; transform: none; } }
+  .paid-screen .check { width: 96px; height: 96px; border-radius: 50%; background: rgba(255,255,255,.18); display: grid; place-items: center; font-size: 52px; margin-bottom: 18px; }
+  .paid-screen .amt { font-size: clamp(64px, 13vw, 140px); font-weight: 850; letter-spacing: -.03em; line-height: 1; }
+  .paid-screen .lbl { margin-top: 16px; font-size: 18px; font-weight: 650; background: rgba(255,255,255,.16); padding: 9px 16px; border-radius: 999px; }
+  .paid-screen .meta { margin-top: 14px; opacity: .85; font-size: 15px; }
+  .paid-screen .queue { position: absolute; top: 22px; right: 22px; background: rgba(0,0,0,.18); padding: 8px 14px; border-radius: 999px; font-weight: 650; font-size: 15px; }
+  .paid-screen .mismatch { margin-top: 14px; background: #fff; color: #c4352b; padding: 10px 14px; border-radius: 12px; font-weight: 700; }
+
+  /* botonera física */
+  .dock { position: fixed; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; align-items: center; padding: 0 20px 26px; z-index: 6; pointer-events: none; }
+  .bubble { max-width: 520px; margin-bottom: 14px; pointer-events: auto; }
+  .bubble .you { color: var(--muted); font-size: 14px; margin-bottom: 6px; }
+  .bubble .pey { background: var(--card); border: 1px solid var(--line); padding: 12px 16px; border-radius: 16px; font-size: 16px; line-height: 1.45; box-shadow: 0 10px 30px rgba(20,18,25,.08); }
+  .keys { pointer-events: auto; display: grid; grid-template-columns: repeat(4, 84px); gap: 18px; }
+  .key { display: flex; flex-direction: column; align-items: center; gap: 9px; }
+  .key button { width: 84px; height: 60px; border: 1px solid var(--line); border-radius: 18px; color: var(--ink); font-size: 22px; font-weight: 600;
+    background: var(--card); box-shadow: 0 1px 2px rgba(20,18,25,.05); transition: background .12s, transform .08s, border-color .12s;
+    display: grid; place-items: center; -webkit-tap-highlight-color: transparent; user-select: none; }
+  .key button:hover { background: #fbfaf7; border-color: #d9d4c8; }
+  .key button:active, .key button.pressed { transform: scale(.96); background: #efece4; }
+  .key.talk button { color: var(--ok); border-color: #cfe9db; background: #f3faf6; }
+  .key.talk button:hover { background: #e7f6ee; }
+  .key.talk button.listening { color: #fff; background: #c4352b; border-color: #c4352b; animation: ring 1.2s infinite; }
+  .key.talk button.thinking { color: var(--muted); background: #efece4; border-color: var(--line); }
+  @keyframes ring { 0% { box-shadow: 0 0 0 0 rgba(196,53,43,.35); } 100% { box-shadow: 0 0 0 14px rgba(196,53,43,0); } }
+  .key span { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+  @media (max-width: 460px) { .keys { grid-template-columns: repeat(4, 68px); gap: 12px; } .key button { width: 68px; height: 54px; font-size: 20px; } }
+
+  /* último pago y volumen */
+  .info-screen { position: fixed; inset: 0; background: var(--ink); color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; z-index: 4; animation: in .2s ease-out; padding: 20px 20px 150px; }
+  .info-screen .k { font-size: 14px; letter-spacing: .14em; text-transform: uppercase; color: #a3a1aa; }
+  .info-screen .v { font-size: clamp(56px, 11vw, 120px); font-weight: 850; letter-spacing: -.03em; margin: 8px 0; line-height: 1; }
+  .info-screen .s { color: #c9c7cf; font-size: 16px; }
+  .vol { position: fixed; top: 58px; left: 50%; transform: translateX(-50%); background: rgba(23,22,26,.92); color: #fff; z-index: 8; border-radius: 14px;
+    padding: 10px 14px; display: none; align-items: center; gap: 10px; font-size: 13px; font-weight: 650; }
+  .vol.show { display: flex; }
+  .vol .bars { display: flex; gap: 3px; align-items: flex-end; }
+  .vol .bars b { width: 6px; background: #4a4950; border-radius: 2px; }
+  .vol .bars b.f { background: #22c55e; }
+
+  .setup input { padding: 13px 15px; border: 1px solid var(--line); border-radius: 12px; font-size: 16px; width: 320px; max-width: 100%; background: #fff; }
+  .primary { border: 0; background: var(--ink); color: #fff; border-radius: 14px; padding: 13px 24px; font-size: 16px; font-weight: 650; margin-top: 12px; }
+
+  .sound-hint { position: fixed; top: 14px; left: 50%; transform: translateX(-50%); z-index: 6; background: var(--ink); color: #fff;
+    padding: 8px 14px; border-radius: 999px; font-size: 13px; display: none; }
+  .sound-hint.show { display: block; animation: in .2s ease-out; }
+  .toast { position: fixed; top: 64px; left: 50%; transform: translateX(-50%); background: var(--ink); color: #fff; padding: 12px 18px; border-radius: 12px;
+    font-size: 14px; z-index: 20; opacity: 0; transition: .2s; pointer-events: none; max-width: 90vw; }
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+
+<div class="top">
+  <div class="live" id="live"><i></i><span>Conectando…</span></div>
+  <a class="to-caja" href="/app">App →</a>
+</div>
+
+<div class="sound-hint" id="soundHint">🔈 Toca la pantalla una vez para activar el sonido</div>
+<div class="screen" id="screen"></div>
+<div id="paidLayer"></div>
+
+<div id="infoLayer"></div>
+<div class="vol" id="vol"><span id="volIcon">🔊</span><div class="bars" id="volBars"></div><span id="volPct"></span></div>
+
+<div class="dock">
+  <div class="bubble" id="bubble"></div>
+  <div class="keys">
+    <div class="key"><button id="volDown" aria-label="Bajar volumen">−</button><span>Vol</span></div>
+    <div class="key"><button id="volUp" aria-label="Subir volumen">+</button><span>Vol</span></div>
+    <div class="key"><button id="lastBtn" aria-label="Último pago">↺</button><span>Último</span></div>
+    <div class="key talk"><button id="mic" aria-label="Hablar con pey">🎙</button><span id="micHint">Hablar</span></div>
+  </div>
+</div>
+
+<script src="/static/common.js"></script>
+<script>
+(() => {
+  const { $, money, hhmm, esc, api, toast, Voice } = Bocina;
+  let fixed = null;       // QR fijo
+  let bubbleTimer = null;
+
+  // ---------- pantalla base: QR fijo o QR con monto ----------
+  function renderBase() {
+    const s = $("screen");
+    if (!fixed) {
+      s.innerHTML = `
+        <div class="setup">
+          <div style="font-size:52px">🏪</div>
+          <div class="biz" style="margin-top:6px">Crea tu QR fijo</div>
+          <div class="sub" style="max-width:360px;margin:8px auto 18px">El cliente lo escanea con su app bancaria, pone el monto y esta pantalla te avisa en voz alta.</div>
+          <input id="bizName" placeholder="Nombre del negocio" value="${esc(Bocina.status.businessName || "")}" />
+          <div><button class="primary" id="mkFixed">Crear QR fijo</button></div>
+        </div>`;
+      $("mkFixed").onclick = async () => {
+        if (Bocina.status.pinRequired && !Bocina.getPin()) {
+          const pin = prompt("PIN del negocio"); if (!pin) return; Bocina.setPin(pin.trim());
+        }
+        try { fixed = (await api("/api/fixed-qr", { method: "POST", body: JSON.stringify({ name: $("bizName").value.trim() }) })).fixed; renderBase(); }
+        catch (e) { if (/PIN/.test(e.message)) Bocina.setPin(""); toast("No se pudo crear: " + e.message, 6000); }
+      };
+      return;
+    }
+    s.innerHTML = `
+      <div class="biz">${esc(fixed.name)}</div>
+      <div class="sub">Escanea con tu app bancaria y pon el monto</div>
+      <div class="qr">${fixed.qrSvg}</div>
+      <div class="badge listen"><i></i>Escuchando pagos · CoDi</div>`;
+  }
+
+  // ---------- momento del pago (lo controla la cola de voz) ----------
+  function showPaid(p, rest) {
+    const mismatch = p.expectedAmount != null && Math.abs(p.expectedAmount - p.amount) > 0.001;
+    $("paidLayer").innerHTML = `
+      <div class="paid-screen ${p.simulated ? "sim" : ""}">
+        ${rest > 0 ? `<div class="queue" id="queueBadge">+${rest} en fila</div>` : `<div class="queue" id="queueBadge" style="display:none"></div>`}
+        <div class="check">✓</div>
+        <div class="amt">${money(p.amount)}</div>
+        <div class="lbl">${p.simulated ? "◆ Simulación — no es un pago real" : "🔒 Pago verificado por pey"}</div>
+        ${mismatch ? `<div class="mismatch">Se cobraron ${money(p.expectedAmount)} y llegaron ${money(p.amount)}</div>` : ""}
+        <div class="meta">${hhmm(p.datePaid)} · ${p.kind === "amount" ? esc(p.concept) : "QR fijo"}</div>
+      </div>`;
+  }
+  Voice.onChange((pending) => {
+    const b = $("queueBadge"); if (!b) return;
+    b.style.display = pending > 0 ? "" : "none"; b.textContent = `+${pending} en fila`;
+  });
+  Voice.onIdle(() => {
+    // al terminar la fila, regresamos a la pantalla base
+    setTimeout(() => { if (!Voice.busy) $("paidLayer").innerHTML = ""; }, 900);
+  });
+
+  // ---------- eventos ----------
+  Bocina.connect({
+    hello: async () => { await loadFixed(); renderBase(); },
+    payment: (p) => {
+      // cada pago entra a la fila; se anuncia completo y en orden
+      Voice.enqueue({ text: p.speech, chime: true, gap: 700, onStart: (rest) => { clearInfo(); showPaid(p, rest); } });
+    },
+    fixed: async () => { await loadFixed(); renderBase(); },
+  });
+  async function loadFixed() { try { fixed = (await api("/api/fixed-qr")).fixed; } catch {} }
+
+  // ---------- asistente de voz ----------
+  function showBubble(you, pey, ms = 7000) {
+    clearTimeout(bubbleTimer);
+    $("bubble").innerHTML = (you ? `<div class="you">"${esc(you)}"</div>` : "") + (pey ? `<div class="pey">${esc(pey)}</div>` : "");
+    if (ms) bubbleTimer = setTimeout(() => { $("bubble").innerHTML = ""; }, ms);
+  }
+  function micState(s) {
+    const m = $("mic"); m.classList.remove("listening", "thinking"); if (s) m.classList.add(s);
+    $("micHint").textContent = s === "listening" ? "Escucho" : s === "thinking" ? "Pienso" : "Hablar";
+  }
+  let rec = null;
+  function listen() {
+    if (rec) { rec.stop(); return; }
+    rec = Bocina.dictate({
+      onStart: () => { micState("listening"); showBubble("", "", 0); },
+      onPartial: (t) => showBubble(t, "", 0),
+      onError: (e) => showBubble("", `No te escuché (${e})`),
+      onEnd: () => { rec = null; micState(null); },
+      onFinal: async (text) => {
+        micState("thinking"); showBubble(text, "", 0);
+        try {
+          const d = await Bocina.askAssistant(text);
+          if (d.intent === "charge" && d.amount) {
+            const msg = `Para cobrar ${money(d.amount)} exactos, genera el QR desde la app en tu celular.`;
+            showBubble(text, msg, 9000);
+            Voice.enqueue({ text: "Los cobros con monto se generan desde la app en tu celular.", gap: 200 });
+          } else {
+            const answer = d.answer || "No te entendí, ¿me lo repites?";
+            showBubble(text, answer, 9000);
+            Voice.enqueue({ text: answer, gap: 200 }); // también va a la fila: nunca se encima con un pago
+          }
+        } catch (e) { showBubble(text, "Error: " + e.message); }
+        finally { micState(null); }
+      },
+    });
+  }
+  $("mic").onclick = listen;
+
+  // ---------- botón: último pago ----------
+  let infoTimer = null;
+  function clearInfo() { clearTimeout(infoTimer); $("infoLayer").innerHTML = ""; }
+  async function lastPayment() {
+    try {
+      const d = await api("/api/last-payment");
+      Voice.enqueue({
+        text: d.speech, gap: 300,
+        onStart: () => {
+          const p = d.payment;
+          $("infoLayer").innerHTML = p
+            ? `<div class="info-screen"><div class="k">Último pago</div><div class="v">${money(p.amount)}</div>
+                 <div class="s">${hhmm(p.paidAt)} · ${p.simulated ? "Simulado" : p.kind === "amount" ? esc(p.concept) : "QR fijo"}</div></div>`
+            : `<div class="info-screen"><div class="k">Último pago</div><div class="s" style="margin-top:12px">Todavía no hay pagos</div></div>`;
+        },
+        onEnd: () => { infoTimer = setTimeout(clearInfo, 1500); },
+      });
+    } catch (e) { toast(e.message); }
+  }
+  $("lastBtn").onclick = lastPayment;
+
+  // ---------- botones: volumen ----------
+  let volTimer = null;
+  function showVolume() {
+    const n = Math.round(Bocina.volume() * 10);
+    $("volBars").innerHTML = Array.from({ length: 10 }, (_, i) => `<b class="${i < n ? "f" : ""}" style="height:${6 + i * 1.6}px"></b>`).join("");
+    $("volPct").textContent = n === 0 ? "Silencio" : `${n * 10}%`;
+    $("volIcon").textContent = n === 0 ? "🔇" : n < 5 ? "🔉" : "🔊";
+    $("vol").classList.add("show"); clearTimeout(volTimer); volTimer = setTimeout(() => $("vol").classList.remove("show"), 1400);
+  }
+  function changeVolume(delta) { Bocina.setVolume(Bocina.volume() + delta); showVolume(); if (!Voice.busy) Bocina.chime(); }
+  $("volUp").onclick = () => changeVolume(+0.1);
+  $("volDown").onclick = () => changeVolume(-0.1);
+
+  // teclado: espacio = hablar, ↑/↓ = volumen, U = último pago
+  function press(id) { const b = $(id); b.classList.add("pressed"); setTimeout(() => b.classList.remove("pressed"), 140); }
+  document.addEventListener("keydown", (e) => {
+    if (["INPUT", "TEXTAREA", "SELECT"].includes(e.target.tagName) || e.repeat) return;
+    if (e.code === "Space") { e.preventDefault(); press("mic"); listen(); }
+    else if (e.key === "ArrowUp" || e.key === "+") { e.preventDefault(); press("volUp"); changeVolume(+0.1); }
+    else if (e.key === "ArrowDown" || e.key === "-") { e.preventDefault(); press("volDown"); changeVolume(-0.1); }
+    else if (e.key.toLowerCase() === "u") { press("lastBtn"); lastPayment(); }
+  });
+
+  // ---------- arranque ----------
+  Bocina.onSoundChange((ok) => $("soundHint").classList.toggle("show", !ok));
+  Bocina.loadStatus().then(renderBase);
+})();
+</script>
+</body>
+</html>

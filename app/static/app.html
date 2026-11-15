@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#f6f4ef" />
+<link rel="manifest" href="/manifest.webmanifest" />
+<link rel="icon" href="/static/icon.svg" type="image/svg+xml" />
+<title>Bocina CoDi · App</title>
+<style>
+  :root {
+    --bg: #f6f4ef; --card: #fff; --ink: #17161a; --muted: #6d6a73; --line: #e6e2d9;
+    --ok: #12945a; --ok-bg: #e7f6ee; --warn: #b7791f; --warn-bg: #fdf3e1; --bad: #c4352b;
+    --sim: #7c3aed; --sim-bg: #f1eafe; --blue: #1f5eff; --blue-bg: #e9efff;
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body { margin: 0; color: var(--ink); background: radial-gradient(1200px 700px at 30% 20%, #2a2930, #141317); display: flex;
+    align-items: center; justify-content: center; gap: 64px; overflow: hidden; }
+  button { font: inherit; cursor: pointer; }
+  .mono { font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+
+  /* ---------- texto al lado del teléfono (solo en computadora) ---------- */
+  .side { color: #e9e7ee; max-width: 330px; }
+  .side .k { font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: #a19fa8; }
+  .side h1 { font-size: 40px; line-height: 1.05; margin: 10px 0 14px; letter-spacing: -.02em; }
+  .side p { color: #bebcc4; line-height: 1.55; margin: 0 0 22px; }
+  .side .open { display: flex; gap: 14px; align-items: center; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1);
+    border-radius: 18px; padding: 14px; }
+  .side .open img { width: 104px; height: 104px; border-radius: 10px; background: #fff; }
+  .side .open span { font-size: 14px; color: #d6d4dc; line-height: 1.45; }
+  .side a { color: #fff; }
+
+  /* ---------- el teléfono ---------- */
+  .phone { position: relative; height: min(844px, calc(100vh - 48px)); aspect-ratio: 390 / 844; background: #0c0c0e;
+    border-radius: 56px; padding: 12px; box-shadow: 0 0 0 2px #3a3940, 0 40px 90px rgba(0,0,0,.55); flex-shrink: 0; }
+  .device { position: relative; height: 100%; width: 100%; background: var(--bg); border-radius: 44px; overflow: hidden; display: flex; flex-direction: column; }
+  .island { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); width: 112px; height: 32px; background: #0c0c0e; border-radius: 20px; z-index: 10; }
+  .statusbar { height: 50px; flex-shrink: 0; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 30px 6px; font-size: 14px; font-weight: 650; }
+  .statusbar .icons { letter-spacing: 2px; font-size: 12px; }
+
+  /* en un celular real: sin marco, pantalla completa */
+  @media (max-width: 560px), (max-height: 560px) {
+    body { background: var(--bg); display: block; overflow: auto; }
+    .side { display: none; }
+    .phone { height: 100dvh; width: 100%; aspect-ratio: auto; padding: 0; border-radius: 0; box-shadow: none; background: var(--bg); }
+    .device { border-radius: 0; }
+    .island, .statusbar { display: none; }
+    .appbar { padding-top: calc(14px + env(safe-area-inset-top)); }
+  }
+  @media (max-width: 980px) { .side { display: none; } }
+
+  /* ---------- contenido de la app ---------- */
+  .appbar { display: flex; justify-content: space-between; align-items: center; padding: 8px 18px 10px; flex-shrink: 0; }
+  .appbar .title { font-size: 26px; font-weight: 780; letter-spacing: -.02em; }
+  .live { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+  .live i { width: 8px; height: 8px; border-radius: 50%; background: #bbb; }
+  .live.on i { background: var(--ok); box-shadow: 0 0 0 3px rgba(18,148,90,.15); }
+  .content { flex: 1; overflow-y: auto; padding: 0 16px 16px; -webkit-overflow-scrolling: touch; }
+  .content::-webkit-scrollbar { display: none; }
+  .view { display: none; flex-direction: column; gap: 12px; animation: fade .18s ease-out; }
+  .view.on { display: flex; }
+  @keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 16px; }
+  h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 10px; font-weight: 650; }
+
+  .hero { background: var(--ink); color: #fff; border: 0; }
+  .hero h2 { color: #a9a7b0; }
+  .hero .total { font-size: 40px; font-weight: 820; letter-spacing: -.02em; }
+  .hero .sub { color: #c9c7cf; font-size: 14px; margin-top: 2px; }
+  .hero .row { display: flex; gap: 8px; margin-top: 14px; }
+  .hero .row button { flex: 1; border: 0; border-radius: 14px; padding: 11px; font-weight: 650; font-size: 14px; background: rgba(255,255,255,.12); color: #fff; }
+  .hero .row button.main { background: #fff; color: var(--ink); }
+
+  .stack { display: flex; flex-direction: column; gap: 12px; }
+  .qrcard { background: var(--card); border: 1px solid var(--line); border-radius: 24px; padding: 18px 16px; text-align: center; display: flex; flex-direction: column; align-items: center; }
+  .qrcard .lbl { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 650; }
+  .qrcard .amt { font-size: 40px; font-weight: 820; letter-spacing: -.02em; margin: 2px 0; }
+  .qrcard .cpt { color: var(--muted); font-size: 14px; margin-bottom: 12px; }
+  .qrcard .qr { width: 100%; max-width: 290px; }
+  .qrcard .qr svg { width: 100%; height: auto; display: block; }
+  .wait { display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; padding: 7px 13px; border-radius: 999px; background: var(--warn-bg); color: var(--warn); font-size: 13px; font-weight: 650; }
+  .spinner { width: 12px; height: 12px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .qrcard.paid { background: var(--ok); color: #fff; border-color: var(--ok); padding: 34px 16px; animation: pop .3s ease-out; }
+  .qrcard.paid.sim { background: var(--sim); border-color: var(--sim); }
+  .qrcard.paid .lbl, .qrcard.paid .cpt { color: rgba(255,255,255,.85); }
+  .qrcard.paid .amt { font-size: 52px; }
+  .qrcard .check { width: 76px; height: 76px; border-radius: 50%; background: rgba(255,255,255,.2); display: grid; place-items: center; font-size: 40px; margin-bottom: 12px; }
+  .qrcard .ver { margin-top: 10px; background: rgba(255,255,255,.18); padding: 7px 13px; border-radius: 999px; font-size: 13px; font-weight: 650; }
+  @keyframes pop { from { transform: scale(.94); opacity: 0; } to { transform: none; opacity: 1; } }
+
+  .pay { display: flex; align-items: center; gap: 12px; padding: 11px 2px; border-bottom: 1px solid var(--line); }
+  .pay:last-child { border-bottom: 0; }
+  .pay .ic { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; font-size: 17px; background: var(--ok-bg); color: var(--ok); flex-shrink: 0; }
+  .pay .ic.fixed { background: var(--blue-bg); color: var(--blue); }
+  .pay .ic.sim { background: var(--sim-bg); color: var(--sim); }
+  .pay .mid { flex: 1; min-width: 0; }
+  .pay .c { font-weight: 600; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pay .t { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .pay .a { font-weight: 720; font-size: 16px; }
+  .pay.new { animation: flash 2.5s ease-out; border-radius: 12px; }
+  @keyframes flash { from { background: var(--ok-bg); } to { background: transparent; } }
+  .empty { color: var(--muted); padding: 14px 2px; font-size: 14px; }
+
+  .amount { font-size: 50px; font-weight: 800; letter-spacing: -.02em; text-align: center; padding: 18px 0 6px; }
+  .amount small { font-size: 22px; color: var(--muted); font-weight: 600; margin-right: 2px; }
+  .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .keypad button { border: 0; background: var(--card); border-radius: 18px; padding: 15px 0; font-size: 24px; font-weight: 600; box-shadow: 0 1px 0 var(--line); }
+  .keypad button:active { background: #efece4; }
+  .input { width: 100%; padding: 13px 14px; border: 1px solid var(--line); border-radius: 14px; font-size: 16px; background: var(--card); }
+  .primary { border: 0; background: var(--ink); color: #fff; border-radius: 16px; padding: 15px; font-size: 16px; font-weight: 680; width: 100%; }
+  .primary:disabled { opacity: .35; cursor: not-allowed; }
+  .ghost { border: 1px solid var(--line); background: var(--card); border-radius: 12px; padding: 10px 14px; color: var(--ink); font-size: 14px; }
+
+  .chat { display: flex; flex-direction: column; gap: 8px; min-height: 120px; }
+  .msg { max-width: 85%; padding: 10px 13px; border-radius: 18px; font-size: 15px; line-height: 1.4; }
+  .msg.me { align-self: flex-end; background: var(--ink); color: #fff; border-bottom-right-radius: 6px; }
+  .msg.pey { align-self: flex-start; background: var(--card); border: 1px solid var(--line); border-bottom-left-radius: 6px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { border: 1px solid var(--line); background: var(--card); border-radius: 999px; padding: 7px 12px; font-size: 13px; color: var(--muted); }
+  .composer { display: flex; gap: 8px; }
+  .composer .input { flex: 1; }
+  .micbtn { width: 50px; border: 0; border-radius: 14px; background: var(--ink); color: #fff; font-size: 20px; flex-shrink: 0; }
+  .micbtn.listening { background: var(--bad); }
+
+  .set-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; font-size: 14px; gap: 10px; }
+  .ok-t { color: var(--ok); font-weight: 650; } .bad-t { color: var(--bad); font-weight: 650; }
+  .small { font-size: 12px; color: var(--muted); line-height: 1.5; margin: 8px 0 0; }
+  select.input { appearance: auto; }
+
+  /* barra de pestañas */
+  .tabbar { flex-shrink: 0; display: grid; grid-template-columns: repeat(4, 1fr); background: rgba(255,255,255,.88); backdrop-filter: blur(12px);
+    border-top: 1px solid var(--line); padding: 8px 6px calc(10px + env(safe-area-inset-bottom)); }
+  .tabbar button { border: 0; background: none; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11px; font-weight: 600; color: #9a97a1; padding: 4px 0; }
+  .tabbar button .i { font-size: 21px; filter: grayscale(1); opacity: .7; }
+  .tabbar button.on { color: var(--ink); }
+  .tabbar button.on .i { filter: none; opacity: 1; }
+  .homebar { height: 5px; width: 134px; background: #17161a; border-radius: 3px; margin: 0 auto 8px; opacity: .85; flex-shrink: 0; }
+  @media (max-width: 560px), (max-height: 560px) { .homebar { display: none; } }
+
+  .toast { position: absolute; top: 58px; left: 50%; transform: translateX(-50%); background: var(--ink); color: #fff; padding: 10px 14px; border-radius: 14px;
+    font-size: 13px; z-index: 20; opacity: 0; transition: .2s; pointer-events: none; width: max-content; max-width: 86%; text-align: center; }
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<div class="side">
+  <div class="k">Bocina CoDi</div>
+  <h1>La app del dueño, en su celular.</h1>
+  <p>La bocina se queda en el mostrador. Desde aquí ves cada pago al instante, cobras montos exactos y le preguntas a pey cómo va el día.</p>
+  <div class="open">
+    <img id="openQr" alt="QR para abrir la app" />
+    <span>Escanea para abrir esta app en tu celular.<br/><a href="/">Ver el mostrador →</a></span>
+  </div>
+</div>
+
+<div class="phone">
+  <div class="device" id="device">
+    <div class="island"></div>
+    <div class="statusbar"><span id="clock">9:41</span><span class="icons">▂▄▆ ᯤ ▮</span></div>
+
+    <div class="appbar">
+      <div class="title" id="title">Inicio</div>
+      <div class="live" id="live"><i></i><span>Conectando…</span></div>
+    </div>
+
+    <div class="content">
+      <!-- INICIO -->
+      <section class="view on" data-view="home">
+        <div class="card hero">
+          <h2 id="bizLabel">Hoy</h2>
+          <div class="total" id="total">$0.00</div>
+          <div class="sub" id="count">0 pagos verificados</div>
+          <div class="row">
+            <button class="main" data-go="charge">Cobrar monto</button>
+            <button data-go="pey">Pregúntale a pey</button>
+          </div>
+        </div>
+        <div class="card">
+          <h2>Pagos de hoy</h2>
+          <div id="payments"><div class="empty">Aún no hay pagos hoy.</div></div>
+        </div>
+      </section>
+
+      <!-- COBRAR -->
+      <section class="view" data-view="charge">
+        <div class="stack" id="chargeForm">
+          <div class="amount" id="amountView"><small>$</small>0</div>
+          <input class="input" id="concept" maxlength="100" placeholder="Concepto (ej. 2 tortas)" />
+          <div class="keypad" id="keypad">
+            <button>1</button><button>2</button><button>3</button>
+            <button>4</button><button>5</button><button>6</button>
+            <button>7</button><button>8</button><button>9</button>
+            <button>.</button><button>0</button><button data-k="del">⌫</button>
+          </div>
+          <button class="primary" id="chargeBtn" disabled>Generar QR</button>
+          <p class="small" style="text-align:center;margin:0">Para montos exactos: muéstrale este QR a tu cliente desde tu celular.</p>
+        </div>
+        <div class="stack" id="chargeQr" style="display:none"></div>
+      </section>
+
+      <!-- PEY -->
+      <section class="view" data-view="pey">
+        <div class="chat" id="chat">
+          <div class="msg pey">Hola 👋 Pregúntame cómo van tus ventas o pídeme un cobro.</div>
+        </div>
+        <div class="chips" id="chips">
+          <button class="chip">¿Cuánto vendí hoy?</button>
+          <button class="chip">Últimas 3 transacciones</button>
+          <button class="chip">¿Cuál fue el pago más grande?</button>
+          <button class="chip">Cóbrale 90 de dos tortas</button>
+        </div>
+        <div class="composer">
+          <input class="input" id="askInput" placeholder="Escribe o dicta…" />
+          <button class="micbtn" id="askMic" title="Dictar">🎙️</button>
+        </div>
+      </section>
+
+      <!-- AJUSTES -->
+      <section class="view" data-view="settings">
+        <div class="card" id="pinGate" style="display:none;text-align:center;padding:26px 18px">
+          <div style="font-size:34px">🔒</div>
+          <div style="font-weight:700;font-size:18px;margin:6px 0 4px">Ajustes protegidos</div>
+          <p class="small" style="margin:0 0 14px">Escribe el PIN del negocio para continuar.</p>
+          <input class="input" id="pinInput" type="password" inputmode="numeric" autocomplete="off" placeholder="PIN" style="text-align:center;letter-spacing:.3em" />
+          <button class="primary" id="pinBtn" style="margin-top:10px">Entrar</button>
+          <p class="small" id="pinErr" style="color:var(--bad)"></p>
+        </div>
+        <div class="stack" id="settingsBody">
+        <div class="card">
+          <h2>Estado</h2>
+          <div id="checks" class="small" style="margin:0">Cargando…</div>
+        </div>
+        <div class="card">
+          <h2>Mi QR fijo</h2>
+          <input class="input" id="bizName" maxlength="100" placeholder="Nombre del negocio" />
+          <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+            <button class="ghost" id="newFixed">Crear QR nuevo</button>
+            <button class="ghost" id="printFixed">🖨️ Imprimir</button>
+          </div>
+          <p class="small" id="fixedNote">Un QR que ya imprimiste sigue funcionando aunque crees otro.</p>
+        </div>
+        <div class="card">
+          <h2>Voz</h2>
+          <select class="input" id="voiceMode">
+            <option value="elevenlabs">ElevenLabs (natural)</option>
+            <option value="browser">Voz del teléfono / navegador</option>
+            <option value="off">Silencio</option>
+          </select>
+          <div class="set-row"><span>Sonar también en esta app</span><input type="checkbox" id="cajaSound" /></div>
+          <button class="ghost" id="testVoice">🔊 Probar voz</button>
+          <p class="small">La bocina es el mostrador. Deja apagado "sonar en esta app" si ambos están en el mismo equipo.</p>
+        </div>
+        <div class="card">
+          <h2>Cobro con monto</h2>
+          <label class="small" for="expiration" style="display:block;margin:0 0 6px">Expiración en segundos (0 = no expira; mínimo 360)</label>
+          <input class="input" id="expiration" type="number" min="0" step="60" />
+        </div>
+        <div class="card">
+          <h2>Webhook de pey</h2>
+          <input class="input mono" id="whUrl" readonly style="font-size:12px" />
+          <button class="ghost" id="copyWh" style="margin-top:8px">Copiar URL</button>
+          <p class="small" id="whWarn"></p>
+        </div>
+        <div class="card" id="simCard" style="display:none">
+          <h2>Pruebas</h2>
+          <input class="input" id="simAmount" type="number" min="0.01" step="0.01" placeholder="Monto (vacío = al azar)" />
+          <div style="display:flex;gap:8px;margin-top:10px"><button class="ghost" id="simOne">Simular 1</button><button class="ghost" id="simBurst">Ráfaga de 3</button></div>
+          <p class="small">Salen en morado y no cuentan en el total.</p>
+        </div>
+        <a href="/" class="ghost" style="text-align:center;text-decoration:none;display:block">Abrir el mostrador →</a>
+        </div>
+      </section>
+    </div>
+
+    <nav class="tabbar" id="tabbar">
+      <button data-go="home" class="on"><span class="i">🏠</span>Inicio</button>
+      <button data-go="charge"><span class="i">➕</span>Cobrar</button>
+      <button data-go="pey"><span class="i">🎙️</span>pey</button>
+      <button data-go="settings"><span class="i">⚙️</span>Ajustes</button>
+    </nav>
+    <div class="homebar"></div>
+    <div class="toast" id="toast"></div>
+  </div>
+</div>
+
+<script src="/static/common.js"></script>
+<script>
+(() => {
+  const { $, money, hhmm, esc, api, toast, prefs, setPref, Voice } = Bocina;
+  let fixed = null, current = null, amountStr = "", lastTop = null, expTimer = null;
+  const TITLES = { home: "Inicio", charge: "Cobrar", pey: "pey", settings: "Ajustes" };
+
+  // ---------- navegación ----------
+  function go(view) {
+    document.querySelectorAll(".view").forEach((v) => v.classList.toggle("on", v.dataset.view === view));
+    document.querySelectorAll("#tabbar button").forEach((b) => b.classList.toggle("on", b.dataset.go === view));
+    $("title").textContent = TITLES[view];
+    document.querySelector(".content").scrollTop = 0;
+    if (view === "pey") setTimeout(() => $("askInput").focus(), 50);
+    if (view === "settings") gateSettings();
+  }
+  document.addEventListener("click", (e) => { const b = e.target.closest("[data-go]"); if (b) go(b.dataset.go); });
+
+  // reloj de la barra de estado
+  const tick = () => { $("clock").textContent = new Date().toLocaleTimeString("es-MX", { hour: "numeric", minute: "2-digit", hour12: false }); };
+  tick(); setInterval(tick, 20000);
+  $("openQr").src = "/api/qr.svg?text=" + encodeURIComponent(location.origin + "/app");
+
+  // ---------- pagos ----------
+  async function loadPayments() {
+    try {
+      const d = await api("/api/payments?limit=100");
+      $("total").textContent = money(d.todayTotal);
+      $("count").textContent = `${d.todayCount} ${d.todayCount === 1 ? "pago verificado" : "pagos verificados"}`;
+      $("payments").innerHTML = d.payments.length ? d.payments.map((p, i) => {
+        const cls = p.simulated ? "sim" : p.kind;
+        const icon = p.simulated ? "◆" : p.kind === "fixed" ? "▦" : "✓";
+        const title = p.kind === "amount" ? p.concept : p.kind === "fixed" ? "Pago con QR fijo" : "Pago externo";
+        const what = p.simulated ? "Simulado" : p.kind === "amount" ? "Con monto" : "Verificado";
+        const isNew = lastTop && i === 0 && p.transactionId !== lastTop;
+        return `<div class="pay ${isNew ? "new" : ""}"><div class="ic ${cls}">${icon}</div>
+          <div class="mid"><div class="c">${esc(title)}</div><div class="t">${hhmm(p.paidAt)} · ${what}</div></div>
+          <div class="a">${money(p.amount)}</div></div>`;
+      }).join("") : `<div class="empty">Aún no hay pagos hoy.</div>`;
+      lastTop = d.payments[0]?.transactionId || "none";
+    } catch {}
+  }
+
+  // ---------- cobrar ----------
+  function renderAmount() {
+    $("amountView").innerHTML = `<small>$</small>${amountStr || "0"}`;
+    $("chargeBtn").disabled = !(parseFloat(amountStr) > 0);
+  }
+  $("keypad").addEventListener("click", (e) => {
+    const b = e.target.closest("button"); if (!b) return;
+    const k = b.dataset.k || b.textContent;
+    if (k === "del") amountStr = amountStr.slice(0, -1);
+    else if (k === ".") { if (!amountStr.includes(".")) amountStr = (amountStr || "0") + "."; }
+    else {
+      if (amountStr.includes(".") && amountStr.split(".")[1].length >= 2) return;
+      if (amountStr === "0") amountStr = "";
+      if (amountStr.replace(".", "").length >= 7) return;
+      amountStr += k;
+    }
+    renderAmount();
+  });
+  async function sendCharge(amount, concept) {
+    const body = { amount, concept: (concept || "Venta").trim() };
+    const exp = prefs().expiration; if (exp !== null && exp !== "") body.expiration = Number(exp);
+    current = await api("/api/charges", { method: "POST", body: JSON.stringify(body) });
+    renderCharge(); go("charge");
+  }
+  $("chargeBtn").onclick = async () => {
+    $("chargeBtn").disabled = true; $("chargeBtn").textContent = "Generando…";
+    try { await sendCharge(parseFloat(amountStr), $("concept").value); amountStr = ""; $("concept").value = ""; }
+    catch (e) { toast("No se pudo crear: " + e.message, 6000); }
+    finally { $("chargeBtn").textContent = "Generar QR"; renderAmount(); }
+  };
+
+  // QR con monto: se muestra aquí, en el celular, y espera el pago
+  function renderCharge() {
+    clearInterval(expTimer);
+    const form = $("chargeForm"), box = $("chargeQr");
+    if (!current) { form.style.display = ""; box.style.display = "none"; box.innerHTML = ""; return; }
+    form.style.display = "none"; box.style.display = "";
+    const p = current.payment;
+    if (p) {
+      box.innerHTML = `
+        <div class="qrcard paid ${p.simulated ? "sim" : ""}">
+          <div class="check">✓</div>
+          <div class="lbl">Pagado</div>
+          <div class="amt">${money(p.amount)}</div>
+          <div class="cpt">${esc(current.concept)} · ${hhmm(p.datePaid)}</div>
+          <div class="ver">${p.simulated ? "◆ Simulación" : "🔒 Verificado por pey"}</div>
+        </div>
+        <button class="primary" id="newCharge">Nuevo cobro</button>`;
+      $("newCharge").onclick = () => { current = null; renderCharge(); };
+      return;
+    }
+    box.innerHTML = `
+      <div class="qrcard">
+        <div class="lbl">Total a pagar</div>
+        <div class="amt">${money(current.amount)}</div>
+        <div class="cpt">${esc(current.concept)}</div>
+        <div class="qr">${current.qrSvg}</div>
+        <div class="wait"><span class="spinner"></span><span id="waitTxt">Esperando pago</span></div>
+      </div>
+      <button class="ghost" id="cancelCharge">Cancelar</button>`;
+    $("cancelCharge").onclick = () => { current = null; renderCharge(); };
+    if (current.expiration > 0) {
+      const end = (current.createdAt + current.expiration) * 1000;
+      const tick = () => {
+        const left = Math.max(0, Math.round((end - Date.now()) / 1000)), el = $("waitTxt"); if (!el) return;
+        el.textContent = left > 0 ? `Esperando pago · ${Math.floor(left / 60)}:${String(left % 60).padStart(2, "0")}` : "QR expirado";
+      };
+      tick(); expTimer = setInterval(tick, 1000);
+    }
+  }
+
+  // ---------- pey ----------
+  function addMsg(who, text) {
+    const m = document.createElement("div"); m.className = "msg " + who; m.textContent = text;
+    $("chat").appendChild(m); m.scrollIntoView({ block: "end", behavior: "smooth" }); return m;
+  }
+  async function ask(text) {
+    if (!text.trim()) return;
+    addMsg("me", text); const m = addMsg("pey", "…");
+    try {
+      const d = await Bocina.askAssistant(text);
+      if (d.intent === "charge" && d.amount) {
+        m.textContent = `Listo, generé un QR de ${money(d.amount)} (${d.concept}). Muéstraselo a tu cliente.`;
+        await sendCharge(d.amount, d.concept);
+      } else {
+        m.textContent = d.answer || "No te entendí.";
+        if (prefs().cajaSound && d.answer) Voice.enqueue({ text: d.answer, gap: 200 });
+      }
+    } catch (e) { m.textContent = "Error: " + e.message; }
+  }
+  $("askInput").addEventListener("keydown", (e) => { if (e.key === "Enter") { ask(e.target.value); e.target.value = ""; } });
+  $("chips").addEventListener("click", (e) => { const c = e.target.closest(".chip"); if (c) ask(c.textContent); });
+  let rec = null;
+  $("askMic").onclick = () => {
+    if (rec) { rec.stop(); return; }
+    rec = Bocina.dictate({
+      onStart: () => $("askMic").classList.add("listening"),
+      onPartial: (t) => { $("askInput").value = t; },
+      onEnd: () => { rec = null; $("askMic").classList.remove("listening"); },
+      onError: (e) => toast("No te escuché (" + e + ")"),
+      onFinal: (t) => { $("askInput").value = ""; ask(t); },
+    });
+  };
+
+  // ---------- eventos ----------
+  Bocina.connect({
+    hello: () => loadPayments(),
+    payment: (p) => {
+      loadPayments();
+      if (current && !current.payment && p.chargeId === current.id) { current.payment = p; renderCharge(); go("charge"); }
+      toast(`${p.simulated ? "Simulado · " : "✓ "}${money(p.amount)} recibido`, 3500);
+      if (navigator.vibrate) navigator.vibrate(60);
+      if (prefs().cajaSound) Voice.enqueue({ text: p.speech, chime: true, gap: 700 });
+    },
+    fixed: () => loadFixed(),
+  });
+  async function loadFixed() {
+    try { fixed = (await api("/api/fixed-qr")).fixed; } catch {}
+    if (fixed) { $("bizName").value = fixed.name; $("bizLabel").textContent = fixed.name + " · hoy"; }
+  }
+
+  // ---------- PIN de ajustes ----------
+  let settingsOpen = false;
+  function gateSettings() {
+    const need = Bocina.status.pinRequired && !settingsOpen;
+    $("pinGate").style.display = need ? "" : "none";
+    $("settingsBody").style.display = need ? "none" : "";
+    if (need) setTimeout(() => $("pinInput").focus(), 50);
+  }
+  async function tryPin() {
+    const pin = $("pinInput").value.trim(); if (!pin) return;
+    $("pinErr").textContent = ""; $("pinBtn").disabled = true;
+    try {
+      await api("/api/admin/check", { method: "POST", body: JSON.stringify({ pin }) });
+      Bocina.setPin(pin); settingsOpen = true; $("pinInput").value = ""; gateSettings();
+    } catch { $("pinErr").textContent = "PIN incorrecto"; }
+    finally { $("pinBtn").disabled = false; }
+  }
+  $("pinBtn").onclick = tryPin;
+  $("pinInput").addEventListener("keydown", (e) => { if (e.key === "Enter") tryPin(); });
+
+  // ---------- ajustes ----------
+  async function initSettings() {
+    const st = await Bocina.loadStatus();
+    const row = (n, ok, h) => `<div class="set-row"><span>${n}</span><span class="${ok ? "ok-t" : "bad-t"}">${ok ? "✓" : "✕ " + h}</span></div>`;
+    $("checks").innerHTML = row("pey", st.pey, "falta API key") + row("Webhook firmado", st.webhookSecret, "falta secreto")
+      + row("ElevenLabs", st.elevenlabs, "opcional") + row("Claude", st.claude, "opcional");
+    $("whUrl").value = location.origin + (st.webhookPath || "/webhooks/pey");
+    $("whWarn").textContent = /localhost|127\.0\.0\.1/.test(location.host) ? "Estás en localhost: en el portal usa tu URL de ngrok + /webhooks/pey." : "";
+    $("simCard").style.display = st.allowSimulation ? "" : "none";
+    const p = prefs();
+    $("voiceMode").value = p.voiceMode; $("cajaSound").checked = !!p.cajaSound;
+    $("expiration").value = p.expiration ?? st.defaultExpiration ?? 0;
+    if (!fixed) $("bizName").value = st.businessName || "";
+    if (st.fixedLocked) {
+      $("newFixed").style.display = "none"; $("bizName").disabled = true;
+      $("fixedNote").textContent = "El QR fijo de tu cuenta está configurado en el servidor.";
+    }
+    // si ya se capturó el PIN en esta sesión, Ajustes queda abierto
+    if (st.pinRequired && Bocina.getPin()) {
+      try { await api("/api/admin/check", { method: "POST", body: JSON.stringify({ pin: Bocina.getPin() }) }); settingsOpen = true; }
+      catch { Bocina.setPin(""); }
+    }
+  }
+  $("voiceMode").onchange = (e) => setPref("voiceMode", e.target.value);
+  $("cajaSound").onchange = (e) => setPref("cajaSound", e.target.checked);
+  $("expiration").onchange = (e) => setPref("expiration", e.target.value === "" ? 0 : Number(e.target.value));
+  $("testVoice").onclick = () => Voice.enqueue({ text: "Recibiste 100 pesos", chime: true });
+  $("copyWh").onclick = async () => { try { await navigator.clipboard.writeText($("whUrl").value); toast("URL copiada"); } catch { $("whUrl").select(); } };
+  $("newFixed").onclick = async () => {
+    try { fixed = (await api("/api/fixed-qr", { method: "POST", body: JSON.stringify({ name: $("bizName").value.trim() }) })).fixed; loadFixed(); toast("QR fijo actualizado"); }
+    catch (e) { toast("No se pudo crear: " + e.message, 6000); }
+  };
+  $("printFixed").onclick = () => {
+    if (!fixed) { toast("Primero crea tu QR fijo"); return; }
+    const w = window.open("", "_blank", "width=600,height=800"); if (!w) { toast("Permite ventanas emergentes"); return; }
+    w.document.write(`<!DOCTYPE html><html><head><title>${esc(fixed.name)}</title><style>
+      body{font-family:system-ui,sans-serif;text-align:center;padding:40px} h1{font-size:34px;margin:0 0 6px} p{font-size:18px;color:#444;margin:0 0 24px}
+      .qr{width:420px;margin:0 auto} .qr svg{width:100%;height:auto} .f{margin-top:18px;color:#555}</style></head>
+      <body><h1>${esc(fixed.name)}</h1><p>Paga aquí con CoDi desde tu app bancaria</p><div class="qr">${fixed.qrSvg}</div>
+      <div class="f">Escanea · pon el monto · listo</div><script>setTimeout(()=>print(),300)<\/script></body></html>`);
+    w.document.close();
+  };
+  async function simulate(n) {
+    if (!fixed) { toast("Primero crea tu QR fijo"); return; }
+    const amt = parseFloat($("simAmount").value);
+    for (let i = 0; i < n; i++) {
+      api(`/api/dev/simulate/${fixed.id}` + (amt > 0 ? `?amount=${amt}` : ""), { method: "POST" }).catch((e) => toast(e.message));
+      if (n > 1) await Bocina.sleep(150);
+    }
+  }
+  $("simOne").onclick = () => simulate(1);
+  $("simBurst").onclick = () => simulate(3);
+
+  renderAmount(); loadFixed().then(initSettings);
+})();
+</script>
+</body>
+</html>
