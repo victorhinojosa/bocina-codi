@@ -152,14 +152,28 @@
   // ---------- eventos en vivo ----------
   function connect(handlers) {
     const live = $("live");
-    const setLive = (on, txt) => { if (!live) return; live.classList.toggle("on", on); live.querySelector("span").textContent = txt; };
-    const es = new EventSource("/api/events");
-    es.addEventListener("hello", () => { setLive(true, "En vivo"); handlers.hello?.(); });
-    for (const type of ["payment", "fixed"]) {
-      es.addEventListener(type, (ev) => handlers[type]?.(JSON.parse(ev.data)));
+    let es = null, watchdog = null, lastBeat = 0, isOn = false;
+    const setLive = (on, txt) => {
+      if (on !== isOn) { isOn = on; handlers.connection?.(on); }   // la página decide cómo mostrarlo
+      if (!live) return; live.classList.toggle("on", on); live.querySelector("span").textContent = txt;
+    };
+    const beat = () => { lastBeat = Date.now(); };
+    function open() {
+      if (es) es.close();
+      es = new EventSource("/api/events");
+      es.addEventListener("hello", () => { beat(); setLive(true, "En vivo"); handlers.hello?.(); });
+      es.addEventListener("ping", () => { beat(); if (!isOn) setLive(true, "En vivo"); });
+      for (const type of ["payment", "fixed"]) {
+        es.addEventListener(type, (ev) => { beat(); handlers[type]?.(JSON.parse(ev.data)); });
+      }
+      es.onerror = () => setLive(false, "Reconectando…");
     }
-    es.onerror = () => setLive(false, "Reconectando…");
-    return es;
+    open();
+    // el servidor manda un latido cada 15 s; si pasan 35 s sin nada, la conexión murió sin avisar
+    watchdog = setInterval(() => {
+      if (lastBeat && Date.now() - lastBeat > 35000) { setLive(false, "Reconectando…"); lastBeat = Date.now(); open(); }
+    }, 5000);
+    return { close() { clearInterval(watchdog); es?.close(); } };
   }
 
   // ---------- dictado ----------

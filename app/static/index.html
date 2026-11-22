@@ -25,7 +25,19 @@
   .to-caja { font-size: 13px; color: var(--muted); text-decoration: none; padding: 7px 12px; border-radius: 10px; border: 1px solid transparent; }
   .to-caja:hover { border-color: var(--line); background: var(--card); }
 
-  .screen { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px 170px; text-align: center; }
+  .screen { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px 110px; text-align: center; }
+
+  /* bocina 3D */
+  .device { display: none; width: 100%; height: 100%; flex-direction: column; align-items: center; min-height: 0; }
+  .device.on { display: flex; }
+  .stage { position: relative; flex: 1; width: 100%; max-width: 1100px; min-height: 0; touch-action: none; }
+  .stage canvas { display: block; width: 100%; height: 100%; outline: none; }
+  .stage .loading { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); font-size: 14px; pointer-events: none; }
+  .views { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; justify-content: center; }
+  .views button { border: 1px solid var(--line); background: var(--card); color: var(--ink); border-radius: 999px; padding: 8px 14px; font-size: 13px; font-weight: 600; }
+  .views button:hover { border-color: #d9d4c8; background: #fbfaf7; }
+  .views button.on { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .drag-hint { margin-top: 8px; font-size: 12px; color: var(--muted); }
   .biz { font-size: clamp(24px, 4vw, 34px); font-weight: 760; letter-spacing: -.01em; }
   .sub { color: var(--muted); margin: 6px 0 20px; font-size: 16px; }
   .qr { width: min(440px, 78vw, 52vh); background: #fff; padding: 10px; border-radius: 22px; box-shadow: 0 1px 0 var(--line), 0 18px 50px rgba(20,18,25,.08); }
@@ -36,6 +48,9 @@
   @keyframes pulse-dot { 0% { box-shadow: 0 0 0 0 rgba(18,148,90,.5); } 70% { box-shadow: 0 0 0 7px rgba(18,148,90,0); } 100% { box-shadow: 0 0 0 0 rgba(18,148,90,0); } }
   @keyframes blink { 50% { opacity: .25; } }
   .badge.wait { background: var(--warn-bg); color: var(--warn); }
+  .badge.wait i { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+  .badge.bad { background: #fdecea; color: #c4352b; }
+  .badge.bad i { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
   .spinner { width: 13px; height: 13px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .8s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
   .to-pay { font-size: clamp(34px, 6vw, 52px); font-weight: 800; letter-spacing: -.02em; }
@@ -53,25 +68,11 @@
   .paid-screen .queue { position: absolute; top: 22px; right: 22px; background: rgba(0,0,0,.18); padding: 8px 14px; border-radius: 999px; font-weight: 650; font-size: 15px; }
   .paid-screen .mismatch { margin-top: 14px; background: #fff; color: #c4352b; padding: 10px 14px; border-radius: 12px; font-weight: 700; }
 
-  /* botonera física */
+  /* burbuja del asistente */
   .dock { position: fixed; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; align-items: center; padding: 0 20px 26px; z-index: 6; pointer-events: none; }
   .bubble { max-width: 520px; margin-bottom: 14px; pointer-events: auto; }
   .bubble .you { color: var(--muted); font-size: 14px; margin-bottom: 6px; }
   .bubble .pey { background: var(--card); border: 1px solid var(--line); padding: 12px 16px; border-radius: 16px; font-size: 16px; line-height: 1.45; box-shadow: 0 10px 30px rgba(20,18,25,.08); }
-  .keys { pointer-events: auto; display: grid; grid-template-columns: repeat(4, 84px); gap: 18px; }
-  .key { display: flex; flex-direction: column; align-items: center; gap: 9px; }
-  .key button { width: 84px; height: 60px; border: 1px solid var(--line); border-radius: 18px; color: var(--ink); font-size: 22px; font-weight: 600;
-    background: var(--card); box-shadow: 0 1px 2px rgba(20,18,25,.05); transition: background .12s, transform .08s, border-color .12s;
-    display: grid; place-items: center; -webkit-tap-highlight-color: transparent; user-select: none; }
-  .key button:hover { background: #fbfaf7; border-color: #d9d4c8; }
-  .key button:active, .key button.pressed { transform: scale(.96); background: #efece4; }
-  .key.talk button { color: var(--ok); border-color: #cfe9db; background: #f3faf6; }
-  .key.talk button:hover { background: #e7f6ee; }
-  .key.talk button.listening { color: #fff; background: #c4352b; border-color: #c4352b; animation: ring 1.2s infinite; }
-  .key.talk button.thinking { color: var(--muted); background: #efece4; border-color: var(--line); }
-  @keyframes ring { 0% { box-shadow: 0 0 0 0 rgba(196,53,43,.35); } 100% { box-shadow: 0 0 0 14px rgba(196,53,43,0); } }
-  .key span { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
-  @media (max-width: 460px) { .keys { grid-template-columns: repeat(4, 68px); gap: 12px; } .key button { width: 68px; height: 54px; font-size: 20px; } }
 
   /* último pago y volumen */
   .info-screen { position: fixed; inset: 0; background: var(--ink); color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -101,12 +102,25 @@
 
 
 <div class="top">
-  <div class="live" id="live"><i></i><span>Conectando…</span></div>
+  <div></div>
   <a class="to-caja" href="/app">App →</a>
 </div>
 
 <div class="sound-hint" id="soundHint">🔈 Toca la pantalla una vez para activar el sonido</div>
-<div class="screen" id="screen"></div>
+<div class="screen" id="screen">
+  <div id="setup" style="display:none"></div>
+  <div class="device" id="device">
+    <div class="biz" id="bizTitle"></div>
+    <div class="stage" id="stage"><div class="loading" id="stageLoading">Cargando bocina…</div></div>
+    <div class="views">
+      <button id="viewDefault" class="on">Vista 3D</button>
+      <button id="viewQr">Escanear QR</button>
+      <button id="viewBack">Ver botones</button>
+    </div>
+    <div class="badge wait" id="statusBadge"><i></i><span id="statusText">Conectando…</span></div>
+    <div class="drag-hint">Arrastra para girar · Espacio habla · ↑ ↓ volumen · U último pago</div>
+  </div>
+</div>
 <div id="paidLayer"></div>
 
 <div id="infoLayer"></div>
@@ -114,26 +128,33 @@
 
 <div class="dock">
   <div class="bubble" id="bubble"></div>
-  <div class="keys">
-    <div class="key"><button id="volDown" aria-label="Bajar volumen">−</button><span>Vol</span></div>
-    <div class="key"><button id="volUp" aria-label="Subir volumen">+</button><span>Vol</span></div>
-    <div class="key"><button id="lastBtn" aria-label="Último pago">↺</button><span>Último</span></div>
-    <div class="key talk"><button id="mic" aria-label="Hablar con pey">🎙</button><span id="micHint">Hablar</span></div>
-  </div>
 </div>
 
 <script src="/static/common.js"></script>
-<script>
-(() => {
+<script type="importmap">
+{ "imports": {
+  "three": "/static/vendor/three/three.module.min.js",
+  "three/addons/": "/static/vendor/three/addons/"
+} }
+</script>
+<script type="module">
+import * as THREE from "three";
+import { OrbitControls } from "three/addons/OrbitControls.js";
+import { RoomEnvironment } from "three/addons/RoomEnvironment.js";
+import { createSoundbox } from "/static/soundbox-display.js";
+
+{
   const { $, money, hhmm, esc, api, toast, Voice } = Bocina;
   let fixed = null;       // QR fijo
   let bubbleTimer = null;
 
   // ---------- pantalla base: QR fijo o QR con monto ----------
   function renderBase() {
-    const s = $("screen");
+    const setup = $("setup"), device = $("device");
     if (!fixed) {
-      s.innerHTML = `
+      device.classList.remove("on");
+      setup.style.display = "";
+      setup.innerHTML = `
         <div class="setup">
           <div style="font-size:52px">🏪</div>
           <div class="biz" style="margin-top:6px">Crea tu QR fijo</div>
@@ -150,12 +171,147 @@
       };
       return;
     }
-    s.innerHTML = `
-      <div class="biz">${esc(fixed.name)}</div>
-      <div class="sub">Escanea con tu app bancaria y pon el monto</div>
-      <div class="qr">${fixed.qrSvg}</div>
-      <div class="badge listen"><i></i>Escuchando pagos · CoDi</div>`;
+    setup.style.display = "none"; setup.innerHTML = "";
+    device.classList.add("on");
+    $("bizTitle").textContent = fixed.name;
+    Speaker.show(fixed);
   }
+
+  // ---------- bocina 3D ----------
+  const Speaker = (() => {
+    let sb = null, renderer, scene, camera, controls, clock, qrLoaded = null, homeDist = 0.34;
+    const TARGET = new THREE.Vector3(0, 0.05, 0);
+    const HOME_DIR = new THREE.Vector3(0.38, 0.32, 1).normalize();   // 3/4 de frente, un poco desde arriba
+    const BACK_DIR = new THREE.Vector3(-0.25, 0.55, -1).normalize(); // lado del comerciante: pantalla y botones
+    let tween = null;
+
+    function init() {
+      const stage = $("stage");
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.05;
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      stage.appendChild(renderer.domElement);
+
+      scene = new THREE.Scene();
+      const pmrem = new THREE.PMREMGenerator(renderer);
+      scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+      pmrem.dispose();
+      const key = new THREE.DirectionalLight(0xffffff, 1.6);
+      key.position.set(0.35, 0.6, 0.45);
+      key.castShadow = true;
+      key.shadow.mapSize.set(2048, 2048);
+      Object.assign(key.shadow.camera, { left: -0.2, right: 0.2, top: 0.2, bottom: -0.2, near: 0.05, far: 2 });
+      key.shadow.bias = -0.0004; key.shadow.normalBias = 0.002;
+      scene.add(key);
+      // el modelo trae su propia sombra de contacto; no agregamos piso con sombra dura
+
+      camera = new THREE.PerspectiveCamera(30, 1, 0.01, 10);
+      controls = new OrbitControls(camera, renderer.domElement);
+      controls.target.copy(TARGET);
+      controls.enableDamping = true; controls.dampingFactor = 0.08;
+      controls.enablePan = false;
+      controls.minDistance = 0.14; controls.maxDistance = 0.7;
+      controls.maxPolarAngle = Math.PI * 0.53;   // no ver por debajo del piso
+      controls.addEventListener("start", () => setView(null));
+
+      sb = createSoundbox(THREE, { businessName: fixed ? fixed.name : "Mi negocio" });
+      scene.add(sb.group);
+      sb.enableInteraction(renderer.domElement, camera);
+      sb.onButton(onDeviceButton);
+      sb.setVolume(Math.round(Bocina.volume() * 10));
+
+      // el módulo detiene el evento en los botones 3D: desbloqueamos el audio antes, en captura
+      window.addEventListener("pointerdown", () => Bocina.unlockAudio(), { capture: true });
+
+      new ResizeObserver(resize).observe(stage);
+      resize();
+      camera.position.copy(TARGET).addScaledVector(HOME_DIR, homeDist);
+      camera.lookAt(TARGET);
+      clock = new THREE.Clock();
+      renderer.setAnimationLoop(frame);
+      $("stageLoading").remove();
+    }
+
+    function resize() {
+      const st = $("stage"), w = st.clientWidth || 1, h = st.clientHeight || 1;
+      renderer.setSize(w, h, false);
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      // distancia para que el aparato (~16 cm con margen) quepa en la vista
+      const half = THREE.MathUtils.degToRad(camera.fov / 2);
+      homeDist = Math.max(0.17 / 2 / Math.tan(half), 0.19 / 2 / (Math.tan(half) * camera.aspect));
+      controls.maxDistance = Math.max(0.7, homeDist * 1.6);
+    }
+
+    function frame() {
+      const dt = clock.getDelta();
+      if (tween) stepTween(dt);
+      controls.update();
+      sb.update(dt);
+      renderer.render(scene, camera);
+    }
+
+    // vuelo de cámara propio (vista 3D y botones); el QR usa focusQR del módulo
+    function flyTo(dir, dist) {
+      const startOffset = camera.position.clone().sub(controls.target);
+      tween = { t: 0, d: 0.85, startTarget: controls.target.clone(), startOffset, endOffset: dir.clone().multiplyScalar(dist) };
+      controls.enabled = false;
+    }
+    const ease = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
+    const _q = new THREE.Quaternion(), _qi = new THREE.Quaternion(), _a = new THREE.Vector3(), _b = new THREE.Vector3();
+    function stepTween(dt) {
+      tween.t += dt;
+      const k = ease(Math.min(1, tween.t / tween.d));
+      controls.target.lerpVectors(tween.startTarget, TARGET, k);
+      _a.copy(tween.startOffset).normalize(); _b.copy(tween.endOffset).normalize();
+      _q.setFromUnitVectors(_a, _b); _qi.identity().slerp(_q, k);
+      const len = THREE.MathUtils.lerp(tween.startOffset.length(), tween.endOffset.length(), k);
+      camera.position.copy(controls.target).add(_a.applyQuaternion(_qi).multiplyScalar(len));
+      camera.lookAt(controls.target);
+      if (k >= 1) { tween = null; controls.enabled = true; }
+    }
+
+    function setView(name) {
+      ["viewDefault", "viewQr", "viewBack"].forEach((id) => $(id).classList.toggle("on", id === name));
+    }
+    function home() { setView("viewDefault"); flyTo(HOME_DIR, homeDist); }
+    function back() { setView("viewBack"); flyTo(BACK_DIR, homeDist * 0.95); }
+    function scanQr() { tween = null; setView("viewQr"); sb.focusQR(camera, controls, { fill: 0.5 }); }
+
+    function onDeviceButton(name) {
+      if (name === "vol-") changeVolume(-0.1);
+      else if (name === "vol+") changeVolume(+0.1);
+      else if (name === "last") lastPayment();
+      else if (name === "talk") listen();
+    }
+
+    return {
+      show(f) {
+        if (!sb) init();
+        sb.setBusinessName(f.name);
+        syncStatus();
+        if (qrLoaded !== f.qrSvg) {
+          qrLoaded = f.qrSvg;
+          // el SVG del servidor es "inline" (sin xmlns); como imagen independiente lo necesita
+          const svg = /xmlns=/.test(f.qrSvg) ? f.qrSvg : f.qrSvg.replace("<svg", '<svg xmlns="http://www.w3.org/2000/svg"');
+          sb.setQR(svg).catch((e) => console.error(e));
+        }
+      },
+      press(name) { if (sb) sb.pressButton(name); else onDeviceButton(name); },
+      payment(p) { if (sb) sb.showPayment({ amount: p.amount, label: p.simulated ? "Simulación" : p.kind === "amount" ? p.concept : "QR fijo" }); },
+      volume(v) { if (sb) sb.setVolume(Math.round(v * 10)); },
+      led(state) { if (sb) sb.setLed(state); },
+      status(s) { if (sb) sb.setStatus({ text: s.short, ok: s.ok }); },
+      home, back, scanQr,
+    };
+  })();
+  $("viewDefault").onclick = () => Speaker.home();
+  $("viewQr").onclick = () => Speaker.scanQr();
+  $("viewBack").onclick = () => Speaker.back();
 
   // ---------- momento del pago (lo controla la cola de voz) ----------
   function showPaid(p, rest) {
@@ -170,7 +326,30 @@
         <div class="meta">${hhmm(p.datePaid)} · ${p.kind === "amount" ? esc(p.concept) : "QR fijo"}</div>
       </div>`;
   }
+  let listening = false;
+  // ---------- estado real: configuración del servidor + conexión en vivo ----------
+  let connected = false;
+  function currentStatus() {
+    const st = Bocina.status || {};
+    if (st.pey === false) return { ok: false, level: "bad", text: "Falta la llave de pey", short: "Falta configurar" };
+    if (st.webhookSecret === false) return { ok: false, level: "bad", text: "Falta el secreto del webhook", short: "Falta configurar" };
+    if (!connected) return { ok: false, level: "wait", text: "Reconectando con el servidor…", short: "Sin conexión" };
+    return { ok: true, level: "listen", text: "Escuchando pagos · CoDi", short: "Escuchando pagos" };
+  }
+  function syncStatus() {
+    const s = currentStatus();
+    const b = $("statusBadge");
+    b.className = "badge " + s.level;
+    $("statusText").textContent = s.text;
+    Speaker.status(s);
+    syncLed();
+  }
+  function syncLed() {
+    if (!currentStatus().ok) { Speaker.led("error"); return; }
+    Speaker.led(listening ? "listening" : Voice.busy ? "talking" : "idle");
+  }
   Voice.onChange((pending) => {
+    syncLed();
     const b = $("queueBadge"); if (!b) return;
     b.style.display = pending > 0 ? "" : "none"; b.textContent = `+${pending} en fila`;
   });
@@ -181,10 +360,11 @@
 
   // ---------- eventos ----------
   Bocina.connect({
-    hello: async () => { await loadFixed(); renderBase(); },
+    hello: async () => { await Promise.all([loadFixed(), Bocina.loadStatus()]); renderBase(); syncStatus(); },
+    connection: (on) => { connected = on; if ($("statusBadge")) syncStatus(); },
     payment: (p) => {
       // cada pago entra a la fila; se anuncia completo y en orden
-      Voice.enqueue({ text: p.speech, chime: true, gap: 700, onStart: (rest) => { clearInfo(); showPaid(p, rest); } });
+      Voice.enqueue({ text: p.speech, chime: true, gap: 700, onStart: (rest) => { clearInfo(); showPaid(p, rest); Speaker.payment(p); } });
     },
     fixed: async () => { await loadFixed(); renderBase(); },
   });
@@ -197,8 +377,8 @@
     if (ms) bubbleTimer = setTimeout(() => { $("bubble").innerHTML = ""; }, ms);
   }
   function micState(s) {
-    const m = $("mic"); m.classList.remove("listening", "thinking"); if (s) m.classList.add(s);
-    $("micHint").textContent = s === "listening" ? "Escucho" : s === "thinking" ? "Pienso" : "Hablar";
+    listening = s === "listening";
+    syncLed();
   }
   let rec = null;
   function listen() {
@@ -226,7 +406,6 @@
       },
     });
   }
-  $("mic").onclick = listen;
 
   // ---------- botón: último pago ----------
   let infoTimer = null;
@@ -247,7 +426,6 @@
       });
     } catch (e) { toast(e.message); }
   }
-  $("lastBtn").onclick = lastPayment;
 
   // ---------- botones: volumen ----------
   let volTimer = null;
@@ -258,24 +436,21 @@
     $("volIcon").textContent = n === 0 ? "🔇" : n < 5 ? "🔉" : "🔊";
     $("vol").classList.add("show"); clearTimeout(volTimer); volTimer = setTimeout(() => $("vol").classList.remove("show"), 1400);
   }
-  function changeVolume(delta) { Bocina.setVolume(Bocina.volume() + delta); showVolume(); if (!Voice.busy) Bocina.chime(); }
-  $("volUp").onclick = () => changeVolume(+0.1);
-  $("volDown").onclick = () => changeVolume(-0.1);
+  function changeVolume(delta) { Bocina.setVolume(Bocina.volume() + delta); showVolume(); Speaker.volume(Bocina.volume()); if (!Voice.busy) Bocina.chime(); }
 
-  // teclado: espacio = hablar, ↑/↓ = volumen, U = último pago
-  function press(id) { const b = $(id); b.classList.add("pressed"); setTimeout(() => b.classList.remove("pressed"), 140); }
+  // teclado: espacio = hablar, ↑/↓ = volumen, U = último pago (presiona el botón del aparato)
   document.addEventListener("keydown", (e) => {
     if (["INPUT", "TEXTAREA", "SELECT"].includes(e.target.tagName) || e.repeat) return;
-    if (e.code === "Space") { e.preventDefault(); press("mic"); listen(); }
-    else if (e.key === "ArrowUp" || e.key === "+") { e.preventDefault(); press("volUp"); changeVolume(+0.1); }
-    else if (e.key === "ArrowDown" || e.key === "-") { e.preventDefault(); press("volDown"); changeVolume(-0.1); }
-    else if (e.key.toLowerCase() === "u") { press("lastBtn"); lastPayment(); }
+    if (e.code === "Space") { e.preventDefault(); Speaker.press("talk"); }
+    else if (e.key === "ArrowUp" || e.key === "+") { e.preventDefault(); Speaker.press("vol+"); }
+    else if (e.key === "ArrowDown" || e.key === "-") { e.preventDefault(); Speaker.press("vol-"); }
+    else if (e.key.toLowerCase() === "u") { Speaker.press("last"); }
   });
 
   // ---------- arranque ----------
   Bocina.onSoundChange((ok) => $("soundHint").classList.toggle("show", !ok));
   Bocina.loadStatus().then(renderBase);
-})();
+}
 </script>
 </body>
 </html>

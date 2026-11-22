@@ -76,6 +76,19 @@ log = logging.getLogger("bocina")
 
 app = FastAPI(title="Bocina CoDi")
 
+# Las páginas se revalidan en cada carga para que nadie vea una versión vieja en caché
+NO_CACHE = {"Cache-Control": "no-cache"}
+
+
+@app.middleware("http")
+async def revalidate_static(request: Request, call_next):
+    """Los JS/CSS propios se revalidan (304 si no cambiaron); three.js sí se cachea."""
+    response = await call_next(request)
+    path = request.url.path
+    if path.startswith("/static/") and not path.startswith("/static/vendor/"):
+        response.headers["Cache-Control"] = "no-cache"
+    return response
+
 
 # ---------------------------------------------------------------------------
 # Base de datos
@@ -526,7 +539,7 @@ async def events(request: Request) -> StreamingResponse:
                     event = await asyncio.wait_for(q.get(), timeout=15)
                     yield f"event: {event['type']}\ndata: {json.dumps(event, ensure_ascii=False)}\n\n"
                 except asyncio.TimeoutError:
-                    yield ": ping\n\n"
+                    yield "event: ping\ndata: {}\n\n"  # latido: la página detecta si se cae la conexión
         finally:
             bus.unsubscribe(q)
 
@@ -695,14 +708,14 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 @app.get("/")
 async def mostrador() -> FileResponse:
     """La bocina: solo el QR y el botón de voz."""
-    return FileResponse(STATIC_DIR / "index.html")
+    return FileResponse(STATIC_DIR / "index.html", headers=NO_CACHE)
 
 
 @app.get("/app")
 @app.get("/caja", include_in_schema=False)
 async def owner_app() -> FileResponse:
     """La App del dueño (pensada para celular): pagos del día, cobro con monto, asistente y ajustes."""
-    return FileResponse(STATIC_DIR / "app.html")
+    return FileResponse(STATIC_DIR / "app.html", headers=NO_CACHE)
 
 
 @app.get("/api/qr.svg", include_in_schema=False)
