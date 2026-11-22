@@ -38,6 +38,18 @@
   .views button:hover { border-color: #d9d4c8; background: #fbfaf7; }
   .views button.on { background: var(--ink); color: #fff; border-color: var(--ink); }
   .drag-hint { margin-top: 8px; font-size: 12px; color: var(--muted); }
+
+  /* log de eventos reales (pagos verificados y conexión) */
+  .paylog { margin-top: 12px; width: min(560px, 100%); font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 12px;
+    color: var(--muted); text-align: left; min-height: 18px; }
+  .paylog .row { display: flex; gap: 10px; padding: 3px 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; animation: logIn .35s ease-out; }
+  .paylog .row:not(:first-child) { opacity: .62; }
+  .paylog .t { color: #a19ea7; flex-shrink: 0; }
+  .paylog .ok { color: var(--ok); font-weight: 650; }
+  .paylog .sim { color: var(--sim); font-weight: 650; }
+  .paylog .warn { color: var(--warn); font-weight: 650; }
+  .paylog .muted { overflow: hidden; text-overflow: ellipsis; }
+  @keyframes logIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
   .biz { font-size: clamp(24px, 4vw, 34px); font-weight: 760; letter-spacing: -.01em; }
   .sub { color: var(--muted); margin: 6px 0 20px; font-size: 16px; }
   .qr { width: min(440px, 78vw, 52vh); background: #fff; padding: 10px; border-radius: 22px; box-shadow: 0 1px 0 var(--line), 0 18px 50px rgba(20,18,25,.08); }
@@ -57,16 +69,6 @@
   .x { margin-top: 12px; border: 1px solid var(--line); background: transparent; color: var(--muted); border-radius: 12px; padding: 8px 14px; font-size: 14px; }
 
   /* momento del pago */
-  .paid-screen { position: fixed; inset: 0; background: var(--ok); color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center;
-    text-align: center; z-index: 5; animation: in .25s ease-out; padding: 20px 20px 150px; }
-  .paid-screen.sim { background: var(--sim); }
-  @keyframes in { from { opacity: 0; transform: scale(1.03); } to { opacity: 1; transform: none; } }
-  .paid-screen .check { width: 96px; height: 96px; border-radius: 50%; background: rgba(255,255,255,.18); display: grid; place-items: center; font-size: 52px; margin-bottom: 18px; }
-  .paid-screen .amt { font-size: clamp(64px, 13vw, 140px); font-weight: 850; letter-spacing: -.03em; line-height: 1; }
-  .paid-screen .lbl { margin-top: 16px; font-size: 18px; font-weight: 650; background: rgba(255,255,255,.16); padding: 9px 16px; border-radius: 999px; }
-  .paid-screen .meta { margin-top: 14px; opacity: .85; font-size: 15px; }
-  .paid-screen .queue { position: absolute; top: 22px; right: 22px; background: rgba(0,0,0,.18); padding: 8px 14px; border-radius: 999px; font-weight: 650; font-size: 15px; }
-  .paid-screen .mismatch { margin-top: 14px; background: #fff; color: #c4352b; padding: 10px 14px; border-radius: 12px; font-weight: 700; }
 
   /* burbuja del asistente */
   .dock { position: fixed; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; align-items: center; padding: 0 20px 26px; z-index: 6; pointer-events: none; }
@@ -75,11 +77,6 @@
   .bubble .pey { background: var(--card); border: 1px solid var(--line); padding: 12px 16px; border-radius: 16px; font-size: 16px; line-height: 1.45; box-shadow: 0 10px 30px rgba(20,18,25,.08); }
 
   /* último pago y volumen */
-  .info-screen { position: fixed; inset: 0; background: var(--ink); color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center;
-    text-align: center; z-index: 4; animation: in .2s ease-out; padding: 20px 20px 150px; }
-  .info-screen .k { font-size: 14px; letter-spacing: .14em; text-transform: uppercase; color: #a3a1aa; }
-  .info-screen .v { font-size: clamp(56px, 11vw, 120px); font-weight: 850; letter-spacing: -.03em; margin: 8px 0; line-height: 1; }
-  .info-screen .s { color: #c9c7cf; font-size: 16px; }
   .vol { position: fixed; top: 58px; left: 50%; transform: translateX(-50%); background: rgba(23,22,26,.92); color: #fff; z-index: 8; border-radius: 14px;
     padding: 10px 14px; display: none; align-items: center; gap: 10px; font-size: 13px; font-weight: 650; }
   .vol.show { display: flex; }
@@ -118,12 +115,11 @@
       <button id="viewBack">Ver botones</button>
     </div>
     <div class="badge wait" id="statusBadge"><i></i><span id="statusText">Conectando…</span></div>
-    <div class="drag-hint">Arrastra para girar · Espacio habla · ↑ ↓ volumen · U último pago</div>
+    <div class="paylog" id="paylog" aria-live="polite"></div>
+    <div class="drag-hint">Arrastra para girar · ↑ ↓ volumen · U último pago</div>
   </div>
 </div>
-<div id="paidLayer"></div>
 
-<div id="infoLayer"></div>
 <div class="vol" id="vol"><span id="volIcon">🔊</span><div class="bars" id="volBars"></div><span id="volPct"></span></div>
 
 <div class="dock">
@@ -251,6 +247,7 @@ import { createSoundbox } from "/static/soundbox-display.js";
       const dt = clock.getDelta();
       if (tween) stepTween(dt);
       controls.update();
+      sb.setSpeaking(Voice.busy);   // la rejilla late mientras suena la voz
       sb.update(dt);
       renderer.render(scene, camera);
     }
@@ -286,7 +283,6 @@ import { createSoundbox } from "/static/soundbox-display.js";
       if (name === "vol-") changeVolume(-0.1);
       else if (name === "vol+") changeVolume(+0.1);
       else if (name === "last") lastPayment();
-      else if (name === "talk") listen();
     }
 
     return {
@@ -305,6 +301,7 @@ import { createSoundbox } from "/static/soundbox-display.js";
       payment(p) { if (sb) sb.showPayment({ amount: p.amount, label: p.simulated ? "Simulación" : p.kind === "amount" ? p.concept : "QR fijo" }); },
       volume(v) { if (sb) sb.setVolume(Math.round(v * 10)); },
       led(state) { if (sb) sb.setLed(state); },
+      bump() { if (sb) sb.bump(); },
       status(s) { if (sb) sb.setStatus({ text: s.short, ok: s.ok }); },
       home, back, scanQr,
     };
@@ -313,22 +310,28 @@ import { createSoundbox } from "/static/soundbox-display.js";
   $("viewQr").onclick = () => Speaker.scanQr();
   $("viewBack").onclick = () => Speaker.back();
 
-  // ---------- momento del pago (lo controla la cola de voz) ----------
-  function showPaid(p, rest) {
-    const mismatch = p.expectedAmount != null && Math.abs(p.expectedAmount - p.amount) > 0.001;
-    $("paidLayer").innerHTML = `
-      <div class="paid-screen ${p.simulated ? "sim" : ""}">
-        ${rest > 0 ? `<div class="queue" id="queueBadge">+${rest} en fila</div>` : `<div class="queue" id="queueBadge" style="display:none"></div>`}
-        <div class="check">✓</div>
-        <div class="amt">${money(p.amount)}</div>
-        <div class="lbl">${p.simulated ? "◆ Simulación — no es un pago real" : "🔒 Pago verificado por pey"}</div>
-        ${mismatch ? `<div class="mismatch">Se cobraron ${money(p.expectedAmount)} y llegaron ${money(p.amount)}</div>` : ""}
-        <div class="meta">${hhmm(p.datePaid)} · ${p.kind === "amount" ? esc(p.concept) : "QR fijo"}</div>
-      </div>`;
+  // ---------- log de eventos reales ----------
+  const LOG_MAX = 5;
+  function logEvent(kind, text, detail = "") {
+    const box = $("paylog"); if (!box) return;
+    const t = new Date().toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false });
+    const icon = { ok: "✓", sim: "◆", warn: "●", info: "●" }[kind] || "●";
+    const row = document.createElement("div");
+    row.className = "row";
+    row.innerHTML = `<span class="t">${t}</span><span class="${kind === "info" ? "ok" : kind}">${icon} ${esc(text)}</span>${detail ? `<span class="muted">${esc(detail)}</span>` : ""}`;
+    box.prepend(row);
+    while (box.children.length > LOG_MAX) box.lastChild.remove();
   }
-  let listening = false;
+  function logPayment(p) {
+    const where = p.kind === "amount" ? p.concept || "Cobro con monto" : p.kind === "fixed" ? "QR fijo" : "QR externo";
+    const tx = p.transactionId ? `tx ${String(p.transactionId).slice(0, 10)}…` : "";
+    const mismatch = p.expectedAmount != null && Math.abs(p.expectedAmount - p.amount) > 0.001 ? ` · se cobraron ${money(p.expectedAmount)}` : "";
+    if (p.simulated) logEvent("sim", `Simulación · ${money(p.amount)}`, `${where} · no es un pago real`);
+    else logEvent("ok", `Pago verificado por pey · ${money(p.amount)}`, `${where}${mismatch} · ${tx}`);
+  }
+
   // ---------- estado real: configuración del servidor + conexión en vivo ----------
-  let connected = false;
+  let connected = false, wasEverConnected = false;
   function currentStatus() {
     const st = Bocina.status || {};
     if (st.pey === false) return { ok: false, level: "bad", text: "Falta la llave de pey", short: "Falta configurar" };
@@ -346,84 +349,43 @@ import { createSoundbox } from "/static/soundbox-display.js";
   }
   function syncLed() {
     if (!currentStatus().ok) { Speaker.led("error"); return; }
-    Speaker.led(listening ? "listening" : Voice.busy ? "talking" : "idle");
+    Speaker.led(Voice.busy ? "talking" : "idle");
   }
-  Voice.onChange((pending) => {
-    syncLed();
-    const b = $("queueBadge"); if (!b) return;
-    b.style.display = pending > 0 ? "" : "none"; b.textContent = `+${pending} en fila`;
-  });
-  Voice.onIdle(() => {
-    // al terminar la fila, regresamos a la pantalla base
-    setTimeout(() => { if (!Voice.busy) $("paidLayer").innerHTML = ""; }, 900);
-  });
+  Voice.onChange(() => syncLed());
 
   // ---------- eventos ----------
   Bocina.connect({
     hello: async () => { await Promise.all([loadFixed(), Bocina.loadStatus()]); renderBase(); syncStatus(); },
-    connection: (on) => { connected = on; if ($("statusBadge")) syncStatus(); },
+    connection: (on) => {
+      const was = connected;
+      connected = on;
+      if ($("statusBadge")) syncStatus();
+      if (on && !was) logEvent("info", "Conectado · escuchando pagos", wasEverConnected ? "conexión restablecida" : "");
+      if (!on && was) { logEvent("warn", "Sin conexión con el servidor", "reintentando…"); Voice.enqueue({ text: "Sin conexión", gap: 200 }); }
+      if (on) wasEverConnected = true;
+    },
     payment: (p) => {
       // cada pago entra a la fila; se anuncia completo y en orden
-      Voice.enqueue({ text: p.speech, chime: true, gap: 700, onStart: (rest) => { clearInfo(); showPaid(p, rest); Speaker.payment(p); } });
+      logPayment(p);   // el log se escribe al llegar (aunque la voz esté en fila)
+      Voice.enqueue({ text: p.speech, chime: true, gap: 700, onStart: () => { Speaker.payment(p); Speaker.bump(); } });
     },
     fixed: async () => { await loadFixed(); renderBase(); },
   });
   async function loadFixed() { try { fixed = (await api("/api/fixed-qr")).fixed; } catch {} }
 
-  // ---------- asistente de voz ----------
+  // ---------- burbuja de texto (último pago) ----------
   function showBubble(you, pey, ms = 7000) {
     clearTimeout(bubbleTimer);
     $("bubble").innerHTML = (you ? `<div class="you">"${esc(you)}"</div>` : "") + (pey ? `<div class="pey">${esc(pey)}</div>` : "");
     if (ms) bubbleTimer = setTimeout(() => { $("bubble").innerHTML = ""; }, ms);
   }
-  function micState(s) {
-    listening = s === "listening";
-    syncLed();
-  }
-  let rec = null;
-  function listen() {
-    if (rec) { rec.stop(); return; }
-    rec = Bocina.dictate({
-      onStart: () => { micState("listening"); showBubble("", "", 0); },
-      onPartial: (t) => showBubble(t, "", 0),
-      onError: (e) => showBubble("", `No te escuché (${e})`),
-      onEnd: () => { rec = null; micState(null); },
-      onFinal: async (text) => {
-        micState("thinking"); showBubble(text, "", 0);
-        try {
-          const d = await Bocina.askAssistant(text);
-          if (d.intent === "charge" && d.amount) {
-            const msg = `Para cobrar ${money(d.amount)} exactos, genera el QR desde la app en tu celular.`;
-            showBubble(text, msg, 9000);
-            Voice.enqueue({ text: "Los cobros con monto se generan desde la app en tu celular.", gap: 200 });
-          } else {
-            const answer = d.answer || "No te entendí, ¿me lo repites?";
-            showBubble(text, answer, 9000);
-            Voice.enqueue({ text: answer, gap: 200 }); // también va a la fila: nunca se encima con un pago
-          }
-        } catch (e) { showBubble(text, "Error: " + e.message); }
-        finally { micState(null); }
-      },
-    });
-  }
-
-  // ---------- botón: último pago ----------
-  let infoTimer = null;
-  function clearInfo() { clearTimeout(infoTimer); $("infoLayer").innerHTML = ""; }
+  // ---------- botón: último pago (voz + burbuja, sin tapar el aparato) ----------
   async function lastPayment() {
     try {
       const d = await api("/api/last-payment");
-      Voice.enqueue({
-        text: d.speech, gap: 300,
-        onStart: () => {
-          const p = d.payment;
-          $("infoLayer").innerHTML = p
-            ? `<div class="info-screen"><div class="k">Último pago</div><div class="v">${money(p.amount)}</div>
-                 <div class="s">${hhmm(p.paidAt)} · ${p.simulated ? "Simulado" : p.kind === "amount" ? esc(p.concept) : "QR fijo"}</div></div>`
-            : `<div class="info-screen"><div class="k">Último pago</div><div class="s" style="margin-top:12px">Todavía no hay pagos</div></div>`;
-        },
-        onEnd: () => { infoTimer = setTimeout(clearInfo, 1500); },
-      });
+      const p = d.payment;
+      const msg = p ? `Último pago: ${money(p.amount)} · ${hhmm(p.paidAt)}${p.simulated ? " · simulación" : ""}` : "Todavía no hay pagos";
+      Voice.enqueue({ text: d.speech, gap: 300, onStart: () => showBubble("", msg, 6000) });
     } catch (e) { toast(e.message); }
   }
 
@@ -438,11 +400,10 @@ import { createSoundbox } from "/static/soundbox-display.js";
   }
   function changeVolume(delta) { Bocina.setVolume(Bocina.volume() + delta); showVolume(); Speaker.volume(Bocina.volume()); if (!Voice.busy) Bocina.chime(); }
 
-  // teclado: espacio = hablar, ↑/↓ = volumen, U = último pago (presiona el botón del aparato)
+  // teclado: ↑/↓ = volumen, U = último pago (presiona el botón del aparato)
   document.addEventListener("keydown", (e) => {
     if (["INPUT", "TEXTAREA", "SELECT"].includes(e.target.tagName) || e.repeat) return;
-    if (e.code === "Space") { e.preventDefault(); Speaker.press("talk"); }
-    else if (e.key === "ArrowUp" || e.key === "+") { e.preventDefault(); Speaker.press("vol+"); }
+    if (e.key === "ArrowUp" || e.key === "+") { e.preventDefault(); Speaker.press("vol+"); }
     else if (e.key === "ArrowDown" || e.key === "-") { e.preventDefault(); Speaker.press("vol-"); }
     else if (e.key.toLowerCase() === "u") { Speaker.press("last"); }
   });

@@ -2,7 +2,7 @@
  * soundbox-display.js — Bocina de pagos para mostrador, variante "display".
  *
  * Cuerpo curvo redondeado; al frente un bisel claro con la tarjeta del QR;
- * atrás pantalla LCD, LED y 4 botones; perforaciones de bocina a los lados.
+ * atrás 3 botones y LED (versión básica, sin pantalla ni micrófono); perforaciones de bocina a los lados.
  *
  * Todo se construye con código: geometrías, materiales y CanvasTexture
  * (los logos pey | CoDi van incrustados como SVG). Sin dependencias aparte
@@ -1056,13 +1056,16 @@ export function createSoundbox(THREE, options = {}) {
   // ── Espalda: pantalla, LED y botones ──
   const back = faceFrame(THREE, BB, BT, 'back');
   group.add(back);
-  const screen = makeScreen(THREE, own, back, -0.003, 0.055, 0.040, 0.030, 480, M);
-  const led = makeLed(THREE, own, back, 0.031, 0.055, glowTex, M);
+  // Versión básica: sin pantalla. El estado se comunica con el LED y la voz.
+  const screen = null;
+  // 3 botones (vol −, vol +, último pago) y el LED en la cuarta posición, alineado con ellos
   const buttons = new Map();
-  [['vol-', -0.027, 0.0055], ['vol+', -0.009, 0.0055], ['last', 0.009, 0.0055], ['talk', 0.027, 0.0066]]
-    .forEach(([name, x, R]) => buttons.set(name, makeButton(THREE, own, back, name, x, 0.024, R, M, name === 'talk')));
+  [['vol-', -0.027, 0.0055], ['vol+', -0.009, 0.0055], ['last', 0.009, 0.0055]]
+    .forEach(([name, x, R]) => buttons.set(name, makeButton(THREE, own, back, name, x, 0.024, R, M, false)));
+  const led = makeLed(THREE, own, back, 0.027, 0.024, glowTex, M);
 
   // ── Costados: perforaciones circulares de la bocina ──
+  const grillePivots = [];
   {
     const zc = -0.0072, yc = 0.050, rad = 0.019;
     const pts = [];
@@ -1079,11 +1082,15 @@ export function createSoundbox(THREE, options = {}) {
       g.position.x = side * (BW / 2 + 0.0001);
       g.rotation.y = side * Math.PI / 2;      // local Z → ±X (hacia afuera)
       group.add(g);
+      // Pivote en el centro de la rejilla: al escalarlo, las perforaciones "laten" sin desplazarse
+      const pivot = new THREE.Group();
+      pivot.position.set(-side * zc, yc, 0);  // en este marco local, X apunta a −Z (lado +) o +Z (lado −)
+      g.add(pivot);
+      grillePivots.push(pivot);
       const holes = new THREE.InstancedMesh(holeGeo, M.hole, pts.length);
       const m4 = new THREE.Matrix4();
-      // En este marco local, X apunta a −Z (lado +) o +Z (lado −)
-      pts.forEach(([u, v], i) => holes.setMatrixAt(i, m4.makeTranslation(-side * zc + u, yc + v, 0)));
-      g.add(holes);
+      pts.forEach(([u, v], i) => holes.setMatrixAt(i, m4.makeTranslation(u, v, 0)));
+      pivot.add(holes);
     }
   }
 
@@ -1098,5 +1105,31 @@ export function createSoundbox(THREE, options = {}) {
 
   loadSvgImage(opts.logoSvg).then((img) => card.setLogo(img)).catch((e) => console.warn('[soundbox]', e.message));
 
-  return createCore(THREE, { group, owned, opts, card, buttons, led, screen });
+  // Animación de sonido: la rejilla late mientras habla y el aparato da un saltito al llegar un pago
+  const fx = { speaking: false, level: 0, phase: 0, bumpT: -1 };
+  const baseY = group.position.y, shadowY = shadow.position.y;
+  function onUpdate(state, dt) {
+    fx.level += ((fx.speaking ? 1 : 0) - fx.level) * Math.min(1, dt * 10);   // entra y sale suave
+    fx.phase += dt;
+    const beat = fx.level * (0.5 + 0.5 * Math.sin(fx.phase * Math.PI * 2 * 5.5)) * (0.75 + 0.25 * Math.sin(fx.phase * 13.1));
+    const k = 1 + 0.06 * beat;
+    for (const p of grillePivots) { p.scale.set(k, k, 1); p.position.z = 0.0003 * beat; }
+    let hop = 0;
+    if (fx.bumpT >= 0) {
+      fx.bumpT += dt;
+      const t = fx.bumpT;
+      if (t < 0.16) hop = 0.0018 * Math.sin(Math.PI * t / 0.16);                 // salto
+      else if (t < 0.28) hop = 0.0005 * Math.sin(Math.PI * (t - 0.16) / 0.12);  // rebote pequeño
+      else fx.bumpT = -1;
+    }
+    group.position.y = baseY + hop;
+    shadow.position.y = shadowY - hop;   // la sombra se queda en el piso
+  }
+
+  const core = createCore(THREE, { group, owned, opts, card, buttons, led, screen, onUpdate });
+  /** true mientras la voz está sonando (la rejilla late). */
+  core.setSpeaking = (on) => { fx.speaking = !!on; };
+  /** Saltito único del aparato (al llegar un pago). */
+  core.bump = () => { fx.bumpT = 0; };
+  return core;
 }
