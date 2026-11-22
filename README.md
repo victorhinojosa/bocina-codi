@@ -37,8 +37,8 @@ Cliente escanea el QR fijo ──► paga desde su app bancaria (CoDi / SPEI)
                                   Server-Sent Events
                          ┌───────────────┴───────────────┐
                          ▼                               ▼
-                 Mostrador: pantalla verde        App: el pago aparece
-                 + "Recibiste 85 pesos"           en las ventas del día
+                 Bocina: "Recibiste 85 pesos"    App: comprobante y
+                 + registro del pago             movimientos al instante
 ```
 
 ## Funcionalidades
@@ -46,14 +46,16 @@ Cliente escanea el QR fijo ──► paga desde su app bancaria (CoDi / SPEI)
 **Mostrador**
 - QR fijo (`amount: 0`, sin expiración): el cliente ingresa el monto al pagar.
 - Anuncio por voz de cada pago, con fila: si llegan varios pagos a la vez se anuncian uno por uno, completos y en orden.
-- Botones de volumen, repetir el último pago y hablar con el asistente (también con teclado: ↑ ↓, U y espacio).
-- Si el monto recibido no coincide con el cobrado, se marca en pantalla.
+- Bocina 3D interactiva: botones de volumen y repetir el último pago (también con teclado: ↑ ↓ y U); el LED indica el estado.
+- Registro en vivo de los pagos verificados por pey y de la conexión; avisa en voz si se pierde la conexión.
 
 **App del dueño**
-- Total y lista de pagos del día en tiempo real.
-- Cobro con monto: genera un QR dinámico que se muestra en el celular y cambia a "Pagado" cuando llega la confirmación.
-- Asistente por texto o voz: "¿Cuánto vendí hoy?", "Últimas 3 transacciones", "Cóbrale 90 de dos tortas".
-- Ajustes protegidos con PIN.
+- Total del día y movimientos de los últimos 30 días, agrupados por día, en tiempo real.
+- Botón "Cobrar": muestra el QR fijo y permite agregar un monto para generar un QR dinámico.
+- Comprobante de "Pago recibido" con el monto en letra en cuanto pey confirma el pago.
+- Búsqueda de pagos y asistente por texto o voz en la misma barra: "¿Cuánto vendí hoy?", "Cóbrale 90 de dos tortas".
+- Perfil con Mi QR para compartir como imagen o imprimir, cuenta de depósito y voz de la bocina.
+- Ajustes avanzados protegidos con PIN.
 - Instalable como app (PWA).
 
 ## Stack
@@ -114,8 +116,9 @@ ngrok http 8000        # o: cloudflared tunnel --url http://localhost:8000
 | `PEY_API_KEY` | Sí | API key de pey |
 | `PEY_WEBHOOK_SECRET` | Sí | Secreto del webhook (`whsec_...`) |
 | `BUSINESS_NAME` | No | Nombre que ve el cliente al pagar |
+| `DEPOSIT_ACCOUNT_LABEL` | No | Cómo se muestra en el perfil la cuenta donde cae el dinero, ej. `BBVA ···· 2702` |
 | `FIXED_QR_ID` / `FIXED_QR_STRING` | No | Amarra el QR fijo a la cuenta; sobrevive reinicios y deploys |
-| `ADMIN_PIN` | Recomendada | PIN para entrar a Ajustes |
+| `ADMIN_PIN` | Recomendada | PIN para entrar a Ajustes avanzados |
 | `ELEVENLABS_API_KEY` / `ELEVENLABS_VOICE_ID` | No | Voz natural; sin llave se usa la voz del navegador |
 | `ANTHROPIC_API_KEY` | No | Asistente con lenguaje natural; sin llave usa reglas |
 | `DEFAULT_EXPIRATION` | No | Expiración de los QR con monto en segundos (0 = no expira; mínimo 360) |

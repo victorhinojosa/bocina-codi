@@ -3,154 +3,240 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<meta name="theme-color" content="#f6f4ef" />
+<meta name="theme-color" content="#ffffff" />
 <link rel="manifest" href="/manifest.webmanifest" />
 <link rel="icon" href="/static/icon.svg" type="image/svg+xml" />
-<title>Bocina CoDi · App</title>
+<title>pey · CoDi</title>
 <style>
   :root {
-    --bg: #f6f4ef; --card: #fff; --ink: #17161a; --muted: #6d6a73; --line: #e6e2d9;
-    --ok: #12945a; --ok-bg: #e7f6ee; --warn: #b7791f; --warn-bg: #fdf3e1; --bad: #c4352b;
-    --sim: #7c3aed; --sim-bg: #f1eafe; --blue: #1f5eff; --blue-bg: #e9efff;
+    --pey: #0067f1; --pey-deep: #0a3a8c; --pey-ink: #06275e; --pey-soft: #e8f1fe; --pey-sky: #4c9bff;
+    --bg: #f5f7fb; --card: #fff; --ink: #121826; --muted: #667085; --faint: #98a2b3; --line: #e7ebf2;
+    --ok: #12945a; --ok-bg: #e7f6ee; --warn: #b7791f; --warn-bg: #fdf3e1; --bad: #c4352b; --sim: #7c3aed; --sim-bg: #f1eafe;
     font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   }
   * { box-sizing: border-box; }
   html, body { height: 100%; }
-  body { margin: 0; color: var(--ink); background: radial-gradient(1200px 700px at 30% 20%, #2a2930, #141317); display: flex;
+  body { margin: 0; color: var(--ink); background: radial-gradient(1200px 700px at 30% 20%, #1d2a44, #0d1220); display: flex;
     align-items: center; justify-content: center; gap: 64px; overflow: hidden; }
-  button { font: inherit; cursor: pointer; }
+  button { font: inherit; cursor: pointer; color: inherit; }
+  svg.i { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
   .mono { font-family: ui-monospace, "SF Mono", Menlo, monospace; }
 
   /* ---------- texto al lado del teléfono (solo en computadora) ---------- */
-  .side { color: #e9e7ee; max-width: 330px; }
-  .side .k { font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: #a19fa8; }
-  .side h1 { font-size: 40px; line-height: 1.05; margin: 10px 0 14px; letter-spacing: -.02em; }
-  .side p { color: #bebcc4; line-height: 1.55; margin: 0 0 22px; }
-  .side .open { display: flex; gap: 14px; align-items: center; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1);
-    border-radius: 18px; padding: 14px; }
+  .side { color: #e6ebf5; max-width: 330px; }
+  .side img.logo { height: 34px; background: #fff; padding: 8px 12px; border-radius: 12px; }
+  .side h1 { font-size: 40px; line-height: 1.05; margin: 18px 0 14px; letter-spacing: -.02em; }
+  .side p { color: #b9c2d3; line-height: 1.55; margin: 0 0 22px; }
+  .side .open { display: flex; gap: 14px; align-items: center; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1); border-radius: 18px; padding: 14px; }
   .side .open img { width: 104px; height: 104px; border-radius: 10px; background: #fff; }
-  .side .open span { font-size: 14px; color: #d6d4dc; line-height: 1.45; }
+  .side .open span { font-size: 14px; color: #d3dae6; line-height: 1.45; }
   .side a { color: #fff; }
 
   /* ---------- el teléfono ---------- */
-  .phone { position: relative; height: min(844px, calc(100vh - 48px)); aspect-ratio: 390 / 844; background: #0c0c0e;
-    border-radius: 56px; padding: 12px; box-shadow: 0 0 0 2px #3a3940, 0 40px 90px rgba(0,0,0,.55); flex-shrink: 0; }
-  .device { position: relative; height: 100%; width: 100%; background: var(--bg); border-radius: 44px; overflow: hidden; display: flex; flex-direction: column; }
-  .island { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); width: 112px; height: 32px; background: #0c0c0e; border-radius: 20px; z-index: 10; }
-  .statusbar { height: 50px; flex-shrink: 0; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 30px 6px; font-size: 14px; font-weight: 650; }
+  .phone { position: relative; height: min(844px, calc(100vh - 48px)); aspect-ratio: 390 / 844; background: #0b0d12;
+    border-radius: 56px; padding: 12px; box-shadow: 0 0 0 2px #39404f, 0 40px 90px rgba(0,0,0,.55); flex-shrink: 0; }
+  .device { position: relative; height: 100%; width: 100%; background: var(--bg); border-radius: 44px; overflow: hidden; }
+  .island { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); width: 112px; height: 32px; background: #0b0d12; border-radius: 20px; z-index: 50; }
+  .statusbar { position: absolute; top: 0; left: 0; right: 0; height: 50px; z-index: 40; display: flex; justify-content: space-between; align-items: flex-end;
+    padding: 0 30px 6px; font-size: 14px; font-weight: 650; pointer-events: none; }
   .statusbar .icons { letter-spacing: 2px; font-size: 12px; }
-
-  /* en un celular real: sin marco, pantalla completa */
+  .homebar { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); height: 5px; width: 134px; background: var(--ink); border-radius: 3px; opacity: .8; z-index: 60; pointer-events: none; }
   @media (max-width: 560px), (max-height: 560px) {
-    body { background: var(--bg); display: block; overflow: auto; }
+    body { background: var(--bg); display: block; overflow: hidden; }
     .side { display: none; }
     .phone { height: 100dvh; width: 100%; aspect-ratio: auto; padding: 0; border-radius: 0; box-shadow: none; background: var(--bg); }
     .device { border-radius: 0; }
-    .island, .statusbar { display: none; }
-    .appbar { padding-top: calc(14px + env(safe-area-inset-top)); }
+    .island, .statusbar, .homebar { display: none; }
+    .screen { padding-top: env(safe-area-inset-top); }
   }
   @media (max-width: 980px) { .side { display: none; } }
 
-  /* ---------- contenido de la app ---------- */
-  .appbar { display: flex; justify-content: space-between; align-items: center; padding: 8px 18px 10px; flex-shrink: 0; }
-  .appbar .title { font-size: 26px; font-weight: 780; letter-spacing: -.02em; }
-  .live { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
-  .live i { width: 8px; height: 8px; border-radius: 50%; background: #bbb; }
-  .live.on i { background: var(--ok); box-shadow: 0 0 0 3px rgba(18,148,90,.15); }
-  .content { flex: 1; overflow-y: auto; padding: 0 16px 16px; -webkit-overflow-scrolling: touch; }
-  .content::-webkit-scrollbar { display: none; }
-  .view { display: none; flex-direction: column; gap: 12px; animation: fade .18s ease-out; }
-  .view.on { display: flex; }
-  @keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
-  .card { background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 16px; }
-  h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 10px; font-weight: 650; }
+  /* ---------- pantallas (se apilan dentro del teléfono) ---------- */
+  .screen { position: absolute; inset: 0; display: flex; flex-direction: column; background: var(--bg); padding-top: 50px; }
+  .screen.layer { z-index: 10; transform: translateY(100%); transition: transform .32s cubic-bezier(.2,.8,.2,1); visibility: hidden; }
+  .screen.layer.on { transform: none; visibility: visible; }
+  .screen.white { background: #fff; }
+  .topbar { display: flex; align-items: center; justify-content: space-between; padding: 8px 14px; flex-shrink: 0; min-height: 52px; }
+  .iconbtn { width: 40px; height: 40px; border-radius: 50%; border: 0; background: transparent; display: grid; place-items: center; color: var(--ink); }
+  .iconbtn:active { background: rgba(0,0,0,.05); }
+  .scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .scroll::-webkit-scrollbar { display: none; }
 
-  .hero { background: var(--ink); color: #fff; border: 0; }
-  .hero h2 { color: #a9a7b0; }
-  .hero .total { font-size: 40px; font-weight: 820; letter-spacing: -.02em; }
-  .hero .sub { color: #c9c7cf; font-size: 14px; margin-top: 2px; }
-  .hero .row { display: flex; gap: 8px; margin-top: 14px; }
-  .hero .row button { flex: 1; border: 0; border-radius: 14px; padding: 11px; font-weight: 650; font-size: 14px; background: rgba(255,255,255,.12); color: #fff; }
-  .hero .row button.main { background: #fff; color: var(--ink); }
+  /* ---------- inicio ---------- */
+  .avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--pey-soft); color: var(--pey); display: grid; place-items: center;
+    font-weight: 750; font-size: 14px; border: 0; letter-spacing: .02em; }
+  .brand { height: 26px; display: block; }
+  .search { margin: 4px 16px 0; display: flex; align-items: center; gap: 8px; background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 4px 4px 4px 14px; color: var(--faint); }
+  .search input { flex: 1; border: 0; outline: 0; font: inherit; font-size: 15px; padding: 8px 0; background: transparent; color: var(--ink); min-width: 0; }
+  .search input::placeholder { color: var(--faint); }
+  .search .mic { width: 38px; height: 38px; border-radius: 50%; border: 0; background: var(--pey-soft); color: var(--pey); display: grid; place-items: center; }
+  .search .mic.on { background: var(--bad); color: #fff; animation: pulse 1.2s infinite; }
+  @keyframes pulse { 50% { box-shadow: 0 0 0 6px rgba(196,53,43,.15); } }
+  .answer { margin: 10px 16px 0; background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 12px 14px; position: relative; animation: rise .25s ease-out; }
+  .answer .q { font-size: 13px; color: var(--muted); margin-bottom: 6px; padding-right: 26px; }
+  .answer .a { font-size: 15px; line-height: 1.45; }
+  .answer .pl { color: var(--pey); font-weight: 750; margin-right: 6px; }
+  .answer .x { position: absolute; top: 4px; right: 4px; }
+  @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 
-  .stack { display: flex; flex-direction: column; gap: 12px; }
-  .qrcard { background: var(--card); border: 1px solid var(--line); border-radius: 24px; padding: 18px 16px; text-align: center; display: flex; flex-direction: column; align-items: center; }
-  .qrcard .lbl { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 650; }
-  .qrcard .amt { font-size: 40px; font-weight: 820; letter-spacing: -.02em; margin: 2px 0; }
-  .qrcard .cpt { color: var(--muted); font-size: 14px; margin-bottom: 12px; }
-  .qrcard .qr { width: 100%; max-width: 290px; }
-  .qrcard .qr svg { width: 100%; height: auto; display: block; }
-  .wait { display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; padding: 7px 13px; border-radius: 999px; background: var(--warn-bg); color: var(--warn); font-size: 13px; font-weight: 650; }
-  .spinner { width: 12px; height: 12px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .8s linear infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .qrcard.paid { background: var(--ok); color: #fff; border-color: var(--ok); padding: 34px 16px; animation: pop .3s ease-out; }
-  .qrcard.paid.sim { background: var(--sim); border-color: var(--sim); }
-  .qrcard.paid .lbl, .qrcard.paid .cpt { color: rgba(255,255,255,.85); }
-  .qrcard.paid .amt { font-size: 52px; }
-  .qrcard .check { width: 76px; height: 76px; border-radius: 50%; background: rgba(255,255,255,.2); display: grid; place-items: center; font-size: 40px; margin-bottom: 12px; }
-  .qrcard .ver { margin-top: 10px; background: rgba(255,255,255,.18); padding: 7px 13px; border-radius: 999px; font-size: 13px; font-weight: 650; }
-  @keyframes pop { from { transform: scale(.94); opacity: 0; } to { transform: none; opacity: 1; } }
+  .today { margin: 12px 16px 0; background: var(--pey); color: #fff; border-radius: 22px; padding: 16px 18px; position: relative; overflow: hidden; }
+  .today::after { content: ""; position: absolute; right: -40px; top: -60px; width: 180px; height: 180px; border-radius: 50%; background: rgba(255,255,255,.08); }
+  .today .k { font-size: 13px; opacity: .85; font-weight: 600; }
+  .today .total { font-size: 36px; font-weight: 820; letter-spacing: -.02em; margin-top: 2px; }
+  .today .sub { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; font-size: 13px; opacity: .92; }
+  .dot { display: inline-flex; align-items: center; gap: 6px; }
+  .dot i { width: 7px; height: 7px; border-radius: 50%; background: #7ef0b2; }
+  .dot.off i { background: #ffd27a; }
 
-  .pay { display: flex; align-items: center; gap: 12px; padding: 11px 2px; border-bottom: 1px solid var(--line); }
-  .pay:last-child { border-bottom: 0; }
-  .pay .ic { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; font-size: 17px; background: var(--ok-bg); color: var(--ok); flex-shrink: 0; }
-  .pay .ic.fixed { background: var(--blue-bg); color: var(--blue); }
-  .pay .ic.sim { background: var(--sim-bg); color: var(--sim); }
-  .pay .mid { flex: 1; min-width: 0; }
-  .pay .c { font-weight: 600; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .pay .t { font-size: 12px; color: var(--muted); margin-top: 2px; }
-  .pay .a { font-weight: 720; font-size: 16px; }
-  .pay.new { animation: flash 2.5s ease-out; border-radius: 12px; }
-  @keyframes flash { from { background: var(--ok-bg); } to { background: transparent; } }
-  .empty { color: var(--muted); padding: 14px 2px; font-size: 14px; }
+  .list { padding: 6px 16px 120px; }
+  .day { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); font-weight: 650; padding: 16px 2px 6px; }
+  .group { background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 0 14px; }
+  .mv { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); width: 100%; background: none; border-left: 0; border-right: 0; border-top: 0; text-align: left; }
+  .mv:last-child { border-bottom: 0; }
+  .mv .ic { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: var(--pey-soft); color: var(--pey); flex-shrink: 0; }
+  .mv .ic.sim { background: var(--sim-bg); color: var(--sim); }
+  .mv .mid { flex: 1; min-width: 0; }
+  .mv .c { font-weight: 640; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mv .t { font-size: 12.5px; color: var(--muted); margin-top: 1px; }
+  .tag { display: inline-block; margin-top: 5px; font-size: 11.5px; font-weight: 650; padding: 2px 8px; border-radius: 7px; background: var(--pey-soft); color: var(--pey-deep); }
+  .tag.amt-tag { background: var(--ok-bg); color: #0d6b41; }
+  .tag.sim { background: var(--sim-bg); color: var(--sim); }
+  .mv .a { font-weight: 760; font-size: 16px; color: var(--ok); white-space: nowrap; }
+  .mv .a.sim { color: var(--sim); }
+  .mv.new { animation: flash 2.6s ease-out; }
+  @keyframes flash { from { background: var(--pey-soft); } to { background: transparent; } }
+  .empty { background: #fff; border: 1px dashed #cfd6e3; border-radius: 18px; padding: 22px 16px; text-align: center; color: var(--muted); font-size: 14px; line-height: 1.5; margin-top: 16px; }
+  .empty b { display: block; color: var(--ink); font-size: 16px; margin-bottom: 4px; }
 
-  .amount { font-size: 50px; font-weight: 800; letter-spacing: -.02em; text-align: center; padding: 18px 0 6px; }
+  .fab { position: absolute; left: 50%; bottom: 30px; transform: translateX(-50%); z-index: 5; border: 0; background: var(--pey); color: #fff;
+    border-radius: 999px; padding: 15px 30px; font-size: 18px; font-weight: 750; display: flex; align-items: center; gap: 10px; box-shadow: 0 12px 30px rgba(0,103,241,.35); }
+  .fab:active { transform: translateX(-50%) scale(.97); }
+  .fab svg.i { width: 24px; height: 24px; }
+  @media (max-width: 560px), (max-height: 560px) { .fab { bottom: calc(22px + env(safe-area-inset-bottom)); } }
+
+  /* ---------- tarjeta del QR (cobrar y mi QR) ---------- */
+  .qrwrap { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 0 22px 22px; }
+  .who { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 14px; }
+  .who .avatar { width: 56px; height: 56px; font-size: 19px; }
+  .who .name { font-size: 19px; font-weight: 760; display: flex; align-items: center; gap: 6px; text-align: center; letter-spacing: -.01em; }
+  .who .name svg { color: var(--pey); width: 20px; height: 20px; }
+  .frame { width: 100%; border-radius: 28px; padding: 14px; background: linear-gradient(180deg, var(--pey-sky) 0 47%, var(--pey) 47% 100%); }
+  .frame .inner { background: #fff; border-radius: 18px; padding: 16px 16px 14px; display: flex; flex-direction: column; align-items: center; }
+  .frame .brand { height: 24px; margin-bottom: 8px; }
+  .frame .amt { font-size: 30px; font-weight: 820; letter-spacing: -.02em; line-height: 1.1; }
+  .frame .cpt { font-size: 13px; color: var(--muted); margin-bottom: 4px; }
+  .frame .qr { width: 100%; max-width: 236px; aspect-ratio: 1; }
+  .frame .qr svg { width: 100%; height: 100%; display: block; }
+  .frame .id { margin-top: 6px; font-size: 13.5px; color: var(--muted); }
+  .hint { margin-top: 14px; font-size: 13.5px; color: var(--muted); text-align: center; line-height: 1.45; }
+  .waiting { margin-top: 12px; display: inline-flex; align-items: center; gap: 8px; color: var(--pey); font-weight: 650; font-size: 14px; background: var(--pey-soft); padding: 8px 14px; border-radius: 999px; }
+  .waiting.expired { color: var(--warn); background: var(--warn-bg); }
+  .waiting i { width: 8px; height: 8px; border-radius: 50%; background: currentColor; animation: blink 1.2s infinite; }
+  @keyframes blink { 50% { opacity: .25; } }
+  .actions { display: flex; gap: 10px; width: 100%; margin-top: auto; padding-top: 14px; }
+  .btn { flex: 1; border: 1px solid var(--line); background: #fff; border-radius: 16px; padding: 14px; font-size: 15.5px; font-weight: 680; display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--ink); }
+  .btn.primary { background: var(--pey); border-color: var(--pey); color: #fff; }
+  .btn:disabled { opacity: .4; cursor: not-allowed; }
+  .btn.ghostblue { color: var(--pey); border-color: #cfe0fb; background: var(--pey-soft); }
+
+  /* ---------- teclado de monto (hoja) ---------- */
+  .sheetbg { position: absolute; inset: 0; background: rgba(10,18,35,.45); z-index: 30; opacity: 0; visibility: hidden; transition: .25s; }
+  .sheetbg.on { opacity: 1; visibility: visible; }
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; z-index: 31; background: #fff; border-radius: 26px 26px 0 0; padding: 10px 18px 26px;
+    transform: translateY(105%); transition: transform .3s cubic-bezier(.2,.8,.2,1); max-height: 88%; overflow-y: auto; }
+  .sheet.on { transform: none; }
+  .sheet .grip { width: 40px; height: 5px; border-radius: 3px; background: #d6dce6; margin: 0 auto 10px; }
+  .sheet h3 { margin: 4px 0 2px; font-size: 18px; }
+  .amount { font-size: 48px; font-weight: 820; letter-spacing: -.02em; text-align: center; padding: 10px 0 4px; }
   .amount small { font-size: 22px; color: var(--muted); font-weight: 600; margin-right: 2px; }
-  .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-  .keypad button { border: 0; background: var(--card); border-radius: 18px; padding: 15px 0; font-size: 24px; font-weight: 600; box-shadow: 0 1px 0 var(--line); }
-  .keypad button:active { background: #efece4; }
-  .input { width: 100%; padding: 13px 14px; border: 1px solid var(--line); border-radius: 14px; font-size: 16px; background: var(--card); }
-  .primary { border: 0; background: var(--ink); color: #fff; border-radius: 16px; padding: 15px; font-size: 16px; font-weight: 680; width: 100%; }
-  .primary:disabled { opacity: .35; cursor: not-allowed; }
-  .ghost { border: 1px solid var(--line); background: var(--card); border-radius: 12px; padding: 10px 14px; color: var(--ink); font-size: 14px; }
+  .input { width: 100%; padding: 13px 14px; border: 1px solid var(--line); border-radius: 14px; font-size: 16px; background: #fff; font-family: inherit; }
+  .input:focus { outline: 2px solid var(--pey-soft); border-color: var(--pey); }
+  .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 0; }
+  .keypad button { border: 0; background: var(--bg); border-radius: 16px; padding: 13px 0; font-size: 24px; font-weight: 600; }
+  .keypad button:active { background: #e6eaf2; }
 
-  .chat { display: flex; flex-direction: column; gap: 8px; min-height: 120px; }
-  .msg { max-width: 85%; padding: 10px 13px; border-radius: 18px; font-size: 15px; line-height: 1.4; }
-  .msg.me { align-self: flex-end; background: var(--ink); color: #fff; border-bottom-right-radius: 6px; }
-  .msg.pey { align-self: flex-start; background: var(--card); border: 1px solid var(--line); border-bottom-left-radius: 6px; }
-  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
-  .chip { border: 1px solid var(--line); background: var(--card); border-radius: 999px; padding: 7px 12px; font-size: 13px; color: var(--muted); }
-  .composer { display: flex; gap: 8px; }
-  .composer .input { flex: 1; }
-  .micbtn { width: 50px; border: 0; border-radius: 14px; background: var(--ink); color: #fff; font-size: 20px; flex-shrink: 0; }
-  .micbtn.listening { background: var(--bad); }
+  /* ---------- comprobante (ticket) ---------- */
+  .ticketwrap { flex: 1; padding: 6px 20px 22px; display: flex; flex-direction: column; }
+  .ticket-top { background: var(--pey-soft); border-radius: 22px; overflow: hidden; padding: 22px 16px 18px; text-align: center; position: relative; animation: pop .35s ease-out; }
+  .ticket-top::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 8px; background: linear-gradient(90deg, var(--pey-sky), var(--pey)); }
+  .ticket-top.sim { background: var(--sim-bg); }
+  .ticket-top.sim::after { background: var(--sim); }
+  .ticket-top .k { font-size: 13px; letter-spacing: .12em; text-transform: uppercase; font-weight: 750; color: var(--pey-ink); }
+  .ticket-top.sim .k { color: var(--sim); }
+  .ticket-top .amt { font-size: 46px; font-weight: 850; letter-spacing: -.03em; margin: 4px 0 2px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .ticket-top .amt .seal { width: 34px; height: 34px; border-radius: 50%; background: var(--ok); color: #fff; display: grid; place-items: center; animation: seal .5s .15s both cubic-bezier(.3,1.6,.5,1); }
+  .ticket-top.sim .amt .seal { background: var(--sim); }
+  .ticket-top .amt .seal svg { width: 20px; height: 20px; stroke-width: 3; }
+  .ticket-top .words { font-size: 13px; color: var(--pey-ink); opacity: .8; }
+  .slot { height: 8px; margin-top: 18px; border-radius: 6px; background: linear-gradient(#c5ccd8, #8d97a8); position: relative; z-index: 2;
+    box-shadow: 0 1px 0 rgba(255,255,255,.6) inset; }
+  .printer { overflow: hidden; margin-top: -4px; padding: 0 12px 24px; filter: drop-shadow(0 6px 10px rgba(16,24,40,.10)) drop-shadow(0 1px 1px rgba(16,24,40,.08)); }
+  .ticket-body { background: #fff; position: relative; padding: 20px 18px 16px; animation: print .75s .15s both cubic-bezier(.25,.9,.3,1); }
+  .ticket-body::after { content: ""; position: absolute; left: 0; right: 0; bottom: -13px; height: 14px;
+    background: linear-gradient(135deg, #fff 50%, transparent 50%) 0 0 / 22px 14px repeat-x,
+                linear-gradient(225deg, #fff 50%, transparent 50%) 0 0 / 22px 14px repeat-x; }
+  @keyframes print { from { transform: translateY(-102%); } to { transform: none; } }
+  .ticket-body .lbl { font-size: 12.5px; color: var(--muted); }
+  .ticket-body .val { font-size: 16px; font-weight: 680; margin-top: 1px; }
+  .ticket-body .sub { font-size: 13px; color: var(--muted); margin-top: 1px; }
+  .ticket-body hr { border: 0; border-top: 1.5px dashed var(--line); margin: 14px 0; }
+  .ticket-body .row { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; padding: 4px 0; }
+  .ticket-body .row span:first-child { color: var(--muted); }
+  .ticket-body .row span:last-child { text-align: right; font-weight: 600; }
+  .verified { margin-top: 12px; display: flex; align-items: center; gap: 6px; color: var(--ok); font-weight: 680; font-size: 14px; }
+  .verified.sim { color: var(--sim); }
+  .mismatch { margin-top: 12px; background: #fdecea; color: var(--bad); padding: 10px 12px; border-radius: 12px; font-weight: 650; font-size: 13.5px; }
+  @keyframes pop { from { transform: scale(.94); opacity: 0; } to { transform: none; opacity: 1; } }
+  @keyframes seal { from { transform: scale(0); } to { transform: none; } }
 
-  .set-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; font-size: 14px; gap: 10px; }
+  /* ---------- perfil ---------- */
+  .prof-head { display: flex; align-items: center; gap: 12px; padding: 4px 2px 14px; }
+  .prof-head .avatar { width: 52px; height: 52px; font-size: 18px; }
+  .prof-head .n { font-size: 18px; font-weight: 760; }
+  .prof-head .v { font-size: 13px; color: var(--ok); display: flex; align-items: center; gap: 4px; margin-top: 2px; }
+  .prof-head .v svg { width: 15px; height: 15px; }
+  .menu { border: 1px solid var(--line); border-radius: 18px; overflow: hidden; margin-bottom: 12px; }
+  .menu .it { display: flex; align-items: center; gap: 12px; padding: 13px 14px; border-bottom: 1px solid var(--line); background: #fff; width: 100%; border-left: 0; border-right: 0; border-top: 0; text-align: left; font-size: 15px; }
+  .menu .it:last-child { border-bottom: 0; }
+  .menu .it .ic { width: 34px; height: 34px; border-radius: 10px; background: var(--pey-soft); color: var(--pey); display: grid; place-items: center; flex-shrink: 0; }
+  .menu .it .ic svg { width: 18px; height: 18px; }
+  .menu .it .mid { flex: 1; min-width: 0; }
+  .menu .it .s { font-size: 12.5px; color: var(--muted); margin-top: 1px; }
+  .menu .it .end { color: var(--faint); }
+  .menu .it.sub { padding-left: 60px; background: #fafbfd; }
+  .fold { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .25s ease; }
+  .fold.open { grid-template-rows: 1fr; }
+  .fold-in { min-height: 0; overflow: hidden; }
+  .fold.open .fold-in { border-top: 1px solid var(--line); }
+  .menu .it[aria-expanded="false"] { border-bottom: 0; }
+  .menu .it .chev { transition: transform .2s; }
+  .menu .it[aria-expanded="true"] .chev { transform: rotate(90deg); }
+  .menu .it select { border: 1px solid var(--line); border-radius: 10px; padding: 6px 8px; font: inherit; font-size: 13px; background: #fff; }
   .ok-t { color: var(--ok); font-weight: 650; } .bad-t { color: var(--bad); font-weight: 650; }
-  .small { font-size: 12px; color: var(--muted); line-height: 1.5; margin: 8px 0 0; }
-  select.input { appearance: auto; }
+  .switch { appearance: none; width: 44px; height: 26px; border-radius: 999px; background: #d6dce6; position: relative; cursor: pointer; transition: .2s; flex-shrink: 0; }
+  .switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: .2s; box-shadow: 0 1px 3px rgba(0,0,0,.2); }
+  .switch:checked { background: var(--pey); } .switch:checked::after { left: 21px; }
 
-  /* barra de pestañas */
-  .tabbar { flex-shrink: 0; display: grid; grid-template-columns: repeat(4, 1fr); background: rgba(255,255,255,.88); backdrop-filter: blur(12px);
-    border-top: 1px solid var(--line); padding: 8px 6px calc(10px + env(safe-area-inset-bottom)); }
-  .tabbar button { border: 0; background: none; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11px; font-weight: 600; color: #9a97a1; padding: 4px 0; }
-  .tabbar button .i { font-size: 21px; filter: grayscale(1); opacity: .7; }
-  .tabbar button.on { color: var(--ink); }
-  .tabbar button.on .i { filter: none; opacity: 1; }
-  .homebar { height: 5px; width: 134px; background: #17161a; border-radius: 3px; margin: 0 auto 8px; opacity: .85; flex-shrink: 0; }
-  @media (max-width: 560px), (max-height: 560px) { .homebar { display: none; } }
+  /* ---------- ajustes avanzados ---------- */
+  .adv { padding: 4px 16px 30px; display: flex; flex-direction: column; gap: 12px; }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 14px 16px; }
+  .card h4 { margin: 0 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+  .set-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; font-size: 14px; gap: 10px; }
+  .small { font-size: 12.5px; color: var(--muted); line-height: 1.5; margin: 8px 0 0; }
+  .ghost { border: 1px solid var(--line); background: #fff; border-radius: 12px; padding: 9px 13px; font-size: 14px; }
 
-  .toast { position: absolute; top: 58px; left: 50%; transform: translateX(-50%); background: var(--ink); color: #fff; padding: 10px 14px; border-radius: 14px;
-    font-size: 13px; z-index: 20; opacity: 0; transition: .2s; pointer-events: none; width: max-content; max-width: 86%; text-align: center; }
+  .toast { position: absolute; top: 58px; left: 50%; transform: translateX(-50%); background: var(--ink); color: #fff; padding: 11px 16px; border-radius: 16px;
+    font-size: 14px; font-weight: 600; z-index: 70; opacity: 0; transition: .2s; pointer-events: none; width: max-content; max-width: 86%; text-align: center; }
   .toast.show { opacity: 1; }
+  @media (max-width: 560px), (max-height: 560px) { .toast { top: calc(14px + env(safe-area-inset-top)); } }
 </style>
 </head>
 <body>
 
 <div class="side">
-  <div class="k">Bocina CoDi</div>
-  <h1>La app del dueño, en su celular.</h1>
-  <p>La bocina se queda en el mostrador. Desde aquí ves cada pago al instante, cobras montos exactos y le preguntas a pey cómo va el día.</p>
+  <img class="logo" src="/static/pey-codi.svg" alt="pey · CoDi" />
+  <h1>Tus cobros CoDi, en tu celular.</h1>
+  <p>La bocina anuncia cada pago en el mostrador. Aquí ves tus movimientos al instante, cobras montos exactos y le preguntas a pey cómo va el día.</p>
   <div class="open">
     <img id="openQr" alt="QR para abrir la app" />
     <span>Escanea para abrir esta app en tu celular.<br/><a href="/">Ver el mostrador →</a></span>
@@ -162,175 +248,376 @@
     <div class="island"></div>
     <div class="statusbar"><span id="clock">9:41</span><span class="icons">▂▄▆ ᯤ ▮</span></div>
 
-    <div class="appbar">
-      <div class="title" id="title">Inicio</div>
-      <div class="live" id="live"><i></i><span>Conectando…</span></div>
-    </div>
-
-    <div class="content">
-      <!-- INICIO -->
-      <section class="view on" data-view="home">
-        <div class="card hero">
-          <h2 id="bizLabel">Hoy</h2>
+    <!-- ================= INICIO ================= -->
+    <section class="screen" id="home">
+      <div class="topbar">
+        <button class="avatar" id="avatarBtn" aria-label="Tu perfil">MT</button>
+        <img class="brand" src="/static/pey-codi.svg" alt="pey · CoDi" />
+        <span style="width:38px"></span>
+      </div>
+      <div class="scroll" id="homeScroll">
+        <label class="search">
+          <svg class="i"><use href="#i-search"/></svg>
+          <input id="q" placeholder="Busca un pago o pregúntale a pey" autocomplete="off" enterkeyhint="send" />
+          <button class="mic" id="micBtn" aria-label="Preguntar por voz"><svg class="i"><use href="#i-mic"/></svg></button>
+        </label>
+        <div id="answer"></div>
+        <div class="today">
+          <div class="k">Hoy</div>
           <div class="total" id="total">$0.00</div>
-          <div class="sub" id="count">0 pagos verificados</div>
-          <div class="row">
-            <button class="main" data-go="charge">Cobrar monto</button>
-            <button data-go="pey">Pregúntale a pey</button>
+          <div class="sub"><span id="count">0 pagos</span><span class="dot off" id="conn"><i></i><span>Conectando…</span></span></div>
+        </div>
+        <div class="list" id="list"></div>
+      </div>
+      <button class="fab" id="fab"><svg class="i"><use href="#i-qr"/></svg>Cobrar</button>
+    </section>
+
+    <!-- ================= COBRAR (QR fijo o con monto) ================= -->
+    <section class="screen layer white" id="charge">
+      <div class="topbar">
+        <button class="iconbtn" data-close aria-label="Cerrar"><svg class="i"><use href="#i-x"/></svg></button>
+        <span style="font-weight:700" id="chargeTitle">Cobrar</span>
+        <span style="width:40px"></span>
+      </div>
+      <div class="qrwrap">
+        <div class="frame">
+          <div class="inner">
+            <img class="brand" src="/static/pey-codi.svg" alt="pey · CoDi" />
+            <div style="font-weight:700;font-size:15px;margin-bottom:2px" id="chargeBiz"></div>
+            <div id="chargeAmt"></div>
+            <div class="qr" id="chargeQr"></div>
           </div>
         </div>
-        <div class="card">
-          <h2>Pagos de hoy</h2>
-          <div id="payments"><div class="empty">Aún no hay pagos hoy.</div></div>
-        </div>
-      </section>
+        <div class="hint">Escanea con la app de tu banco<br/>en la sección <b>CoDi</b></div>
+        <div class="waiting" id="waiting"><i></i><span id="waitTxt">Esperando pago…</span></div>
+        <div class="actions" id="chargeActions"></div>
+      </div>
+    </section>
 
-      <!-- COBRAR -->
-      <section class="view" data-view="charge">
-        <div class="stack" id="chargeForm">
-          <div class="amount" id="amountView"><small>$</small>0</div>
-          <input class="input" id="concept" maxlength="100" placeholder="Concepto (ej. 2 tortas)" />
-          <div class="keypad" id="keypad">
-            <button>1</button><button>2</button><button>3</button>
-            <button>4</button><button>5</button><button>6</button>
-            <button>7</button><button>8</button><button>9</button>
-            <button>.</button><button>0</button><button data-k="del">⌫</button>
+    <!-- ================= PAGO RECIBIDO ================= -->
+    <section class="screen layer" id="receipt">
+      <div class="topbar">
+        <button class="iconbtn" data-close aria-label="Cerrar"><svg class="i"><use href="#i-x"/></svg></button>
+        <img class="brand" src="/static/pey-codi.svg" alt="pey · CoDi" style="height:22px" />
+        <span style="width:40px"></span>
+      </div>
+      <div class="scroll"><div class="ticketwrap" id="ticket"></div></div>
+    </section>
+
+    <!-- ================= MI QR (para compartir) ================= -->
+    <section class="screen layer white" id="myqr">
+      <div class="topbar">
+        <button class="iconbtn" data-close aria-label="Cerrar"><svg class="i"><use href="#i-x"/></svg></button>
+        <span style="font-weight:700">Mi QR</span>
+        <span style="width:40px"></span>
+      </div>
+      <div class="qrwrap">
+        <div class="who">
+          <div class="avatar" data-initials>MT</div>
+          <div class="name"><span data-biz></span><svg class="i"><use href="#i-verified"/></svg></div>
+        </div>
+        <div class="frame">
+          <div class="inner">
+            <img class="brand" src="/static/pey-codi.svg" alt="pey · CoDi" />
+            <div class="qr" id="myQrSvg"></div>
+            <div class="id" id="myQrId"></div>
           </div>
-          <button class="primary" id="chargeBtn" disabled>Generar QR</button>
-          <p class="small" style="text-align:center;margin:0">Para montos exactos: muéstrale este QR a tu cliente desde tu celular.</p>
         </div>
-        <div class="stack" id="chargeQr" style="display:none"></div>
-      </section>
+        <div class="hint">Escanea con la app de cualquier banco en CoDi</div>
+        <div class="actions">
+          <button class="btn primary" id="shareQr"><svg class="i"><use href="#i-share"/></svg>Compartir QR</button>
+        </div>
+      </div>
+    </section>
 
-      <!-- PEY -->
-      <section class="view" data-view="pey">
-        <div class="chat" id="chat">
-          <div class="msg pey">Hola 👋 Pregúntame cómo van tus ventas o pídeme un cobro.</div>
-        </div>
-        <div class="chips" id="chips">
-          <button class="chip">¿Cuánto vendí hoy?</button>
-          <button class="chip">Últimas 3 transacciones</button>
-          <button class="chip">¿Cuál fue el pago más grande?</button>
-          <button class="chip">Cóbrale 90 de dos tortas</button>
-        </div>
-        <div class="composer">
-          <input class="input" id="askInput" placeholder="Escribe o dicta…" />
-          <button class="micbtn" id="askMic" title="Dictar">🎙️</button>
-        </div>
-      </section>
-
-      <!-- AJUSTES -->
-      <section class="view" data-view="settings">
-        <div class="card" id="pinGate" style="display:none;text-align:center;padding:26px 18px">
-          <div style="font-size:34px">🔒</div>
-          <div style="font-weight:700;font-size:18px;margin:6px 0 4px">Ajustes protegidos</div>
-          <p class="small" style="margin:0 0 14px">Escribe el PIN del negocio para continuar.</p>
-          <input class="input" id="pinInput" type="password" inputmode="numeric" autocomplete="off" placeholder="PIN" style="text-align:center;letter-spacing:.3em" />
-          <button class="primary" id="pinBtn" style="margin-top:10px">Entrar</button>
-          <p class="small" id="pinErr" style="color:var(--bad)"></p>
-        </div>
-        <div class="stack" id="settingsBody">
-        <div class="card">
-          <h2>Estado</h2>
-          <div id="checks" class="small" style="margin:0">Cargando…</div>
-        </div>
-        <div class="card">
-          <h2>Mi QR fijo</h2>
-          <input class="input" id="bizName" maxlength="100" placeholder="Nombre del negocio" />
-          <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
-            <button class="ghost" id="newFixed">Crear QR nuevo</button>
-            <button class="ghost" id="printFixed">🖨️ Imprimir</button>
+    <!-- ================= AJUSTES AVANZADOS (con PIN) ================= -->
+    <section class="screen layer" id="advanced">
+      <div class="topbar">
+        <button class="iconbtn" data-close aria-label="Regresar"><svg class="i"><use href="#i-back"/></svg></button>
+        <span style="font-weight:700">Ajustes avanzados</span>
+        <span style="width:40px"></span>
+      </div>
+      <div class="scroll">
+        <div class="adv" id="pinGate" style="display:none">
+          <div class="card" style="text-align:center;padding:26px 18px">
+            <div style="color:var(--pey)"><svg class="i" style="width:34px;height:34px"><use href="#i-lock"/></svg></div>
+            <div style="font-weight:750;font-size:18px;margin:6px 0 4px">Ajustes protegidos</div>
+            <p class="small" style="margin:0 0 14px">Escribe el PIN del negocio para continuar.</p>
+            <input class="input" id="pinInput" type="password" inputmode="numeric" autocomplete="off" placeholder="PIN" style="text-align:center;letter-spacing:.3em" />
+            <button class="btn primary" id="pinBtn" style="margin-top:10px;width:100%">Entrar</button>
+            <p class="small" id="pinErr" style="color:var(--bad)"></p>
           </div>
-          <p class="small" id="fixedNote">Un QR que ya imprimiste sigue funcionando aunque crees otro.</p>
         </div>
-        <div class="card">
-          <h2>Voz</h2>
-          <select class="input" id="voiceMode">
-            <option value="elevenlabs">ElevenLabs (natural)</option>
-            <option value="browser">Voz del teléfono / navegador</option>
-            <option value="off">Silencio</option>
-          </select>
-          <div class="set-row"><span>Sonar también en esta app</span><input type="checkbox" id="cajaSound" /></div>
-          <button class="ghost" id="testVoice">🔊 Probar voz</button>
-          <p class="small">La bocina es el mostrador. Deja apagado "sonar en esta app" si ambos están en el mismo equipo.</p>
+        <div class="adv" id="advBody">
+          <div class="card"><h4>Estado del servidor</h4><div id="checks" class="small" style="margin:0">Cargando…</div></div>
+          <div class="card">
+            <h4>QR fijo</h4>
+            <input class="input" id="bizName" maxlength="100" placeholder="Nombre del negocio" />
+            <div style="margin-top:10px"><button class="ghost" id="newFixed">Crear QR nuevo</button></div>
+            <p class="small" id="fixedNote">Un QR que ya imprimiste sigue funcionando aunque crees otro.</p>
+          </div>
+          <div class="card">
+            <h4>Cobro con monto</h4>
+            <label class="small" for="expiration" style="display:block;margin:0 0 6px">Expiración en segundos (0 = no expira; mínimo 360)</label>
+            <input class="input" id="expiration" type="number" min="0" step="60" />
+          </div>
+          <div class="card">
+            <h4>Webhook de pey</h4>
+            <input class="input mono" id="whUrl" readonly style="font-size:12px" />
+            <button class="ghost" id="copyWh" style="margin-top:8px">Copiar URL</button>
+            <p class="small" id="whWarn"></p>
+          </div>
+          <div class="card" id="simCard" style="display:none">
+            <h4>Pruebas</h4>
+            <input class="input" id="simAmount" type="number" min="0.01" step="0.01" placeholder="Monto (vacío = al azar)" />
+            <div style="display:flex;gap:8px;margin-top:10px"><button class="ghost" id="simOne">Simular 1</button><button class="ghost" id="simBurst">Ráfaga de 3</button></div>
+            <p class="small">Salen en morado y no cuentan en el total.</p>
+          </div>
         </div>
-        <div class="card">
-          <h2>Cobro con monto</h2>
-          <label class="small" for="expiration" style="display:block;margin:0 0 6px">Expiración en segundos (0 = no expira; mínimo 360)</label>
-          <input class="input" id="expiration" type="number" min="0" step="60" />
-        </div>
-        <div class="card">
-          <h2>Webhook de pey</h2>
-          <input class="input mono" id="whUrl" readonly style="font-size:12px" />
-          <button class="ghost" id="copyWh" style="margin-top:8px">Copiar URL</button>
-          <p class="small" id="whWarn"></p>
-        </div>
-        <div class="card" id="simCard" style="display:none">
-          <h2>Pruebas</h2>
-          <input class="input" id="simAmount" type="number" min="0.01" step="0.01" placeholder="Monto (vacío = al azar)" />
-          <div style="display:flex;gap:8px;margin-top:10px"><button class="ghost" id="simOne">Simular 1</button><button class="ghost" id="simBurst">Ráfaga de 3</button></div>
-          <p class="small">Salen en morado y no cuentan en el total.</p>
-        </div>
-        <a href="/" class="ghost" style="text-align:center;text-decoration:none;display:block">Abrir el mostrador →</a>
-        </div>
-      </section>
+      </div>
+    </section>
+
+    <!-- ================= HOJAS ================= -->
+    <div class="sheetbg" id="sheetbg"></div>
+
+    <div class="sheet" id="amountSheet">
+      <div class="grip"></div>
+      <h3>Agregar monto</h3>
+      <div class="small" style="margin:0">Tu cliente solo escanea y confirma.</div>
+      <div class="amount" id="amountView"><small>$</small>0</div>
+      <input class="input" id="concept" maxlength="100" placeholder="Concepto (ej. 2 tortas)" />
+      <div class="keypad" id="keypad">
+        <button>1</button><button>2</button><button>3</button>
+        <button>4</button><button>5</button><button>6</button>
+        <button>7</button><button>8</button><button>9</button>
+        <button>.</button><button>0</button><button data-k="del" aria-label="Borrar">⌫</button>
+      </div>
+      <button class="btn primary" id="chargeBtn" style="width:100%" disabled>Generar cobro</button>
     </div>
 
-    <nav class="tabbar" id="tabbar">
-      <button data-go="home" class="on"><span class="i">🏠</span>Inicio</button>
-      <button data-go="charge"><span class="i">➕</span>Cobrar</button>
-      <button data-go="pey"><span class="i">🎙️</span>pey</button>
-      <button data-go="settings"><span class="i">⚙️</span>Ajustes</button>
-    </nav>
+    <div class="sheet" id="profileSheet">
+      <div class="grip"></div>
+      <div class="prof-head">
+        <div class="avatar" data-initials>MT</div>
+        <div><div class="n" data-biz></div><div class="v"><svg class="i"><use href="#i-verified"/></svg>Cuenta verificada por pey</div></div>
+      </div>
+      <div class="menu">
+        <button class="it" id="openMyQr"><span class="ic"><svg class="i"><use href="#i-qr"/></svg></span><span class="mid">Mi QR<div class="s">Compártelo con tus clientes</div></span><svg class="i end"><use href="#i-chev"/></svg></button>
+        <div class="it"><span class="ic"><svg class="i"><use href="#i-bank"/></svg></span><span class="mid">Cuenta de depósito<div class="s" id="depAcc">Tu cuenta pey</div></span></div>
+      </div>
+      <div class="menu" id="spkMenu">
+        <button class="it" id="spkToggle" aria-expanded="false"><span class="ic"><svg class="i"><use href="#i-speaker"/></svg></span><span class="mid">Bocina<div class="s" id="spkState">Conectando…</div></span><svg class="i end chev"><use href="#i-chev"/></svg></button>
+        <div class="fold" id="spkFold"><div class="fold-in">
+          <label class="it sub"><span class="mid">Sonar también en el celular<div class="s">Escucha los pagos aunque no estés en el mostrador</div></span><input type="checkbox" class="switch" id="cajaSound" /></label>
+          <div class="it sub"><span class="mid">Voz en el celular</span>
+            <select id="voiceMode"><option value="elevenlabs">Natural</option><option value="browser">Del teléfono</option></select></div>
+          <button class="it sub" id="testVoice"><span class="mid" style="color:var(--pey);font-weight:650">Probar voz</span><svg class="i end" style="color:var(--pey)"><use href="#i-play"/></svg></button>
+        </div></div>
+      </div>
+      <div class="menu">
+        <button class="it" id="openAdv"><span class="ic"><svg class="i"><use href="#i-lock"/></svg></span><span class="mid">Ajustes avanzados<div class="s">Protegidos con PIN</div></span><svg class="i end"><use href="#i-chev"/></svg></button>
+        <div class="it"><span class="ic"><svg class="i"><use href="#i-doc"/></svg></span><span class="mid">Términos y ayuda<div class="s">Cobros procesados con pey sobre CoDi de Banxico</div></span></div>
+      </div>
+    </div>
+
     <div class="homebar"></div>
     <div class="toast" id="toast"></div>
   </div>
 </div>
 
+<!-- iconos (trazo) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+  <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M9 21h6"/></symbol>
+  <symbol id="i-qr" viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><path d="M14 14h2v2h-2zM18 14h2M14 18h2M18 18h2v2M18 16v2"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+  <symbol id="i-share" viewBox="0 0 24 24"><path d="M12 15V3M8 7l4-4 4 4"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-verified" viewBox="0 0 24 24"><path d="M12 2.5l2.4 1.8 3 .1.9 2.9 2.4 1.8-1 2.9 1 2.9-2.4 1.8-.9 2.9-3 .1L12 21.5l-2.4-1.8-3-.1-.9-2.9-2.4-1.8 1-2.9-1-2.9 2.4-1.8.9-2.9 3-.1z"/><path d="M8.5 12l2.4 2.4L15.5 9.8"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"/><path d="M8.5 12l2.4 2.4L15.5 9.8"/></symbol>
+  <symbol id="i-bank" viewBox="0 0 24 24"><path d="M3 9l9-5 9 5M5 9v9M9.5 9v9M14.5 9v9M19 9v9M3 20h18"/></symbol>
+  <symbol id="i-speaker" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="3"/><circle cx="12" cy="14" r="3.5"/><path d="M12 7h.01"/></symbol>
+  <symbol id="i-wave" viewBox="0 0 24 24"><path d="M4 10v4M8 6v12M12 9v6M16 4v16M20 10v4"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 21h4"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 5v14l11-7z"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
+  <symbol id="i-doc" viewBox="0 0 24 24"><path d="M7 3h7l5 5v13H7zM14 3v5h5M10 13h6M10 17h6"/></symbol>
+  <symbol id="i-receipt" viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6"/></symbol>
+  <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 4l1.8 4.2L18 10l-4.2 1.8L12 16l-1.8-4.2L6 10l4.2-1.8z"/></symbol>
+</svg>
+
 <script src="/static/common.js"></script>
 <script>
 (() => {
-  const { $, money, hhmm, esc, api, toast, prefs, setPref, Voice } = Bocina;
-  let fixed = null, current = null, amountStr = "", lastTop = null, expTimer = null;
-  const TITLES = { home: "Inicio", charge: "Cobrar", pey: "pey", settings: "Ajustes" };
+  const { $, money, esc, api, toast, prefs, setPref, Voice } = Bocina;
+  const hhmm = (ts) => new Date(ts * 1000).toLocaleTimeString("es-MX", { hour: "numeric", minute: "2-digit" });
+  const ICON = (id, extra = "") => `<svg class="i" ${extra}><use href="#i-${id}"/></svg>`;
+  let fixed = null, payments = [], lastTop = null, connected = false;
+  let shown = null;          // lo que está en la pantalla Cobrar: { kind: "fixed" } o el cobro con monto
+  let amountStr = "", expTimer = null;
 
-  // ---------- navegación ----------
-  function go(view) {
-    document.querySelectorAll(".view").forEach((v) => v.classList.toggle("on", v.dataset.view === view));
-    document.querySelectorAll("#tabbar button").forEach((b) => b.classList.toggle("on", b.dataset.go === view));
-    $("title").textContent = TITLES[view];
-    document.querySelector(".content").scrollTop = 0;
-    if (view === "pey") setTimeout(() => $("askInput").focus(), 50);
-    if (view === "settings") gateSettings();
+  // ---------- utilidades ----------
+  const bizName = () => fixed?.name || Bocina.status?.businessName || "Mi tienda";
+  function initials(name) {
+    const w = name.split(/\s+/).filter((x) => x.length > 2 || /^[A-ZÁÉÍÓÚÑ]/.test(x));
+    return ((w[0]?.[0] || "M") + (w[1]?.[0] || w[0]?.[1] || "")).toUpperCase();
   }
-  document.addEventListener("click", (e) => { const b = e.target.closest("[data-go]"); if (b) go(b.dataset.go); });
+  const when = (p) => p.datePaid ?? p.paidAt;
+  const svgFix = (s) => (s && !s.includes("xmlns=") ? s.replace("<svg", '<svg xmlns="http://www.w3.org/2000/svg"') : s);
+  function dayLabel(ts) {
+    const d = new Date(ts * 1000), t = new Date(); t.setHours(0, 0, 0, 0);
+    const diff = Math.round((t - new Date(d.getFullYear(), d.getMonth(), d.getDate())) / 86400000);
+    if (diff === 0) return "Hoy";
+    if (diff === 1) return "Ayer";
+    return d.toLocaleDateString("es-MX", { weekday: "short", day: "numeric", month: "short" });
+  }
+  const titleOf = (p) => p.kind === "amount" ? (p.concept || "Cobro con monto") : p.kind === "fixed" ? "Pago CoDi" : "Pago CoDi externo";
+  const tagOf = (p) => p.simulated ? `<span class="tag sim">Simulación</span>` : p.kind === "amount" ? `<span class="tag amt-tag">Cobro con monto</span>` : `<span class="tag">QR fijo</span>`;
 
-  // reloj de la barra de estado
+  // ---------- capas y hojas ----------
+  const layers = [];
+  function openLayer(id) { const el = $(id); el.classList.add("on"); if (!layers.includes(id)) layers.push(id); }
+  function closeLayer(id) {
+    id = id || layers[layers.length - 1]; if (!id) return;
+    $(id).classList.remove("on"); layers.splice(layers.indexOf(id), 1);
+    if (id === "charge") { clearInterval(expTimer); shown = null; }
+  }
+  document.addEventListener("click", (e) => { const b = e.target.closest("[data-close]"); if (b) closeLayer(b.closest(".screen").id); });
+  let openSheetId = null;
+  function openSheet(id) { closeSheet(); $(id).classList.add("on"); $("sheetbg").classList.add("on"); openSheetId = id; }
+  function closeSheet() { if (!openSheetId) return; $(openSheetId).classList.remove("on"); $("sheetbg").classList.remove("on"); openSheetId = null; }
+  $("sheetbg").onclick = closeSheet;
+
+  // reloj y QR para abrir en el celular
   const tick = () => { $("clock").textContent = new Date().toLocaleTimeString("es-MX", { hour: "numeric", minute: "2-digit", hour12: false }); };
   tick(); setInterval(tick, 20000);
   $("openQr").src = "/api/qr.svg?text=" + encodeURIComponent(location.origin + "/app");
 
-  // ---------- pagos ----------
-  async function loadPayments() {
-    try {
-      const d = await api("/api/payments?limit=100");
-      $("total").textContent = money(d.todayTotal);
-      $("count").textContent = `${d.todayCount} ${d.todayCount === 1 ? "pago verificado" : "pagos verificados"}`;
-      $("payments").innerHTML = d.payments.length ? d.payments.map((p, i) => {
-        const cls = p.simulated ? "sim" : p.kind;
-        const icon = p.simulated ? "◆" : p.kind === "fixed" ? "▦" : "✓";
-        const title = p.kind === "amount" ? p.concept : p.kind === "fixed" ? "Pago con QR fijo" : "Pago externo";
-        const what = p.simulated ? "Simulado" : p.kind === "amount" ? "Con monto" : "Verificado";
-        const isNew = lastTop && i === 0 && p.transactionId !== lastTop;
-        return `<div class="pay ${isNew ? "new" : ""}"><div class="ic ${cls}">${icon}</div>
-          <div class="mid"><div class="c">${esc(title)}</div><div class="t">${hhmm(p.paidAt)} · ${what}</div></div>
-          <div class="a">${money(p.amount)}</div></div>`;
-      }).join("") : `<div class="empty">Aún no hay pagos hoy.</div>`;
-      lastTop = d.payments[0]?.transactionId || "none";
-    } catch {}
+  function renderIdentity() {
+    const n = bizName(), ini = initials(n);
+    $("avatarBtn").textContent = ini;
+    document.querySelectorAll("[data-initials]").forEach((e) => (e.textContent = ini));
+    document.querySelectorAll("[data-biz]").forEach((e) => (e.textContent = n));
+    const acc = Bocina.status?.depositAccount;
+    $("depAcc").textContent = acc || "Tu cuenta pey · configurada";
+    $("myQrId").textContent = acc || "Cobros CoDi con pey";
   }
 
+  // ---------- movimientos ----------
+  async function loadPayments() {
+    try {
+      const d = await api("/api/payments?limit=300&days=30");
+      payments = d.payments;
+      $("total").textContent = money(d.todayTotal);
+      $("count").textContent = `${d.todayCount} ${d.todayCount === 1 ? "pago" : "pagos"}`;
+      renderList();
+    } catch {}
+  }
+  function matches(p, q) {
+    if (!q) return true;
+    q = q.toLowerCase().replace("$", "").trim();
+    const hay = [titleOf(p), p.concept, p.simulated ? "simulación" : "", p.kind === "fixed" ? "qr fijo" : "cobro monto",
+      String(p.amount), money(p.amount), hhmm(when(p)), dayLabel(when(p))].join(" ").toLowerCase();
+    return q.split(/\s+/).every((w) => hay.includes(w));
+  }
+  function renderList() {
+    const q = $("q").value.trim();
+    const items = payments.filter((p) => matches(p, q));
+    if (!payments.length) {
+      $("list").innerHTML = `<div class="empty"><b>Tus pagos aparecerán aquí</b>Cuando un cliente pague con CoDi, lo verás al instante y la bocina lo anunciará.</div>`;
+      return;
+    }
+    if (!items.length) { $("list").innerHTML = `<div class="empty"><b>Sin resultados</b>Presiona enviar para preguntarle a pey.</div>`; return; }
+    const groups = [];
+    for (const p of items) {
+      const k = dayLabel(when(p));
+      let g = groups[groups.length - 1];
+      if (!g || g.k !== k) groups.push((g = { k, items: [], total: 0 }));
+      g.items.push(p); if (!p.simulated) g.total += p.amount;
+    }
+    const top = payments[0]?.transactionId;
+    $("list").innerHTML = groups.map((g) => `
+      <div class="day"><span>${g.k}</span><span>${money(g.total)}</span></div>
+      <div class="group">${g.items.map((p) => `
+        <button class="mv ${lastTop && p.transactionId === top && top !== lastTop ? "new" : ""}" data-tx="${esc(p.transactionId)}">
+          <span class="ic ${p.simulated ? "sim" : ""}">${ICON(p.kind === "amount" ? "receipt" : "qr")}</span>
+          <span class="mid"><div class="c">${esc(titleOf(p))}</div><div class="t">${hhmm(when(p))}</div>${tagOf(p)}</span>
+          <span class="a ${p.simulated ? "sim" : ""}">+${money(p.amount)}</span>
+        </button>`).join("")}</div>`).join("");
+    lastTop = top || "none";
+  }
+  $("list").addEventListener("click", (e) => {
+    const b = e.target.closest(".mv"); if (!b) return;
+    const p = payments.find((x) => x.transactionId === b.dataset.tx); if (p) showReceipt(p, { fresh: false });
+  });
+
+  // ---------- buscar / preguntarle a pey ----------
+  $("q").addEventListener("input", renderList);
+  $("q").addEventListener("keydown", (e) => { if (e.key === "Enter") { const t = e.target.value.trim(); if (t) ask(t); } });
+  function showAnswer(q, a) {
+    $("answer").innerHTML = `<div class="answer"><button class="iconbtn x" aria-label="Cerrar">${ICON("x")}</button>
+      <div class="q">"${esc(q)}"</div><div class="a"><span class="pl">pey</span>${esc(a)}</div></div>`;
+    $("answer").querySelector(".x").onclick = () => { $("answer").innerHTML = ""; };
+  }
+  async function ask(text) {
+    showAnswer(text, "…");
+    try {
+      const d = await Bocina.askAssistant(text);
+      if (d.intent === "charge" && d.amount) {
+        showAnswer(text, `Listo, generé un cobro de ${money(d.amount)}${d.concept && d.concept !== "Venta" ? ` (${d.concept})` : ""}.`);
+        $("q").value = ""; renderList();
+        await createCharge(d.amount, d.concept);
+      } else {
+        showAnswer(text, d.answer || "No te entendí, ¿me lo repites?");
+        $("q").value = ""; renderList();
+        if (prefs().cajaSound && d.answer) Voice.enqueue({ text: d.answer, gap: 200 });
+      }
+    } catch (e) { showAnswer(text, "No pude responder: " + e.message); }
+  }
+  let rec = null;
+  $("micBtn").onclick = (e) => {
+    e.preventDefault();
+    if (rec) { rec.stop(); return; }
+    rec = Bocina.dictate({
+      onStart: () => $("micBtn").classList.add("on"),
+      onPartial: (t) => { $("q").value = t; },
+      onEnd: () => { rec = null; $("micBtn").classList.remove("on"); },
+      onError: (err) => toast("No te escuché (" + err + ")"),
+      onFinal: (t) => { $("q").value = t; ask(t); },
+    });
+  };
+
   // ---------- cobrar ----------
+  $("fab").onclick = () => showCharge({ kind: "fixed" });
+  function showCharge(what) {
+    if (what.kind === "fixed" && !fixed) { toast("Aún no hay QR fijo. Créalo en Ajustes avanzados."); return; }
+    shown = what;
+    clearInterval(expTimer);
+    const isFixed = what.kind === "fixed";
+    $("chargeTitle").textContent = isFixed ? "Cobrar" : "Cobro con monto";
+    $("chargeBiz").textContent = bizName();
+    $("chargeAmt").innerHTML = isFixed ? `<div class="cpt">Tu cliente escribe el monto en su banco</div>`
+      : `<div class="amt">${money(what.amount)}</div><div class="cpt">${esc(what.concept)}</div>`;
+    $("chargeQr").innerHTML = svgFix(isFixed ? fixed.qrSvg : what.qrSvg);
+    $("waiting").className = "waiting"; $("waitTxt").textContent = "Esperando pago…";
+    $("chargeActions").innerHTML = isFixed
+      ? `<button class="btn primary" id="addAmount" style="flex:1">${ICON("receipt")}Agregar monto</button>`
+      : `<button class="btn" id="useFixed">${ICON("qr")}Usar QR sin monto</button>`;
+    if (isFixed) $("addAmount").onclick = () => { amountStr = ""; renderAmount(); openSheet("amountSheet"); };
+    else $("useFixed").onclick = () => showCharge({ kind: "fixed" });
+    if (!isFixed && what.expiration > 0) {
+      const end = (what.createdAt + what.expiration) * 1000;
+      const t = () => {
+        const left = Math.max(0, Math.round((end - Date.now()) / 1000));
+        if (left > 0) $("waitTxt").textContent = `Esperando pago · ${Math.floor(left / 60)}:${String(left % 60).padStart(2, "0")}`;
+        else { $("waitTxt").textContent = "El QR expiró"; $("waiting").className = "waiting expired"; clearInterval(expTimer); }
+      };
+      t(); expTimer = setInterval(t, 1000);
+    }
+    openLayer("charge");
+  }
   function renderAmount() {
     $("amountView").innerHTML = `<small>$</small>${amountStr || "0"}`;
     $("chargeBtn").disabled = !(parseFloat(amountStr) > 0);
@@ -348,130 +635,132 @@
     }
     renderAmount();
   });
-  async function sendCharge(amount, concept) {
-    const body = { amount, concept: (concept || "Venta").trim() };
-    const exp = prefs().expiration; if (exp !== null && exp !== "") body.expiration = Number(exp);
-    current = await api("/api/charges", { method: "POST", body: JSON.stringify(body) });
-    renderCharge(); go("charge");
+  async function createCharge(amount, concept) {
+    const body = { amount, concept: (concept || "").trim() };
+    const exp = prefs().expiration; if (exp !== null && exp !== undefined && exp !== "") body.expiration = Number(exp);
+    const c = await api("/api/charges", { method: "POST", body: JSON.stringify(body) });
+    closeSheet();
+    showCharge({ kind: "amount", ...c });
   }
   $("chargeBtn").onclick = async () => {
     $("chargeBtn").disabled = true; $("chargeBtn").textContent = "Generando…";
-    try { await sendCharge(parseFloat(amountStr), $("concept").value); amountStr = ""; $("concept").value = ""; }
+    try { await createCharge(parseFloat(amountStr), $("concept").value); amountStr = ""; $("concept").value = ""; }
     catch (e) { toast("No se pudo crear: " + e.message, 6000); }
-    finally { $("chargeBtn").textContent = "Generar QR"; renderAmount(); }
+    finally { $("chargeBtn").textContent = "Generar cobro"; renderAmount(); }
   };
 
-  // QR con monto: se muestra aquí, en el celular, y espera el pago
-  function renderCharge() {
-    clearInterval(expTimer);
-    const form = $("chargeForm"), box = $("chargeQr");
-    if (!current) { form.style.display = ""; box.style.display = "none"; box.innerHTML = ""; return; }
-    form.style.display = "none"; box.style.display = "";
-    const p = current.payment;
-    if (p) {
-      box.innerHTML = `
-        <div class="qrcard paid ${p.simulated ? "sim" : ""}">
-          <div class="check">✓</div>
-          <div class="lbl">Pagado</div>
-          <div class="amt">${money(p.amount)}</div>
-          <div class="cpt">${esc(current.concept)} · ${hhmm(p.datePaid)}</div>
-          <div class="ver">${p.simulated ? "◆ Simulación" : "🔒 Verificado por pey"}</div>
-        </div>
-        <button class="primary" id="newCharge">Nuevo cobro</button>`;
-      $("newCharge").onclick = () => { current = null; renderCharge(); };
-      return;
-    }
-    box.innerHTML = `
-      <div class="qrcard">
-        <div class="lbl">Total a pagar</div>
-        <div class="amt">${money(current.amount)}</div>
-        <div class="cpt">${esc(current.concept)}</div>
-        <div class="qr">${current.qrSvg}</div>
-        <div class="wait"><span class="spinner"></span><span id="waitTxt">Esperando pago</span></div>
+  // ---------- comprobante ----------
+  function showReceipt(p, { fresh }) {
+    const sim = p.simulated;
+    const mismatch = p.expectedAmount != null && Math.abs(p.expectedAmount - p.amount) > 0.001;
+    const d = new Date(when(p) * 1000);
+    const date = d.toLocaleDateString("es-MX", { day: "numeric", month: "short", year: "numeric" });
+    const ref = String(p.transactionId || "");
+    $("ticket").innerHTML = `
+      <div class="ticket-top ${sim ? "sim" : ""}">
+        <div class="k">${sim ? "Simulación" : "Pago recibido"}</div>
+        <div class="amt">${money(p.amount)}<span class="seal">${ICON("check")}</span></div>
+        <div class="words">${esc(p.amountWords || "")}</div>
       </div>
-      <button class="ghost" id="cancelCharge">Cancelar</button>`;
-    $("cancelCharge").onclick = () => { current = null; renderCharge(); };
-    if (current.expiration > 0) {
-      const end = (current.createdAt + current.expiration) * 1000;
-      const tick = () => {
-        const left = Math.max(0, Math.round((end - Date.now()) / 1000)), el = $("waitTxt"); if (!el) return;
-        el.textContent = left > 0 ? `Esperando pago · ${Math.floor(left / 60)}:${String(left % 60).padStart(2, "0")}` : "QR expirado";
-      };
-      tick(); expTimer = setInterval(tick, 1000);
-    }
+      <div class="slot"></div>
+      <div class="printer"><div class="ticket-body">
+        <div class="lbl">Para</div>
+        <div class="val">${esc(bizName())}</div>
+        <div class="sub">${esc(Bocina.status?.depositAccount || "Cuenta pey")}</div>
+        <hr/>
+        <div class="row"><span>Tipo</span><span>${p.kind === "amount" ? "Cobro con monto" : p.kind === "fixed" ? "QR fijo" : "QR externo"}</span></div>
+        ${p.kind === "amount" && p.concept ? `<div class="row"><span>Concepto</span><span>${esc(p.concept)}</span></div>` : ""}
+        <div class="row"><span>Fecha</span><span>${date} · ${hhmm(when(p))}</span></div>
+        <div class="row"><span>Referencia</span><span class="mono" style="font-size:12.5px">${esc(ref.length > 16 ? ref.slice(0, 14) + "…" : ref)}</span></div>
+        ${mismatch ? `<div class="mismatch">Se cobraron ${money(p.expectedAmount)} y llegaron ${money(p.amount)}</div>` : ""}
+        <div class="verified ${sim ? "sim" : ""}">${ICON(sim ? "sparkle" : "shield")}${sim ? "No es un pago real" : "Verificado por pey"}</div>
+      </div></div>
+      <div class="actions" style="padding-top:8px"><button class="btn primary" id="receiptDone">${fresh ? "Listo" : "Cerrar"}</button></div>`;
+    $("receiptDone").onclick = () => { closeLayer("receipt"); if (fresh) closeLayer("charge"); };
+    openLayer("receipt");
+    if (fresh && navigator.vibrate) navigator.vibrate([40, 60, 40]);
   }
 
-  // ---------- pey ----------
-  function addMsg(who, text) {
-    const m = document.createElement("div"); m.className = "msg " + who; m.textContent = text;
-    $("chat").appendChild(m); m.scrollIntoView({ block: "end", behavior: "smooth" }); return m;
+  // ---------- mi QR ----------
+  $("avatarBtn").onclick = () => { syncSpeaker(); openSheet("profileSheet"); };
+  $("openMyQr").onclick = () => {
+    if (!fixed) { toast("Aún no hay QR fijo."); return; }
+    closeSheet(); $("myQrSvg").innerHTML = svgFix(fixed.qrSvg); openLayer("myqr");
+  };
+  const loadImg = (src) => new Promise((ok, bad) => { const i = new Image(); i.onload = () => ok(i); i.onerror = bad; i.src = src; });
+  const svgUrl = (s) => "data:image/svg+xml;charset=utf-8," + encodeURIComponent(s);
+  function rr(g, x, y, w, h, r) { g.beginPath(); g.roundRect(x, y, w, h, r); }
+  async function qrCardBlob() {
+    const W = 1080, H = 1500, c = document.createElement("canvas"); c.width = W; c.height = H;
+    const g = c.getContext("2d"); const F = "600 48px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif";
+    g.fillStyle = "#fff"; g.fillRect(0, 0, W, H);
+    g.fillStyle = "#e8f1fe"; g.beginPath(); g.arc(W / 2, 140, 74, 0, Math.PI * 2); g.fill();
+    g.fillStyle = "#0067f1"; g.font = F.replace("600 48px", "800 54px"); g.textAlign = "center"; g.textBaseline = "middle";
+    g.fillText(initials(bizName()), W / 2, 142);
+    g.fillStyle = "#121826"; g.font = F.replace("600 48px", "800 52px"); g.fillText(bizName(), W / 2, 290);
+    const fx = 90, fy = 370, fw = W - 180, fh = 930;
+    rr(g, fx, fy, fw, fh, 64); g.save(); g.clip();
+    g.fillStyle = "#4c9bff"; g.fillRect(fx, fy, fw, fh * 0.47); g.fillStyle = "#0067f1"; g.fillRect(fx, fy + fh * 0.47, fw, fh * 0.53); g.restore();
+    g.fillStyle = "#fff"; rr(g, fx + 34, fy + 34, fw - 68, fh - 68, 40); g.fill();
+    const logo = await loadImg("/static/pey-codi.svg");
+    const lw = 330, lh = lw * logo.naturalHeight / logo.naturalWidth; g.drawImage(logo, W / 2 - lw / 2, fy + 80, lw, lh);
+    const qr = await loadImg(svgUrl(svgFix(fixed.qrSvg)));
+    const q = 600; g.drawImage(qr, W / 2 - q / 2, fy + 110 + lh, q, q);
+    g.fillStyle = "#667085"; g.font = F.replace("600 48px", "500 36px");
+    g.fillText(Bocina.status?.depositAccount || "Cobros CoDi con pey", W / 2, fy + fh - 90);
+    g.fillStyle = "#121826"; g.font = F.replace("600 48px", "500 38px");
+    g.fillText("Escanea con la app de cualquier banco en CoDi", W / 2, 1390);
+    return new Promise((ok) => c.toBlob(ok, "image/png"));
   }
-  async function ask(text) {
-    if (!text.trim()) return;
-    addMsg("me", text); const m = addMsg("pey", "…");
+  $("shareQr").onclick = async () => {
     try {
-      const d = await Bocina.askAssistant(text);
-      if (d.intent === "charge" && d.amount) {
-        m.textContent = `Listo, generé un QR de ${money(d.amount)} (${d.concept}). Muéstraselo a tu cliente.`;
-        await sendCharge(d.amount, d.concept);
+      const blob = await qrCardBlob();
+      const file = new File([blob], "mi-qr-codi.png", { type: "image/png" });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: bizName(), text: `Págame con CoDi a ${bizName()}` });
       } else {
-        m.textContent = d.answer || "No te entendí.";
-        if (prefs().cajaSound && d.answer) Voice.enqueue({ text: d.answer, gap: 200 });
+        const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = file.name; a.click();
+        setTimeout(() => URL.revokeObjectURL(a.href), 4000); toast("Imagen de tu QR descargada");
       }
-    } catch (e) { m.textContent = "Error: " + e.message; }
-  }
-  $("askInput").addEventListener("keydown", (e) => { if (e.key === "Enter") { ask(e.target.value); e.target.value = ""; } });
-  $("chips").addEventListener("click", (e) => { const c = e.target.closest(".chip"); if (c) ask(c.textContent); });
-  let rec = null;
-  $("askMic").onclick = () => {
-    if (rec) { rec.stop(); return; }
-    rec = Bocina.dictate({
-      onStart: () => $("askMic").classList.add("listening"),
-      onPartial: (t) => { $("askInput").value = t; },
-      onEnd: () => { rec = null; $("askMic").classList.remove("listening"); },
-      onError: (e) => toast("No te escuché (" + e + ")"),
-      onFinal: (t) => { $("askInput").value = ""; ask(t); },
-    });
+    } catch (e) { if (e?.name !== "AbortError") toast("No se pudo compartir: " + (e?.message || e)); }
   };
 
-  // ---------- eventos ----------
-  Bocina.connect({
-    hello: () => loadPayments(),
-    payment: (p) => {
-      loadPayments();
-      if (current && !current.payment && p.chargeId === current.id) { current.payment = p; renderCharge(); go("charge"); }
-      toast(`${p.simulated ? "Simulado · " : "✓ "}${money(p.amount)} recibido`, 3500);
-      if (navigator.vibrate) navigator.vibrate(60);
-      if (prefs().cajaSound) Voice.enqueue({ text: p.speech, chime: true, gap: 700 });
-    },
-    fixed: () => loadFixed(),
-  });
-  async function loadFixed() {
-    try { fixed = (await api("/api/fixed-qr")).fixed; } catch {}
-    if (fixed) { $("bizName").value = fixed.name; $("bizLabel").textContent = fixed.name + " · hoy"; }
+  // ---------- perfil: bocina y voz ----------
+  function syncSpeaker() {
+    const st = Bocina.status || {};
+    const ok = connected && st.pey !== false && st.webhookSecret !== false;
+    $("spkState").innerHTML = ok ? `<span class="ok-t">Conectada · escuchando pagos</span>`
+      : !connected ? `<span class="bad-t">Sin conexión con el servidor</span>` : `<span class="bad-t">Falta configurar pey</span>`;
+    $("conn").className = "dot" + (ok ? "" : " off");
+    $("conn").lastElementChild.textContent = ok ? "Bocina conectada" : connected ? "Falta configurar" : "Sin conexión";
   }
+  $("spkToggle").onclick = () => {
+    const open = !$("spkFold").classList.contains("open");
+    $("spkFold").classList.toggle("open", open);
+    $("spkToggle").setAttribute("aria-expanded", String(open));
+  };
+  $("voiceMode").onchange = (e) => setPref("voiceMode", e.target.value);
+  $("cajaSound").onchange = (e) => setPref("cajaSound", e.target.checked);
+  $("testVoice").onclick = () => Voice.enqueue({ text: "Recibiste 100 pesos", chime: true });
 
-  // ---------- PIN de ajustes ----------
-  let settingsOpen = false;
-  function gateSettings() {
-    const need = Bocina.status.pinRequired && !settingsOpen;
+  // ---------- ajustes avanzados (PIN) ----------
+  let advOpen = false;
+  $("openAdv").onclick = () => { closeSheet(); gateAdv(); openLayer("advanced"); };
+  function gateAdv() {
+    const need = Bocina.status.pinRequired && !advOpen;
     $("pinGate").style.display = need ? "" : "none";
-    $("settingsBody").style.display = need ? "none" : "";
-    if (need) setTimeout(() => $("pinInput").focus(), 50);
+    $("advBody").style.display = need ? "none" : "";
+    if (need) setTimeout(() => $("pinInput").focus(), 350);
   }
   async function tryPin() {
     const pin = $("pinInput").value.trim(); if (!pin) return;
     $("pinErr").textContent = ""; $("pinBtn").disabled = true;
-    try {
-      await api("/api/admin/check", { method: "POST", body: JSON.stringify({ pin }) });
-      Bocina.setPin(pin); settingsOpen = true; $("pinInput").value = ""; gateSettings();
-    } catch { $("pinErr").textContent = "PIN incorrecto"; }
+    try { await api("/api/admin/check", { method: "POST", body: JSON.stringify({ pin }) }); Bocina.setPin(pin); advOpen = true; $("pinInput").value = ""; gateAdv(); }
+    catch { $("pinErr").textContent = "PIN incorrecto"; }
     finally { $("pinBtn").disabled = false; }
   }
   $("pinBtn").onclick = tryPin;
   $("pinInput").addEventListener("keydown", (e) => { if (e.key === "Enter") tryPin(); });
-
-  // ---------- ajustes ----------
   async function initSettings() {
     const st = await Bocina.loadStatus();
     const row = (n, ok, h) => `<div class="set-row"><span>${n}</span><span class="${ok ? "ok-t" : "bad-t"}">${ok ? "✓" : "✕ " + h}</span></div>`;
@@ -481,37 +770,22 @@
     $("whWarn").textContent = /localhost|127\.0\.0\.1/.test(location.host) ? "Estás en localhost: en el portal usa tu URL de ngrok + /webhooks/pey." : "";
     $("simCard").style.display = st.allowSimulation ? "" : "none";
     const p = prefs();
-    $("voiceMode").value = p.voiceMode; $("cajaSound").checked = !!p.cajaSound;
+    if (p.voiceMode === "off") setPref("voiceMode", "elevenlabs");   // "Silencio" ya no existe: para no sonar, se apaga el interruptor
+    $("voiceMode").value = prefs().voiceMode; $("cajaSound").checked = !!p.cajaSound;
     $("expiration").value = p.expiration ?? st.defaultExpiration ?? 0;
-    if (!fixed) $("bizName").value = st.businessName || "";
-    if (st.fixedLocked) {
-      $("newFixed").style.display = "none"; $("bizName").disabled = true;
-      $("fixedNote").textContent = "El QR fijo de tu cuenta está configurado en el servidor.";
-    }
-    // si ya se capturó el PIN en esta sesión, Ajustes queda abierto
+    $("bizName").value = bizName();
+    if (st.fixedLocked) { $("newFixed").style.display = "none"; $("bizName").disabled = true; $("fixedNote").textContent = "El QR fijo de tu cuenta está configurado en el servidor."; }
     if (st.pinRequired && Bocina.getPin()) {
-      try { await api("/api/admin/check", { method: "POST", body: JSON.stringify({ pin: Bocina.getPin() }) }); settingsOpen = true; }
+      try { await api("/api/admin/check", { method: "POST", body: JSON.stringify({ pin: Bocina.getPin() }) }); advOpen = true; }
       catch { Bocina.setPin(""); }
     }
+    renderIdentity(); syncSpeaker();
   }
-  $("voiceMode").onchange = (e) => setPref("voiceMode", e.target.value);
-  $("cajaSound").onchange = (e) => setPref("cajaSound", e.target.checked);
   $("expiration").onchange = (e) => setPref("expiration", e.target.value === "" ? 0 : Number(e.target.value));
-  $("testVoice").onclick = () => Voice.enqueue({ text: "Recibiste 100 pesos", chime: true });
   $("copyWh").onclick = async () => { try { await navigator.clipboard.writeText($("whUrl").value); toast("URL copiada"); } catch { $("whUrl").select(); } };
   $("newFixed").onclick = async () => {
-    try { fixed = (await api("/api/fixed-qr", { method: "POST", body: JSON.stringify({ name: $("bizName").value.trim() }) })).fixed; loadFixed(); toast("QR fijo actualizado"); }
+    try { fixed = (await api("/api/fixed-qr", { method: "POST", body: JSON.stringify({ name: $("bizName").value.trim() }) })).fixed; renderIdentity(); toast("QR fijo actualizado"); }
     catch (e) { toast("No se pudo crear: " + e.message, 6000); }
-  };
-  $("printFixed").onclick = () => {
-    if (!fixed) { toast("Primero crea tu QR fijo"); return; }
-    const w = window.open("", "_blank", "width=600,height=800"); if (!w) { toast("Permite ventanas emergentes"); return; }
-    w.document.write(`<!DOCTYPE html><html><head><title>${esc(fixed.name)}</title><style>
-      body{font-family:system-ui,sans-serif;text-align:center;padding:40px} h1{font-size:34px;margin:0 0 6px} p{font-size:18px;color:#444;margin:0 0 24px}
-      .qr{width:420px;margin:0 auto} .qr svg{width:100%;height:auto} .f{margin-top:18px;color:#555}</style></head>
-      <body><h1>${esc(fixed.name)}</h1><p>Paga aquí con CoDi desde tu app bancaria</p><div class="qr">${fixed.qrSvg}</div>
-      <div class="f">Escanea · pon el monto · listo</div><script>setTimeout(()=>print(),300)<\/script></body></html>`);
-    w.document.close();
   };
   async function simulate(n) {
     if (!fixed) { toast("Primero crea tu QR fijo"); return; }
@@ -524,7 +798,24 @@
   $("simOne").onclick = () => simulate(1);
   $("simBurst").onclick = () => simulate(3);
 
-  renderAmount(); loadFixed().then(initSettings);
+  // ---------- eventos en vivo ----------
+  async function loadFixed() { try { fixed = (await api("/api/fixed-qr")).fixed; } catch {} renderIdentity(); }
+  Bocina.connect({
+    hello: () => { loadPayments(); loadFixed(); },
+    connection: (on) => { connected = on; syncSpeaker(); },
+    payment: (p) => {
+      loadPayments();
+      // el pago es del QR que está en pantalla → el comprobante toma la pantalla
+      const onScreen = shown && (shown.kind === "fixed" ? p.chargeId === fixed?.id : p.chargeId === shown.id);
+      if (onScreen && !$("receipt").classList.contains("on")) showReceipt(p, { fresh: true });
+      else toast(`${p.simulated ? "Simulación · " : "✓ "}${money(p.amount)} recibido`, 3500);
+      if (prefs().cajaSound) Voice.enqueue({ text: p.speech, chime: true, gap: 700 });
+    },
+    fixed: () => loadFixed(),
+  });
+
+  renderAmount(); renderList();
+  loadFixed().then(initSettings);
 })();
 </script>
 </body>

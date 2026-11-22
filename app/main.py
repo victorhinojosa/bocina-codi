@@ -51,6 +51,8 @@ PEY_BASE_URL = env("PEY_BASE_URL", "https://api.pey.mx").rstrip("/")
 PEY_WEBHOOK_SECRET = env("PEY_WEBHOOK_SECRET", "")  # whsec_...
 DEFAULT_EXPIRATION = int(env("DEFAULT_EXPIRATION", "0"))  # 0 = sin expiración; si se pone, mínimo 360
 BUSINESS_NAME = env("BUSINESS_NAME", "Mi tienda")
+# Etiqueta de la cuenta donde cae el dinero, solo para mostrar en el perfil (ej. "BBVA ···· 2702"). Opcional.
+DEPOSIT_ACCOUNT_LABEL = env("DEPOSIT_ACCOUNT_LABEL", "")
 
 ELEVENLABS_API_KEY = env("ELEVENLABS_API_KEY", "")
 ELEVENLABS_VOICE_ID = env("ELEVENLABS_VOICE_ID", "21m00Tcm4TlvDq8ikWAM")
@@ -186,6 +188,7 @@ def start_of_today() -> int:
 
 def payment_to_dict(r: sqlite3.Row) -> dict:
     return {
+        "amountWords": amount_letters(r["amount"]),
         "transactionId": r["transaction_id"],
         "codiQrId": r["codi_qr_id"],
         "kind": r["kind"],
@@ -196,15 +199,17 @@ def payment_to_dict(r: sqlite3.Row) -> dict:
     }
 
 
-def today_summary(limit: int = 50) -> dict:
-    since = start_of_today()
+def today_summary(limit: int = 50, days: int = 1) -> dict:
+    """Pagos desde hace `days` días (1 = solo hoy). Los totales siempre son de hoy y sin simulaciones."""
+    today = start_of_today()
+    since = today - (max(1, days) - 1) * 86400
     with db() as conn:
         rows = conn.execute(
             "SELECT * FROM payments WHERE paid_at >= ? ORDER BY paid_at DESC, rowid DESC LIMIT ?", (since, limit)
         ).fetchall()
         total, count = conn.execute(
             "SELECT COALESCE(SUM(amount),0), COUNT(*) FROM payments WHERE paid_at >= ? AND simulated = 0",
-            (since,),
+            (today,),
         ).fetchone()
     return {"payments": [payment_to_dict(r) for r in rows], "todayTotal": round(total, 2), "todayCount": count}
 
@@ -259,6 +264,33 @@ def money_words(amount: float) -> str:
     if cent:
         parts.append(f"{_qty(cent)} {'centavo' if cent == 1 else 'centavos'}")
     return " con ".join(parts) if parts else "0 pesos"
+
+
+def _words_apocope(n: int) -> str:
+    """Número en letra listo para ir antes de un sustantivo: 'un', 'veintiún', 'treinta y un'."""
+    words = num2words(n, lang="es")
+    if words.endswith("veintiuno"):
+        return words[:-len("veintiuno")] + "veintiún"
+    if words == "uno" or words.endswith(" uno"):
+        return words[:-3] + "un"
+    return words
+
+
+def amount_letters(amount: float) -> str:
+    """Monto en letra para el comprobante: 'Ciento cincuenta pesos con cincuenta centavos'."""
+    cents = round(float(amount) * 100)
+    pesos, cent = divmod(cents, 100)
+    words = _words_apocope(pesos)
+    if words.endswith(("millón", "millones")):
+        words += " de"
+    cents_text = f"{_words_apocope(cent)} {'centavo' if cent == 1 else 'centavos'}"
+    if pesos == 0 and cent:
+        text = cents_text
+    else:
+        text = f"{words} {'peso' if pesos == 1 else 'pesos'}"
+        if cent:
+            text += f" con {cents_text}"
+    return text[:1].upper() + text[1:]
 
 
 def speech_for_amount(amount: float, simulated: bool = False) -> str:
@@ -335,6 +367,7 @@ async def status() -> dict:
         "fixedLocked": FIXED_LOCKED,
         "defaultExpiration": DEFAULT_EXPIRATION,
         "businessName": BUSINESS_NAME,
+        "depositAccount": DEPOSIT_ACCOUNT_LABEL,
         "webhookPath": "/webhooks/pey",
     }
 
@@ -390,7 +423,7 @@ async def create_fixed_qr(body: FixedIn, request: Request) -> dict:
 # ---------------------------------------------------------------------------
 class ChargeIn(BaseModel):
     amount: float = Field(gt=0, le=1_000_000)
-    concept: str = Field(default="Venta", min_length=1, max_length=100)
+    concept: str = Field(default="", max_length=100)
     expiration: int | None = Field(default=None, ge=0)
 
 
@@ -399,7 +432,13 @@ async def create_charge(body: ChargeIn) -> dict:
     amount = round(body.amount, 2)
     expiration = DEFAULT_EXPIRATION if body.expiration is None else body.expiration
     concept = body.concept.strip()
-    qr_id, qr_string, num_ref = await pey_create_qr(amount, concept, expiration)
+    if concept.lower() == "venta":  # el asistente usa "Venta" cuando no hay concepto
+        concept = ""
+    # Lo que ve el cliente en su banco: el nombre del negocio y, si hay, el concepto
+    fixed = _fixed_row()
+    biz = (fixed["concept"] if fixed else "") or BUSINESS_NAME
+    pey_concept = f"{biz} · {concept}"[:100] if concept else biz
+    qr_id, qr_string, num_ref = await pey_create_qr(amount, pey_concept, expiration)
     if 0 < expiration < 360:
         expiration = 360
     now = int(time.time())
@@ -437,8 +476,8 @@ async def last_payment() -> dict:
 
 
 @app.get("/api/payments")
-async def list_payments(limit: int = 50) -> dict:
-    return today_summary(min(limit, 200))
+async def list_payments(limit: int = 50, days: int = 1) -> dict:
+    return today_summary(min(limit, 500), min(days, 90))
 
 
 # ---------------------------------------------------------------------------
@@ -453,7 +492,8 @@ async def handle_payment(payload: dict, *, simulated: bool = False) -> dict:
     with db() as conn:
         row = conn.execute("SELECT * FROM charges WHERE id = ?", (qr_id,)).fetchone()
         kind = row["kind"] if row else "external"
-        concept = payload.get("concept") or (row["concept"] if row else "")
+        # Preferimos el concepto que guardamos nosotros (el webhook puede traer "Negocio · concepto")
+        concept = row["concept"] if row else (payload.get("concept") or "")
         inserted = conn.execute(
             "INSERT OR IGNORE INTO payments (transaction_id, codi_qr_id, kind, amount, concept, paid_at, simulated)"
             " VALUES (?, ?, ?, ?, ?, ?, ?)",
@@ -473,6 +513,7 @@ async def handle_payment(payload: dict, *, simulated: bool = False) -> dict:
         "chargeId": qr_id,
         "kind": kind,  # fixed | amount | external
         "amount": amount,
+        "amountWords": amount_letters(amount),
         "expectedAmount": row["amount"] if row and kind == "amount" else None,
         "concept": concept,
         "transactionId": tx_id,
