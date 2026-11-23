@@ -1,8 +1,12 @@
 # Bocina CoDi
 
-**Un QR de CoDi que anuncia en voz alta cada pago recibido.** Como las bocinas de pago de las tiendas en India, pero sobre CoDi y sin hardware: cualquier celular o tablet se convierte en la bocina del mostrador.
+**Cobra con CoDi y escucha cada pago.** El cliente escanea el QR del mostrador, paga desde la app de su banco y, en cuanto pey confirma el dinero, la bocina lo dice en voz alta:
 
 > "Recibiste 85 pesos."
+
+Sin terminal, sin capturas de pantalla que revisar y sin instalar nada para el cliente. Y para el dueño, una app en el celular para ver cada pago al instante y cobrar a distancia.
+
+![Demo: un pago real con CoDi; la bocina lo anuncia y la app del dueño lo muestra al instante](docs/demo.gif)
 
 Construido sobre la API de [pey](https://docs.pey.mx) para el Hackatón México 2026.
 
@@ -21,23 +25,25 @@ El pago es real y llega a la cuenta del proyecto. También puedes abrir por sepa
 
 ## El problema
 
-CoDi permite cobrar con transferencias inmediatas y sin comisión desde 2019, pero en el mostrador sigue habiendo una pregunta sin resolver: **¿de verdad me pagaron?** Hoy el comerciante revisa la app de su banco o confía en una captura de pantalla que el cliente le muestra, y las capturas se pueden falsificar.
+Son las dos de la tarde en una tiendita y hay fila. Un cliente paga con transferencia y le enseña su celular a Doña Mari: "ya quedó". Ella no tiene tiempo de abrir la app de su banco, así que confía en la captura de pantalla. Las capturas se pueden falsificar, y por eso muchos negocios todavía prefieren el efectivo.
 
-En India este problema lo resolvió una bocina junto al QR que anuncia cada pago. El comerciante no necesita mirar ninguna pantalla: lo escucha.
+CoDi existe desde 2019: transferencias inmediatas, sin terminal y sin comisión por tarjeta. Lo que le falta en el mostrador es responder, sin mirar ninguna pantalla, la única pregunta que importa: **¿de verdad me pagaron?**
 
-## La solución
+## La solución: escucharlo
 
-Bocina CoDi tiene dos partes:
+| Para el cliente | Para el tendero | Para el dueño |
+|---|---|---|
+| Escanea el QR con la app de su banco, pone el monto y paga. Nada que instalar. | Escucha "Recibiste 85 pesos" y sigue atendiendo. Nada que revisar. | Ve cada pago al instante en su celular, con el banco de quien pagó, y cobra a distancia. |
 
-- **Mostrador (`/`)**: muestra el QR fijo del negocio. El cliente lo escanea con su app bancaria, pone el monto y paga. En cuanto pey confirma el pago, la pantalla se pone verde y la bocina dice el monto. Se puede preguntar por voz cuánto se ha vendido.
-- **App del dueño (`/app`)**: pensada para el celular. Muestra las ventas del día en tiempo real, genera cobros con monto exacto (el QR aparece en el celular para que el cliente lo escanee) e incluye un asistente para consultar las ventas.
+- **La bocina (`/`)**: lleva el QR fijo del negocio y anuncia cada pago en voz alta, uno por uno y en orden aunque lleguen varios a la vez. En el demo es un modelo 3D interactivo; en el roadmap, un aparato de bajo costo.
+- **La app del dueño (`/app`)**: los pagos del día y del historial, cobros con monto exacto, cobro directo al celular del cliente y un asistente al que se le pregunta "¿cuánto vendí hoy?".
 
-**La confirmación nunca viene del cliente.** Cada pago se anuncia solo después de recibir un webhook de pey con firma verificada ([Standard Webhooks](https://www.standardwebhooks.com/)).
+**La confirmación nunca viene del cliente.** Un pago solo se anuncia cuando pey envía el aviso con firma verificada ([Standard Webhooks](https://www.standardwebhooks.com/)). Una captura de pantalla no hace sonar la bocina.
 
 ## Cómo funciona
 
 ```
-Cliente escanea el QR fijo ──► paga desde su app bancaria (CoDi / SPEI)
+Cliente escanea el QR (o acepta el cobro en su celular) ──► paga desde su app bancaria (CoDi)
                                          │
                                          ▼
                        pey ──► POST /webhooks/pey
@@ -54,21 +60,25 @@ Cliente escanea el QR fijo ──► paga desde su app bancaria (CoDi / SPEI)
 
 ## Funcionalidades
 
-**Mostrador**
+**Bocina (mostrador)**
 - QR fijo (`amount: 0`, sin expiración): el cliente ingresa el monto al pagar.
 - Anuncio por voz de cada pago, con fila: si llegan varios pagos a la vez se anuncian uno por uno, completos y en orden.
 - Bocina 3D interactiva: botones de volumen y repetir el último pago (también con teclado: ↑ ↓ y U); el LED indica el estado.
 - Registro en vivo de los pagos verificados por pey y de la conexión; avisa en voz si se pierde la conexión.
 
 **App del dueño**
-- Total del día y movimientos de los últimos 30 días, agrupados por día, en tiempo real.
-- Botón "Cobrar": muestra el QR fijo y permite agregar un monto para generar un QR dinámico.
-- Cobro al celular: con el monto y el número del cliente, pey le envía una solicitud CoDi a la app de su banco. Queda como pendiente con cuenta regresiva y se confirma al llegar el pago; si vence o falla, se puede reenviar o cobrar con QR el mismo monto. Si una misma venta se paga dos veces, se marca como pago duplicado.
-- Comprobante de "Pago recibido" con el monto en letra en cuanto pey confirma el pago.
+- Total de hoy (y de ayer) y movimientos de los últimos 30 días agrupados por día, en tiempo real.
+- Cada movimiento muestra el banco y los últimos 4 dígitos de la cuenta de quien pagó.
+- Botón "Cobrar": muestra el QR fijo y permite agregar un monto para generar un QR con monto exacto.
+- Cobro al celular: con el monto y el número del cliente, pey le envía el cobro CoDi a la app de su banco. Queda como pendiente con cuenta regresiva y se confirma al llegar el pago; si vence o falla, se puede reenviar o generar un QR con el mismo monto. Si una misma venta se paga dos veces, se marca como pago duplicado.
+- Comprobante de "Pago recibido" con el monto en letra, el banco de origen y la clave de rastreo.
 - Búsqueda de pagos y asistente por texto o voz en la misma barra: "¿Cuánto vendí hoy?", "Cóbrale 90 de dos tortas".
-- Perfil con Mi QR para compartir como imagen o imprimir, cuenta de depósito y voz de la bocina.
-- Ajustes avanzados protegidos con PIN.
+- Perfil con Mi QR para compartir como imagen, cuenta de depósito y ajustes de sonido.
+- Ajustes avanzados protegidos con PIN, con el estado del servidor (incluye si el historial está en almacenamiento persistente).
 - Instalable como app (PWA).
+
+**Demo (`/demo`)**
+- La bocina y la app del dueño lado a lado, reaccionando al mismo pago.
 
 ## Stack
 
@@ -92,6 +102,7 @@ app/
     vendor/three/    three.js r170
     common.js        Fila de voz, eventos en vivo y utilidades compartidas
     icon.svg
+docs/demo.gif        GIF del demo para este README
 requirements.txt
 Procfile             Comando de arranque
 railway.json         Configuración de despliegue en Railway
@@ -100,7 +111,7 @@ railway.json         Configuración de despliegue en Railway
 
 ## Correr en local
 
-Requisitos: Python 3.12+ y una cuenta en [pey](https://portal.mipey.mx).
+Requisitos: Python 3.12+ y una cuenta en [pey](https://portal.pey.mx).
 
 ```bash
 python -m venv .venv
@@ -110,8 +121,9 @@ cp .env.example .env             # agrega tu PEY_API_KEY
 uvicorn app.main:app --reload --port 8000
 ```
 
-- Mostrador: http://localhost:8000
+- Bocina: http://localhost:8000
 - App del dueño: http://localhost:8000/app
+- Demo: http://localhost:8000/demo
 
 ### Conectar el webhook
 
@@ -121,9 +133,9 @@ pey necesita una URL pública para avisar de los pagos. En local puedes usar un 
 ngrok http 8000        # o: cloudflared tunnel --url http://localhost:8000
 ```
 
-1. En [portal.mipey.mx](https://portal.mipey.mx) → **Developer** → ⚙︎ de tu API key, registra `https://<tu-url>/webhooks/pey`.
+1. En [portal.pey.mx](https://portal.pey.mx) → **Desarrollador** → ⚙︎ de tu API key, registra `https://<tu-url>/webhooks/pey`.
 2. Copia el secreto (`whsec_...`) en `PEY_WEBHOOK_SECRET` y reinicia el servidor.
-3. Haz un pago de prueba. Si no llega, revisa los **Webhook Logs** del portal.
+3. Haz un pago de prueba. Si no llega, revisa los **Logs de Webhook** del portal.
 
 ## Variables de entorno
 
@@ -147,7 +159,7 @@ ngrok http 8000        # o: cloudflared tunnel --url http://localhost:8000
 El servidor necesita un proceso siempre activo (para los eventos en vivo) y un disco persistente (para SQLite), por lo que se despliega en [Railway](https://railway.com) en lugar de una plataforma serverless.
 
 1. **New Project → Deploy from GitHub repo** y selecciona este repositorio. El comando de arranque se toma de `railway.json`.
-2. En el servicio, agrega un **Volume** montado en `/data`.
+2. En el servicio, agrega un **Volume** montado en `/data` (sin volumen, el historial se borra en cada despliegue; la app lo avisa en Ajustes avanzados).
 3. En **Variables**, pega el contenido de tu `.env` (Raw Editor) y define `DB_PATH=/data/bocina.db`.
 4. En **Settings → Networking**, genera un dominio público.
 5. Actualiza la URL del webhook en el portal de pey a `https://<tu-dominio>/webhooks/pey`.
@@ -161,7 +173,9 @@ El servidor necesita un proceso siempre activo (para los eventos en vivo) y un d
 | `GET` | `/api/fixed-qr` | QR fijo activo |
 | `POST` | `/api/fixed-qr` | Crea un QR fijo nuevo (requiere PIN) |
 | `POST` | `/api/charges` | Crea un QR con monto |
-| `GET` | `/api/payments` | Pagos y total verificado del día |
+| `POST` | `/api/push` | Envía un cobro CoDi al celular del cliente |
+| `POST` | `/api/push/{id}/dismiss` | Quita de la lista un cobro al celular pendiente |
+| `GET` | `/api/payments` | Pagos, cobros al celular pendientes y totales de hoy y ayer |
 | `GET` | `/api/last-payment` | Último pago, con la frase para anunciarlo |
 | `POST` | `/api/assistant` | Asistente: responde sobre las ventas o genera un cobro |
 | `POST` | `/api/tts` | Texto a voz |
