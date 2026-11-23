@@ -154,6 +154,10 @@ def init_db() -> None:
             conn.execute("ALTER TABLE payments ADD COLUMN phone4 TEXT")
         if "duplicate_sale" not in pcols:
             conn.execute("ALTER TABLE payments ADD COLUMN duplicate_sale INTEGER NOT NULL DEFAULT 0")
+        # Quién pagó (del aviso de pey): banco, últimos 4 de su CLABE y clave de rastreo
+        for col in ("payer_bank", "payer_clabe4", "tracking_key"):
+            if col not in pcols:
+                conn.execute(f"ALTER TABLE payments ADD COLUMN {col} TEXT")
         # Pagos viejos -> tabla payments
         conn.execute(
             "INSERT OR IGNORE INTO payments (transaction_id, codi_qr_id, kind, amount, concept, paid_at, simulated)"
@@ -210,7 +214,30 @@ def payment_to_dict(r: sqlite3.Row) -> dict:
         "simulated": bool(r["simulated"]),
         "phone4": r["phone4"],
         "duplicateSale": bool(r["duplicate_sale"]),
+        "payerBank": r["payer_bank"],
+        "payerClabe4": r["payer_clabe4"],
+        "trackingKey": r["tracking_key"],
     }
+
+
+# Bancos más comunes en SPEI/CoDi (código de 5 dígitos que manda pey y prefijo de 3 dígitos de la CLABE)
+BANKS = {
+    "40002": "Banamex", "40012": "BBVA", "40014": "Santander", "40021": "HSBC", "40030": "BanBajío",
+    "40036": "Inbursa", "40042": "Mifel", "40044": "Scotiabank", "40058": "Banregio", "40062": "Afirme",
+    "40072": "Banorte", "40127": "Banco Azteca", "40130": "Compartamos", "40137": "BanCoppel",
+    "40166": "Banco del Bienestar", "90638": "Nu", "90646": "STP", "90722": "Mercado Pago",
+}
+
+
+def payer_from(metadata: dict) -> tuple[str | None, str | None, str | None]:
+    """(banco, últimos 4 de la CLABE, clave de rastreo) de quien pagó. Nunca guardamos la CLABE completa."""
+    if not isinstance(metadata, dict):
+        return None, None, None
+    clabe = re.sub(r"\D", "", str(metadata.get("clabe") or ""))
+    code = re.sub(r"\D", "", str(metadata.get("bankCode") or ""))
+    bank = BANKS.get(code) or (BANKS.get("40" + clabe[:3]) if len(clabe) >= 3 else None)
+    tracking = str(metadata.get("trackingKey") or "").strip() or None
+    return bank, (clabe[-4:] if len(clabe) >= 4 else None), tracking
 
 
 def today_summary(limit: int = 50, days: int = 1) -> dict:
@@ -225,6 +252,10 @@ def today_summary(limit: int = 50, days: int = 1) -> dict:
             "SELECT COALESCE(SUM(amount),0), COUNT(*) FROM payments WHERE paid_at >= ? AND simulated = 0",
             (today,),
         ).fetchone()
+        yesterday = conn.execute(
+            "SELECT COALESCE(SUM(amount),0) FROM payments WHERE paid_at >= ? AND paid_at < ? AND simulated = 0",
+            (today - 86400, today),
+        ).fetchone()[0]
         # Cobros al celular sin pagar de las últimas 24 h (los vencidos siguen visibles para reenviar)
         pend = conn.execute(
             "SELECT * FROM charges WHERE kind='push' AND status='pending' AND created_at >= ? ORDER BY created_at DESC",
@@ -233,7 +264,7 @@ def today_summary(limit: int = 50, days: int = 1) -> dict:
     return {
         "payments": [payment_to_dict(r) for r in rows],
         "pending": [push_to_dict(r) for r in pend],
-        "todayTotal": round(total, 2), "todayCount": count,
+        "todayTotal": round(total, 2), "todayCount": count, "yesterdayTotal": round(yesterday, 2),
     }
 
 
@@ -638,6 +669,7 @@ async def handle_payment(payload: dict, *, simulated: bool = False) -> dict:
         # Preferimos el concepto que guardamos nosotros (el webhook puede traer "Negocio · concepto")
         concept = row["concept"] if row else (payload.get("concept") or "")
         phone4 = (row["phone"] or "")[-4:] if row and kind == "push" else None
+        payer_bank, payer_clabe4, tracking_key = payer_from(payload.get("metadata") or {})
         # ¿Esta venta ya estaba pagada? (p. ej. pagó el QR de respaldo y también la solicitud al celular)
         sale_id = (row["sale_id"] or row["id"]) if row and kind in ("amount", "push") else None
         dup_sale = bool(sale_id) and conn.execute(
@@ -645,9 +677,10 @@ async def handle_payment(payload: dict, *, simulated: bool = False) -> dict:
             " WHERE COALESCE(c.sale_id, c.id) = ? AND p.transaction_id != ? LIMIT 1", (sale_id, tx_id),
         ).fetchone() is not None
         inserted = conn.execute(
-            "INSERT OR IGNORE INTO payments (transaction_id, codi_qr_id, kind, amount, concept, paid_at, simulated, phone4, duplicate_sale)"
-            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            (tx_id, qr_id, kind, amount, concept, paid_at, int(simulated), phone4, int(dup_sale)),
+            "INSERT OR IGNORE INTO payments (transaction_id, codi_qr_id, kind, amount, concept, paid_at, simulated, phone4,"
+            " duplicate_sale, payer_bank, payer_clabe4, tracking_key) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (tx_id, qr_id, kind, amount, concept, paid_at, int(simulated), phone4, int(dup_sale),
+             payer_bank, payer_clabe4, tracking_key),
         ).rowcount
         if row and kind in ("amount", "push"):
             conn.execute(
@@ -664,6 +697,9 @@ async def handle_payment(payload: dict, *, simulated: bool = False) -> dict:
         "kind": kind,  # fixed | amount | push | external
         "phone4": phone4,
         "duplicateSale": dup_sale,
+        "payerBank": payer_bank,
+        "payerClabe4": payer_clabe4,
+        "trackingKey": tracking_key,
         "amount": amount,
         "amountWords": amount_letters(amount),
         "expectedAmount": row["amount"] if row and kind in ("amount", "push") else None,

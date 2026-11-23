@@ -328,7 +328,7 @@ import { createSoundbox } from "/static/soundbox-display.js";
     const tx = p.transactionId ? `tx ${String(p.transactionId).slice(0, 10)}…` : "";
     const mismatch = p.expectedAmount != null && Math.abs(p.expectedAmount - p.amount) > 0.001 ? ` · se cobraron ${money(p.expectedAmount)}` : "";
     if (p.simulated) logEvent("sim", `Simulación · ${money(p.amount)}`, `${where} · no es un pago real`);
-    else logEvent("ok", `Pago verificado por pey · ${money(p.amount)}`, `${where}${mismatch} · ${tx}`);
+    else logEvent("ok", `Pago verificado por pey · ${money(p.amount)}`, `${p.payerBank ? p.payerBank + " · " : ""}${where}${mismatch} · ${tx}`);
   }
 
   // ---------- estado real: configuración del servidor + conexión en vivo ----------

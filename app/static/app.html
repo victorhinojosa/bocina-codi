@@ -81,7 +81,9 @@
 
   .today { margin: 12px 16px 0; background: var(--pey); color: #fff; border-radius: 22px; padding: 16px 18px; position: relative; overflow: hidden; }
   .today::after { content: ""; position: absolute; right: -40px; top: -60px; width: 180px; height: 180px; border-radius: 50%; background: rgba(255,255,255,.08); }
-  .today .k { font-size: 13px; opacity: .85; font-weight: 600; }
+  .today .k { font-size: 13px; font-weight: 600; display: flex; justify-content: space-between; position: relative; z-index: 1; }
+  .today .k > span:first-child { opacity: .85; }
+  .today .yest { font-weight: 500; opacity: .75; }
   .today .total { font-size: 36px; font-weight: 820; letter-spacing: -.02em; margin-top: 2px; }
   .today .sub { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; font-size: 13px; opacity: .92; }
   .dot { display: inline-flex; align-items: center; gap: 6px; }
@@ -206,6 +208,8 @@
   .ticket-body .row { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; padding: 4px 0; }
   .ticket-body .row span:first-child { color: var(--muted); }
   .ticket-body .row span:last-child { text-align: right; font-weight: 600; }
+  .ticket-body .row.track { flex-direction: column; gap: 2px; }
+  .ticket-body .row.track span:last-child { text-align: left; font-size: 12.5px; word-break: break-all; font-weight: 600; }
   .verified { margin-top: 12px; display: flex; align-items: center; gap: 6px; color: var(--ok); font-weight: 680; font-size: 14px; }
   .verified.sim { color: var(--sim); }
   .mismatch { margin-top: 12px; background: #fdecea; color: var(--bad); padding: 10px 12px; border-radius: 12px; font-weight: 650; font-size: 13.5px; }
@@ -235,6 +239,9 @@
   .menu .it .chev { transition: transform .2s; }
   .menu .it[aria-expanded="true"] .chev { transform: rotate(90deg); }
   .menu .it select { border: 1px solid var(--line); border-radius: 10px; padding: 6px 8px; font: inherit; font-size: 13px; background: #fff; }
+  .st { display: inline-flex; align-items: center; gap: 6px; }
+  .st i { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); flex-shrink: 0; }
+  .st.warn i { background: #e0a100; } .st.bad i { background: var(--bad); }
   .ok-t { color: var(--ok); font-weight: 650; } .bad-t { color: var(--bad); font-weight: 650; }
   .switch { appearance: none; width: 44px; height: 26px; border-radius: 999px; background: #d6dce6; position: relative; cursor: pointer; transition: .2s; flex-shrink: 0; }
   .switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: .2s; box-shadow: 0 1px 3px rgba(0,0,0,.2); }
@@ -286,7 +293,7 @@
         </label>
         <div id="answer"></div>
         <div class="today">
-          <div class="k">Hoy</div>
+          <div class="k"><span>Hoy</span><span class="yest" id="yest"></span></div>
           <div class="total" id="total">$0.00</div>
           <div class="sub"><span id="count">0 pagos</span><span class="dot off" id="conn"><i></i><span>Conectando…</span></span></div>
         </div>
@@ -409,7 +416,7 @@
       <h3>Agregar monto</h3>
       <div class="small" style="margin:0">Elige cómo cobrarle a tu cliente.</div>
       <div class="amount" id="amountView"><small>$</small>0</div>
-      <input class="input" id="concept" maxlength="100" placeholder="Concepto (ej. 2 tortas)" />
+      <input class="input" id="concept" maxlength="100" placeholder="Concepto (opcional)" />
       <div class="keypad" id="keypad">
         <button>1</button><button>2</button><button>3</button>
         <button>4</button><button>5</button><button>6</button>
@@ -418,15 +425,15 @@
       </div>
       <div style="display:flex;gap:8px">
         <button class="btn ghostblue nowrap" id="pushBtn" disabled><svg class="i"><use href="#i-phone"/></svg>Enviar al celular</button>
-        <button class="btn primary" id="chargeBtn" disabled><svg class="i"><use href="#i-qr"/></svg>Mostrar QR</button>
+        <button class="btn primary" id="chargeBtn" disabled><svg class="i"><use href="#i-qr"/></svg>Generar QR</button>
       </div>
       </div>
       <div id="phoneStep" style="display:none">
-        <div class="step-head"><button class="iconbtn" id="phoneBack" aria-label="Regresar"><svg class="i"><use href="#i-back"/></svg></button><h3 style="margin:0">Enviar a su celular</h3></div>
+        <div class="step-head"><button class="iconbtn" id="phoneBack" aria-label="Regresar"><svg class="i"><use href="#i-back"/></svg></button><h3 style="margin:0">Enviar al celular</h3></div>
         <div class="sum"><b id="pushSumAmt">$0.00</b><span id="pushSumCpt"></span></div>
-        <label class="small" for="phone" style="display:block;margin:0 0 6px">Número de tu cliente</label>
-        <input class="input phone-in" id="phone" type="tel" inputmode="numeric" autocomplete="off" placeholder="55 1234 5678" maxlength="16" />
-        <p class="small" style="margin:8px 0 0">Le llegará una solicitud de cobro CoDi a la app de su banco. Tú puedes seguir usando la app: te avisamos cuando pague.</p>
+        <label class="small" for="phone" style="display:block;margin:0 0 6px">Celular de tu cliente</label>
+        <input class="input phone-in" id="phone" type="tel" inputmode="numeric" autocomplete="off" placeholder="5512345678" maxlength="16" />
+        <p class="small" style="margin:8px 0 0">Le llegará el cobro en la app de su banco. Te avisamos cuando pague.</p>
         <div id="pushErr"></div>
         <button class="btn primary" id="sendPush" style="width:100%;margin-top:14px" disabled>Enviar cobro</button>
       </div>
@@ -457,8 +464,7 @@
         </div></div>
       </div>
       <div class="menu">
-        <button class="it" id="openAdv"><span class="ic"><svg class="i"><use href="#i-lock"/></svg></span><span class="mid">Ajustes avanzados<div class="s">Protegidos con PIN</div></span><svg class="i end"><use href="#i-chev"/></svg></button>
-        <div class="it"><span class="ic"><svg class="i"><use href="#i-doc"/></svg></span><span class="mid">Términos y ayuda<div class="s">Cobros procesados con pey sobre CoDi de Banxico</div></span></div>
+        <button class="it" id="openAdv"><span class="ic"><svg class="i"><use href="#i-lock"/></svg></span><span class="mid">Ajustes avanzados</span><svg class="i end"><use href="#i-chev"/></svg></button>
       </div>
     </div>
 
@@ -485,7 +491,6 @@
   <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 21h4"/></symbol>
   <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 5v14l11-7z"/></symbol>
   <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
-  <symbol id="i-doc" viewBox="0 0 24 24"><path d="M7 3h7l5 5v13H7zM14 3v5h5M10 13h6M10 17h6"/></symbol>
   <symbol id="i-receipt" viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6"/></symbol>
   <symbol id="i-phone" viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/></symbol>
   <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></symbol>
@@ -519,12 +524,21 @@
     if (diff === 1) return "Ayer";
     return d.toLocaleDateString("es-MX", { weekday: "short", day: "numeric", month: "short" });
   }
-  const titleOf = (p) => p.kind === "amount" ? (p.concept || "Cobro con monto") : p.kind === "push" ? (p.concept || "Cobro al celular")
-    : p.kind === "fixed" ? "Pago CoDi" : "Pago CoDi externo";
-  const tagOf = (p) => (p.duplicateSale ? `<span class="tag dup">Pago duplicado</span> ` : "") + (p.simulated ? `<span class="tag sim">Simulación</span>`
-    : p.kind === "amount" ? `<span class="tag amt-tag">Cobro con monto</span>` : p.kind === "push" ? `<span class="tag push-tag">Al celular · ${esc(p.phone4 || "")}</span>` : `<span class="tag">QR fijo</span>`);
+  // Quién pagó: banco y últimos 4 de su CLABE (vienen en el aviso de pey; los pagos viejos no los tienen)
+  const payerOf = (p) => p.payerBank ? `${p.payerBank}${p.payerClabe4 ? " ···· " + p.payerClabe4 : ""}` : "";
+  const titleOf = (p) => payerOf(p) || (p.kind === "amount" ? (p.concept || "Cobro con monto") : p.kind === "push" ? (p.concept || "Cobro al celular")
+    : p.kind === "fixed" ? "Pago CoDi" : "Pago CoDi externo");
+  // Etiquetas solo para lo que no es el caso normal (el QR fijo no lleva etiqueta)
+  const tagOf = (p) => {
+    const t = [];
+    if (p.duplicateSale) t.push(`<span class="tag dup">Pago duplicado</span>`);
+    if (p.simulated) t.push(`<span class="tag sim">Simulación</span>`);
+    if (p.kind === "amount") t.push(`<span class="tag amt-tag">${esc(payerOf(p) && p.concept ? p.concept : "Cobro con monto")}</span>`);
+    if (p.kind === "push") t.push(`<span class="tag push-tag">Al celular${payerOf(p) && p.concept ? " · " + esc(p.concept) : ""}</span>`);
+    if (p.kind === "external") t.push(`<span class="tag gone">QR externo</span>`);
+    return t.join(" ");
+  };
   const typeOf = (p) => ({ amount: "Cobro con monto", push: "Cobro al celular", fixed: "QR fijo" })[p.kind] || "QR externo";
-  const fmtPhone = (d) => d.replace(/(\d{2})(\d{0,4})(\d{0,4})/, (m, a, b, c) => [a, b, c].filter(Boolean).join(" "));
   const mmss = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
   const leftOf = (x) => Math.max(0, x.expiresAt - Math.floor(Date.now() / 1000));
 
@@ -567,13 +581,14 @@
       pending.forEach((x) => { if (x.status === "expired") expiredSeen.add(x.id); });
       $("total").textContent = money(d.todayTotal);
       $("count").textContent = `${d.todayCount} ${d.todayCount === 1 ? "pago" : "pagos"}`;
+      $("yest").textContent = `Ayer ${money(d.yesterdayTotal || 0)}`;
       renderList();
     } catch {}
   }
   function matches(p, q) {
     if (!q) return true;
     q = q.toLowerCase().replace("$", "").trim();
-    const hay = [titleOf(p), p.concept, p.simulated ? "simulación" : "", p.phone4 || "", { fixed: "qr fijo", push: "celular" }[p.kind] || "cobro monto",
+    const hay = [titleOf(p), p.concept, p.payerBank || "", p.payerClabe4 || "", p.simulated ? "simulación" : "", p.phone4 || "", { fixed: "qr fijo", push: "celular" }[p.kind] || "cobro monto",
       String(p.amount), money(p.amount), hhmm(when(p)), dayLabel(when(p))].join(" ").toLowerCase();
     return q.split(/\s+/).every((w) => hay.includes(w));
   }
@@ -717,7 +732,7 @@
     $("chargeBtn").disabled = true; $("chargeBtn").textContent = "Generando…";
     try { await createCharge(parseFloat(amountStr), $("concept").value); amountStr = ""; $("concept").value = ""; }
     catch (e) { toast("No se pudo crear: " + e.message, 6000); }
-    finally { $("chargeBtn").innerHTML = `${ICON("qr")}Mostrar QR`; renderAmount(); }
+    finally { $("chargeBtn").innerHTML = `${ICON("qr")}Generar QR`; renderAmount(); }
   };
 
   // ---------- cobro al celular ----------
@@ -728,7 +743,7 @@
     $("amountStep").style.display = "none"; $("phoneStep").style.display = "";
     $("pushSumAmt").textContent = money(ctx.amount);
     $("pushSumCpt").textContent = ctx.concept || "Sin concepto";
-    $("phone").value = fmtPhone(phone); $("pushErr").innerHTML = "";
+    $("phone").value = phone; $("pushErr").innerHTML = "";
     $("phoneBack").style.display = ctx.saleId ? "none" : "";
     syncSendBtn();
     setTimeout(() => $("phone").focus(), 320);
@@ -747,17 +762,17 @@
   $("phone").addEventListener("input", () => {
     // Se permite escribir o pegar con lada (+52 / 521); en cuanto el número se completa, se queda con los 10 dígitos
     const raw = $("phone").value.replace(/\D/g, "").slice(0, 13), d = phoneDigits();
-    $("phone").value = d.length <= 10 && raw.length !== 11 ? fmtPhone(d) : raw;
+    $("phone").value = d.length <= 10 && raw.length !== 11 ? d : raw;
     $("pushErr").innerHTML = ""; syncSendBtn();
   });
   $("phone").addEventListener("keydown", (e) => { if (e.key === "Enter" && !$("sendPush").disabled) $("sendPush").click(); });
   $("pushBtn").onclick = () => showPhoneStep({ amount: parseFloat(amountStr), concept: $("concept").value.trim() });
   $("phoneBack").onclick = showAmountStep;
   function pushError(e) {
-    const qrBtn = `<button data-act="qr">Mostrar QR con este monto</button>`;
+    const qrBtn = `<button data-act="qr">Generar QR con este monto</button>`;
     const map = {
       bad_phone: [e.message, ""],
-      codi_disabled: [e.message + " Cóbrale con el QR.", qrBtn],
+      codi_disabled: [e.message + " Genera un QR para cobrarle.", qrBtn],
       unavailable: [e.message, `<button data-act="retry">Reintentar</button>${qrBtn}`],
       rejected: [e.message, `<button data-act="retry">Reintentar</button>${qrBtn}`],
     };
@@ -799,14 +814,14 @@
     $("pendBody").innerHTML = `
       <h3 style="text-align:center;margin-bottom:0">Cobro al celular</h3>
       <div class="pend-amt">${money(x.amount)}</div>
-      <div class="pend-sub">${esc(x.concept || "Sin concepto")} · ${esc(fmtPhone(x.phone || ""))}</div>
-      <div class="pend-state"><span class="waiting ${live ? "" : "expired"}"><i></i><span id="pendLeft">${live ? "Esperando pago · vence en " + mmss(left) : "La solicitud venció"}</span></span></div>
-      ${live && waited >= 45 ? `<div class="alert info">¿No le llegó? Algunos bancos piden activar CoDi con el número del cliente. Si está cerca, muéstrale un QR; si no, reenvía la solicitud.</div>` : ""}
-      ${!live ? `<div class="alert info">Tu cliente ya no puede pagar esta solicitud. Reenvíala o, si está cerca, muéstrale un QR.</div>` : ""}
+      <div class="pend-sub">${x.concept ? esc(x.concept) + " · " : ""}${esc(x.phone || "")}</div>
+      <div class="pend-state"><span class="waiting ${live ? "" : "expired"}"><i></i><span id="pendLeft">${live ? "Esperando pago · vence en " + mmss(left) : "El cobro venció"}</span></span></div>
+      ${live && waited >= 45 ? `<div class="alert info">¿No le llegó? Algunos bancos piden activar CoDi con el número del cliente. Si está cerca, genera un QR; si no, reenvía el cobro.</div>` : ""}
+      ${!live ? `<div class="alert info">Tu cliente ya no puede pagar este cobro. Reenvíalo o, si está cerca, genera un QR.</div>` : ""}
       <div class="stack">
         <div style="display:flex;gap:8px">
           <button class="btn ghostblue" id="pendResend">${ICON("phone")}Reenviar</button>
-          <button class="btn primary" id="pendQr">${ICON("qr")}Mostrar QR</button>
+          <button class="btn primary" id="pendQr">${ICON("qr")}Generar QR</button>
         </div>
         ${Bocina.status?.allowSimulation && live ? `<button class="btn" id="pendSim">Simular pago (prueba)</button>` : ""}
         <button class="linkbtn" id="pendDismiss">Quitar de la lista</button>
@@ -847,7 +862,6 @@
     const mismatch = p.expectedAmount != null && Math.abs(p.expectedAmount - p.amount) > 0.001;
     const d = new Date(when(p) * 1000);
     const date = d.toLocaleDateString("es-MX", { day: "numeric", month: "short", year: "numeric" });
-    const ref = String(p.transactionId || "");
     $("ticket").innerHTML = `
       <div class="ticket-top ${sim ? "sim" : ""}">
         <div class="k">${sim ? "Simulación" : "Pago recibido"}</div>
@@ -856,15 +870,15 @@
       </div>
       <div class="slot"></div>
       <div class="printer"><div class="ticket-body">
-        <div class="lbl">Para</div>
-        <div class="val">${esc(bizName())}</div>
-        <div class="sub">${esc(Bocina.status?.depositAccount || "Cuenta pey")}</div>
+        <div class="lbl">Desde</div>
+        <div class="val">${esc(payerOf(p) || (sim ? "Pago de prueba" : "Cliente CoDi"))}</div>
+        ${p.kind === "push" && p.phone4 ? `<div class="sub">Celular ···· ${esc(p.phone4)}</div>` : ""}
         <hr/>
         <div class="row"><span>Tipo</span><span>${typeOf(p)}</span></div>
-        ${p.kind === "push" && p.phone4 ? `<div class="row"><span>Celular</span><span>···· ${esc(p.phone4)}</span></div>` : ""}
         ${(p.kind === "amount" || p.kind === "push") && p.concept ? `<div class="row"><span>Concepto</span><span>${esc(p.concept)}</span></div>` : ""}
+        <div class="row"><span>Depositado en</span><span>${esc(Bocina.status?.depositAccount || "Tu cuenta pey")}</span></div>
         <div class="row"><span>Fecha</span><span>${date} · ${hhmm(when(p))}</span></div>
-        <div class="row"><span>Referencia</span><span class="mono" style="font-size:12.5px">${esc(ref.length > 16 ? ref.slice(0, 14) + "…" : ref)}</span></div>
+        ${p.trackingKey ? `<div class="row track"><span>Clave de rastreo</span><span class="mono">${esc(p.trackingKey)}</span></div>` : ""}
         ${p.duplicateSale ? `<div class="mismatch">Pago duplicado: esta venta ya se había pagado. Revisa con tu cliente si hay que devolverlo.</div>` : ""}
         ${mismatch ? `<div class="mismatch">Se cobraron ${money(p.expectedAmount)} y llegaron ${money(p.amount)}</div>` : ""}
         <div class="verified ${sim ? "sim" : ""}">${ICON(sim ? "sparkle" : "shield")}${sim ? "No es un pago real" : "Verificado por pey"}</div>
@@ -923,8 +937,8 @@
   function syncSpeaker() {
     const st = Bocina.status || {};
     const ok = connected && st.pey !== false && st.webhookSecret !== false;
-    $("spkState").innerHTML = ok ? `<span class="ok-t">Conectada · escuchando pagos</span>`
-      : !connected ? `<span class="bad-t">Sin conexión con el servidor</span>` : `<span class="bad-t">Falta configurar pey</span>`;
+    $("spkState").innerHTML = ok ? `<span class="st"><i></i>Conectada · escuchando pagos</span>`
+      : !connected ? `<span class="st bad"><i></i>Sin conexión con el servidor</span>` : `<span class="st warn"><i></i>Falta configurar pey</span>`;
     $("conn").className = "dot" + (ok ? "" : " off");
     $("conn").lastElementChild.textContent = ok ? "Bocina conectada" : connected ? "Falta configurar" : "Sin conexión";
   }
