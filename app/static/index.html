@@ -323,7 +323,8 @@ import { createSoundbox } from "/static/soundbox-display.js";
     while (box.children.length > LOG_MAX) box.lastChild.remove();
   }
   function logPayment(p) {
-    const where = p.kind === "amount" ? p.concept || "Cobro con monto" : p.kind === "fixed" ? "QR fijo" : "QR externo";
+    const where = p.kind === "amount" ? p.concept || "Cobro con monto"
+      : p.kind === "push" ? `Cobro al celular ···· ${p.phone4 || ""}` : p.kind === "fixed" ? "QR fijo" : "QR externo";
     const tx = p.transactionId ? `tx ${String(p.transactionId).slice(0, 10)}…` : "";
     const mismatch = p.expectedAmount != null && Math.abs(p.expectedAmount - p.amount) > 0.001 ? ` · se cobraron ${money(p.expectedAmount)}` : "";
     if (p.simulated) logEvent("sim", `Simulación · ${money(p.amount)}`, `${where} · no es un pago real`);

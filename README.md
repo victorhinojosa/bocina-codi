@@ -52,6 +52,7 @@ Cliente escanea el QR fijo ──► paga desde su app bancaria (CoDi / SPEI)
 **App del dueño**
 - Total del día y movimientos de los últimos 30 días, agrupados por día, en tiempo real.
 - Botón "Cobrar": muestra el QR fijo y permite agregar un monto para generar un QR dinámico.
+- Cobro al celular: con el monto y el número del cliente, pey le envía una solicitud CoDi a la app de su banco. Queda como pendiente con cuenta regresiva y se confirma al llegar el pago; si vence o falla, se puede reenviar o cobrar con QR el mismo monto. Si una misma venta se paga dos veces, se marca como pago duplicado.
 - Comprobante de "Pago recibido" con el monto en letra en cuanto pey confirma el pago.
 - Búsqueda de pagos y asistente por texto o voz en la misma barra: "¿Cuánto vendí hoy?", "Cóbrale 90 de dos tortas".
 - Perfil con Mi QR para compartir como imagen o imprimir, cuenta de depósito y voz de la bocina.
@@ -117,6 +118,7 @@ ngrok http 8000        # o: cloudflared tunnel --url http://localhost:8000
 | `PEY_WEBHOOK_SECRET` | Sí | Secreto del webhook (`whsec_...`) |
 | `BUSINESS_NAME` | No | Nombre que ve el cliente al pagar |
 | `DEPOSIT_ACCOUNT_LABEL` | No | Cómo se muestra en el perfil la cuenta donde cae el dinero, ej. `BBVA ···· 2702` |
+| `PUSH_EXPIRATION` | No | Segundos que dura una solicitud de cobro al celular (mínimo 360; por defecto 900) |
 | `FIXED_QR_ID` / `FIXED_QR_STRING` | No | Amarra el QR fijo a la cuenta; sobrevive reinicios y deploys |
 | `ADMIN_PIN` | Recomendada | PIN para entrar a Ajustes avanzados |
 | `ELEVENLABS_API_KEY` / `ELEVENLABS_VOICE_ID` | No | Voz natural; sin llave se usa la voz del navegador |

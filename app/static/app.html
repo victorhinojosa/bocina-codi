@@ -101,6 +101,28 @@
   .tag { display: inline-block; margin-top: 5px; font-size: 11.5px; font-weight: 650; padding: 2px 8px; border-radius: 7px; background: var(--pey-soft); color: var(--pey-deep); }
   .tag.amt-tag { background: var(--ok-bg); color: #0d6b41; }
   .tag.sim { background: var(--sim-bg); color: var(--sim); }
+  .tag.push-tag { background: #eef0ff; color: #3a3fb8; }
+  .tag.wait { background: var(--warn-bg); color: #8a5a0b; }
+  .tag.gone { background: #f0f2f6; color: var(--muted); }
+  .tag.dup { background: #fdecea; color: var(--bad); }
+  .mv .a.pend { color: var(--muted); }
+  .mv .ic.pend { background: var(--warn-bg); color: #b26b00; }
+  .mv .ic.gone { background: #f0f2f6; color: var(--faint); }
+  .step-head { display: flex; align-items: center; gap: 4px; margin: -4px 0 4px -8px; }
+  .sum { display: flex; justify-content: space-between; align-items: baseline; background: var(--bg); border-radius: 14px; padding: 12px 14px; margin: 10px 0 12px; }
+  .sum b { font-size: 22px; letter-spacing: -.01em; }
+  .sum span { color: var(--muted); font-size: 13.5px; max-width: 55%; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .phone-in { font-size: 26px; font-weight: 700; letter-spacing: .04em; text-align: center; padding: 14px; }
+  .alert { margin-top: 10px; border-radius: 14px; padding: 11px 13px; font-size: 14px; line-height: 1.4; }
+  .alert.err { background: #fdecea; color: #8f241c; }
+  .alert.info { background: var(--pey-soft); color: var(--pey-ink); }
+  .alert .acts { display: flex; gap: 8px; margin-top: 9px; }
+  .alert .acts button { border: 0; border-radius: 10px; padding: 8px 12px; font-weight: 650; font-size: 13.5px; background: #fff; color: inherit; }
+  .pend-amt { font-size: 40px; font-weight: 820; letter-spacing: -.02em; text-align: center; margin-top: 4px; }
+  .pend-sub { text-align: center; color: var(--muted); font-size: 14px; }
+  .pend-state { display: flex; justify-content: center; margin: 12px 0 4px; }
+  .linkbtn { border: 0; background: none; color: var(--bad); font-weight: 650; font-size: 14px; padding: 10px; width: 100%; }
+  .stack { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
   .mv .a { font-weight: 760; font-size: 16px; color: var(--ok); white-space: nowrap; }
   .mv .a.sim { color: var(--sim); }
   .mv.new { animation: flash 2.6s ease-out; }
@@ -138,6 +160,7 @@
   .btn.primary { background: var(--pey); border-color: var(--pey); color: #fff; }
   .btn:disabled { opacity: .4; cursor: not-allowed; }
   .btn.ghostblue { color: var(--pey); border-color: #cfe0fb; background: var(--pey-soft); }
+  .btn.nowrap { white-space: nowrap; padding-left: 8px; padding-right: 8px; gap: 6px; }
 
   /* ---------- teclado de monto (hoja) ---------- */
   .sheetbg { position: absolute; inset: 0; background: rgba(10,18,35,.45); z-index: 30; opacity: 0; visibility: hidden; transition: .25s; }
@@ -382,8 +405,9 @@
 
     <div class="sheet" id="amountSheet">
       <div class="grip"></div>
+      <div id="amountStep">
       <h3>Agregar monto</h3>
-      <div class="small" style="margin:0">Tu cliente solo escanea y confirma.</div>
+      <div class="small" style="margin:0">Elige cómo cobrarle a tu cliente.</div>
       <div class="amount" id="amountView"><small>$</small>0</div>
       <input class="input" id="concept" maxlength="100" placeholder="Concepto (ej. 2 tortas)" />
       <div class="keypad" id="keypad">
@@ -392,7 +416,25 @@
         <button>7</button><button>8</button><button>9</button>
         <button>.</button><button>0</button><button data-k="del" aria-label="Borrar">⌫</button>
       </div>
-      <button class="btn primary" id="chargeBtn" style="width:100%" disabled>Generar cobro</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn ghostblue nowrap" id="pushBtn" disabled><svg class="i"><use href="#i-phone"/></svg>Enviar al celular</button>
+        <button class="btn primary" id="chargeBtn" disabled><svg class="i"><use href="#i-qr"/></svg>Mostrar QR</button>
+      </div>
+      </div>
+      <div id="phoneStep" style="display:none">
+        <div class="step-head"><button class="iconbtn" id="phoneBack" aria-label="Regresar"><svg class="i"><use href="#i-back"/></svg></button><h3 style="margin:0">Enviar a su celular</h3></div>
+        <div class="sum"><b id="pushSumAmt">$0.00</b><span id="pushSumCpt"></span></div>
+        <label class="small" for="phone" style="display:block;margin:0 0 6px">Número de tu cliente</label>
+        <input class="input phone-in" id="phone" type="tel" inputmode="numeric" autocomplete="off" placeholder="55 1234 5678" maxlength="16" />
+        <p class="small" style="margin:8px 0 0">Le llegará una solicitud de cobro CoDi a la app de su banco. Tú puedes seguir usando la app: te avisamos cuando pague.</p>
+        <div id="pushErr"></div>
+        <button class="btn primary" id="sendPush" style="width:100%;margin-top:14px" disabled>Enviar cobro</button>
+      </div>
+    </div>
+
+    <div class="sheet" id="pendSheet">
+      <div class="grip"></div>
+      <div id="pendBody"></div>
     </div>
 
     <div class="sheet" id="profileSheet">
@@ -445,6 +487,8 @@
   <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
   <symbol id="i-doc" viewBox="0 0 24 24"><path d="M7 3h7l5 5v13H7zM14 3v5h5M10 13h6M10 17h6"/></symbol>
   <symbol id="i-receipt" viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></symbol>
   <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 4l1.8 4.2L18 10l-4.2 1.8L12 16l-1.8-4.2L6 10l4.2-1.8z"/></symbol>
 </svg>
 
@@ -454,7 +498,9 @@
   const { $, money, esc, api, toast, prefs, setPref, Voice } = Bocina;
   const hhmm = (ts) => new Date(ts * 1000).toLocaleTimeString("es-MX", { hour: "numeric", minute: "2-digit" });
   const ICON = (id, extra = "") => `<svg class="i" ${extra}><use href="#i-${id}"/></svg>`;
-  let fixed = null, payments = [], lastTop = null, connected = false;
+  let fixed = null, payments = [], pending = [], lastTop = null, connected = false;
+  let pendOpen = null;                 // cobro al celular abierto en la hoja de detalle
+  const expiredSeen = new Set();       // para avisar una sola vez cuando vence
   let shown = null;          // lo que está en la pantalla Cobrar: { kind: "fixed" } o el cobro con monto
   let amountStr = "", expTimer = null;
 
@@ -473,15 +519,22 @@
     if (diff === 1) return "Ayer";
     return d.toLocaleDateString("es-MX", { weekday: "short", day: "numeric", month: "short" });
   }
-  const titleOf = (p) => p.kind === "amount" ? (p.concept || "Cobro con monto") : p.kind === "fixed" ? "Pago CoDi" : "Pago CoDi externo";
-  const tagOf = (p) => p.simulated ? `<span class="tag sim">Simulación</span>` : p.kind === "amount" ? `<span class="tag amt-tag">Cobro con monto</span>` : `<span class="tag">QR fijo</span>`;
+  const titleOf = (p) => p.kind === "amount" ? (p.concept || "Cobro con monto") : p.kind === "push" ? (p.concept || "Cobro al celular")
+    : p.kind === "fixed" ? "Pago CoDi" : "Pago CoDi externo";
+  const tagOf = (p) => (p.duplicateSale ? `<span class="tag dup">Pago duplicado</span> ` : "") + (p.simulated ? `<span class="tag sim">Simulación</span>`
+    : p.kind === "amount" ? `<span class="tag amt-tag">Cobro con monto</span>` : p.kind === "push" ? `<span class="tag push-tag">Al celular · ${esc(p.phone4 || "")}</span>` : `<span class="tag">QR fijo</span>`);
+  const typeOf = (p) => ({ amount: "Cobro con monto", push: "Cobro al celular", fixed: "QR fijo" })[p.kind] || "QR externo";
+  const fmtPhone = (d) => d.replace(/(\d{2})(\d{0,4})(\d{0,4})/, (m, a, b, c) => [a, b, c].filter(Boolean).join(" "));
+  const mmss = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+  const leftOf = (x) => Math.max(0, x.expiresAt - Math.floor(Date.now() / 1000));
 
   // ---------- capas y hojas ----------
   const layers = [];
   function openLayer(id) { const el = $(id); el.classList.add("on"); if (!layers.includes(id)) layers.push(id); }
   function closeLayer(id) {
     id = id || layers[layers.length - 1]; if (!id) return;
-    $(id).classList.remove("on"); layers.splice(layers.indexOf(id), 1);
+    $(id).classList.remove("on");
+    const i = layers.indexOf(id); if (i >= 0) layers.splice(i, 1);
     if (id === "charge") { clearInterval(expTimer); shown = null; }
   }
   document.addEventListener("click", (e) => { const b = e.target.closest("[data-close]"); if (b) closeLayer(b.closest(".screen").id); });
@@ -510,6 +563,8 @@
     try {
       const d = await api("/api/payments?limit=300&days=30");
       payments = d.payments;
+      pending = d.pending || [];
+      pending.forEach((x) => { if (x.status === "expired") expiredSeen.add(x.id); });
       $("total").textContent = money(d.todayTotal);
       $("count").textContent = `${d.todayCount} ${d.todayCount === 1 ? "pago" : "pagos"}`;
       renderList();
@@ -518,13 +573,26 @@
   function matches(p, q) {
     if (!q) return true;
     q = q.toLowerCase().replace("$", "").trim();
-    const hay = [titleOf(p), p.concept, p.simulated ? "simulación" : "", p.kind === "fixed" ? "qr fijo" : "cobro monto",
+    const hay = [titleOf(p), p.concept, p.simulated ? "simulación" : "", p.phone4 || "", { fixed: "qr fijo", push: "celular" }[p.kind] || "cobro monto",
       String(p.amount), money(p.amount), hhmm(when(p)), dayLabel(when(p))].join(" ").toLowerCase();
     return q.split(/\s+/).every((w) => hay.includes(w));
+  }
+  function pendingRow(x) {
+    const left = leftOf(x), live = left > 0;
+    return `<button class="mv" data-pend="${esc(x.id)}">
+      <span class="ic ${live ? "pend" : "gone"}">${ICON(live ? "clock" : "phone")}</span>
+      <span class="mid"><div class="c">${esc(x.concept || "Cobro al celular")}</div>
+        <div class="t" data-left="${esc(x.id)}">···· ${esc(x.phone4)} · ${live ? "vence en " + mmss(left) : "venció"}</div>
+        <span class="tag ${live ? "wait" : "gone"}">${live ? "Esperando pago" : "Venció · toca para reenviar"}</span></span>
+      <span class="a pend">${money(x.amount)}</span>
+    </button>`;
   }
   function renderList() {
     const q = $("q").value.trim();
     const items = payments.filter((p) => matches(p, q));
+    const pend = q ? [] : pending;
+    const pendHtml = pend.length ? `<div class="day"><span>Pendientes</span><span>${pend.length}</span></div><div class="group">${pend.map(pendingRow).join("")}</div>` : "";
+    if (!payments.length && pendHtml) { $("list").innerHTML = pendHtml; return; }
     if (!payments.length) {
       $("list").innerHTML = `<div class="empty"><b>Tus pagos aparecerán aquí</b>Cuando un cliente pague con CoDi, lo verás al instante y la bocina lo anunciará.</div>`;
       return;
@@ -538,11 +606,11 @@
       g.items.push(p); if (!p.simulated) g.total += p.amount;
     }
     const top = payments[0]?.transactionId;
-    $("list").innerHTML = groups.map((g) => `
+    $("list").innerHTML = pendHtml + groups.map((g) => `
       <div class="day"><span>${g.k}</span><span>${money(g.total)}</span></div>
       <div class="group">${g.items.map((p) => `
         <button class="mv ${lastTop && p.transactionId === top && top !== lastTop ? "new" : ""}" data-tx="${esc(p.transactionId)}">
-          <span class="ic ${p.simulated ? "sim" : ""}">${ICON(p.kind === "amount" ? "receipt" : "qr")}</span>
+          <span class="ic ${p.simulated ? "sim" : ""}">${ICON(p.kind === "amount" ? "receipt" : p.kind === "push" ? "phone" : "qr")}</span>
           <span class="mid"><div class="c">${esc(titleOf(p))}</div><div class="t">${hhmm(when(p))}</div>${tagOf(p)}</span>
           <span class="a ${p.simulated ? "sim" : ""}">+${money(p.amount)}</span>
         </button>`).join("")}</div>`).join("");
@@ -550,6 +618,7 @@
   }
   $("list").addEventListener("click", (e) => {
     const b = e.target.closest(".mv"); if (!b) return;
+    if (b.dataset.pend) { openPending(b.dataset.pend); return; }
     const p = payments.find((x) => x.transactionId === b.dataset.tx); if (p) showReceipt(p, { fresh: false });
   });
 
@@ -605,7 +674,7 @@
     $("chargeActions").innerHTML = isFixed
       ? `<button class="btn primary" id="addAmount" style="flex:1">${ICON("receipt")}Agregar monto</button>`
       : `<button class="btn" id="useFixed">${ICON("qr")}Usar QR sin monto</button>`;
-    if (isFixed) $("addAmount").onclick = () => { amountStr = ""; renderAmount(); openSheet("amountSheet"); };
+    if (isFixed) $("addAmount").onclick = () => { amountStr = ""; renderAmount(); showAmountStep(); openSheet("amountSheet"); };
     else $("useFixed").onclick = () => showCharge({ kind: "fixed" });
     if (!isFixed && what.expiration > 0) {
       const end = (what.createdAt + what.expiration) * 1000;
@@ -620,7 +689,8 @@
   }
   function renderAmount() {
     $("amountView").innerHTML = `<small>$</small>${amountStr || "0"}`;
-    $("chargeBtn").disabled = !(parseFloat(amountStr) > 0);
+    const ok = parseFloat(amountStr) > 0;
+    $("chargeBtn").disabled = !ok; $("pushBtn").disabled = !ok;
   }
   $("keypad").addEventListener("click", (e) => {
     const b = e.target.closest("button"); if (!b) return;
@@ -635,8 +705,9 @@
     }
     renderAmount();
   });
-  async function createCharge(amount, concept) {
+  async function createCharge(amount, concept, saleId) {
     const body = { amount, concept: (concept || "").trim() };
+    if (saleId) body.saleId = saleId;
     const exp = prefs().expiration; if (exp !== null && exp !== undefined && exp !== "") body.expiration = Number(exp);
     const c = await api("/api/charges", { method: "POST", body: JSON.stringify(body) });
     closeSheet();
@@ -646,8 +717,129 @@
     $("chargeBtn").disabled = true; $("chargeBtn").textContent = "Generando…";
     try { await createCharge(parseFloat(amountStr), $("concept").value); amountStr = ""; $("concept").value = ""; }
     catch (e) { toast("No se pudo crear: " + e.message, 6000); }
-    finally { $("chargeBtn").textContent = "Generar cobro"; renderAmount(); }
+    finally { $("chargeBtn").innerHTML = `${ICON("qr")}Mostrar QR`; renderAmount(); }
   };
+
+  // ---------- cobro al celular ----------
+  let pushCtx = null;   // { amount, concept, saleId? }
+  function showAmountStep() { $("amountStep").style.display = ""; $("phoneStep").style.display = "none"; }
+  function showPhoneStep(ctx, phone = "") {
+    pushCtx = ctx;
+    $("amountStep").style.display = "none"; $("phoneStep").style.display = "";
+    $("pushSumAmt").textContent = money(ctx.amount);
+    $("pushSumCpt").textContent = ctx.concept || "Sin concepto";
+    $("phone").value = fmtPhone(phone); $("pushErr").innerHTML = "";
+    $("phoneBack").style.display = ctx.saleId ? "none" : "";
+    syncSendBtn();
+    setTimeout(() => $("phone").focus(), 320);
+  }
+  const phoneDigits = () => {
+    let d = $("phone").value.replace(/\D/g, "");
+    if (d.length === 12 && d.startsWith("52")) d = d.slice(2);
+    if (d.length === 13 && d.startsWith("521")) d = d.slice(3);
+    return d;
+  };
+  function syncSendBtn() {
+    const ok = phoneDigits().length === 10;
+    $("sendPush").disabled = !ok;
+    $("sendPush").textContent = `Enviar cobro de ${money(pushCtx?.amount || 0)}`;
+  }
+  $("phone").addEventListener("input", () => {
+    // Se permite escribir o pegar con lada (+52 / 521); en cuanto el número se completa, se queda con los 10 dígitos
+    const raw = $("phone").value.replace(/\D/g, "").slice(0, 13), d = phoneDigits();
+    $("phone").value = d.length <= 10 && raw.length !== 11 ? fmtPhone(d) : raw;
+    $("pushErr").innerHTML = ""; syncSendBtn();
+  });
+  $("phone").addEventListener("keydown", (e) => { if (e.key === "Enter" && !$("sendPush").disabled) $("sendPush").click(); });
+  $("pushBtn").onclick = () => showPhoneStep({ amount: parseFloat(amountStr), concept: $("concept").value.trim() });
+  $("phoneBack").onclick = showAmountStep;
+  function pushError(e) {
+    const qrBtn = `<button data-act="qr">Mostrar QR con este monto</button>`;
+    const map = {
+      bad_phone: [e.message, ""],
+      codi_disabled: [e.message + " Cóbrale con el QR.", qrBtn],
+      unavailable: [e.message, `<button data-act="retry">Reintentar</button>${qrBtn}`],
+      rejected: [e.message, `<button data-act="retry">Reintentar</button>${qrBtn}`],
+    };
+    const [msg, acts] = map[e.code] || ["No se pudo enviar: " + e.message, `<button data-act="retry">Reintentar</button>${qrBtn}`];
+    $("pushErr").innerHTML = `<div class="alert err">${esc(msg)}${acts ? `<div class="acts">${acts}</div>` : ""}</div>`;
+    if (e.code === "bad_phone") $("phone").focus();
+  }
+  $("pushErr").addEventListener("click", async (ev) => {
+    const act = ev.target.closest("button")?.dataset.act; if (!act) return;
+    if (act === "retry") $("sendPush").click();
+    if (act === "qr") {
+      try { await createCharge(pushCtx.amount, pushCtx.concept, pushCtx.saleId); resetAmount(); }
+      catch (err) { toast("No se pudo crear el QR: " + err.message, 6000); }
+    }
+  });
+  function resetAmount() { amountStr = ""; $("concept").value = ""; renderAmount(); showAmountStep(); }
+  $("sendPush").onclick = async () => {
+    const phone = phoneDigits();
+    if (phone.length !== 10) return;
+    $("sendPush").disabled = true; $("sendPush").textContent = "Enviando…";
+    try {
+      const x = await api("/api/push", { method: "POST", body: JSON.stringify({ amount: pushCtx.amount, concept: pushCtx.concept, phone, saleId: pushCtx.saleId }) });
+      closeSheet(); closeLayer("charge"); resetAmount();
+      pending = [x, ...pending.filter((y) => y.saleId !== x.saleId)];
+      renderList(); $("homeScroll").scrollTo({ top: 0, behavior: "smooth" });
+      toast(`Cobro enviado a ···· ${x.phone4}`, 3500);
+    } catch (e) { pushError(e); syncSendBtn(); }
+  };
+
+  // ---------- detalle de un cobro al celular pendiente ----------
+  function openPending(id) {
+    const x = pending.find((y) => y.id === id); if (!x) return;
+    pendOpen = id; renderPending(); openSheet("pendSheet");
+  }
+  function renderPending() {
+    const x = pending.find((y) => y.id === pendOpen);
+    if (!x) { if (openSheetId === "pendSheet") closeSheet(); pendOpen = null; return; }
+    const left = leftOf(x), live = left > 0, waited = Math.floor(Date.now() / 1000) - x.createdAt;
+    $("pendBody").innerHTML = `
+      <h3 style="text-align:center;margin-bottom:0">Cobro al celular</h3>
+      <div class="pend-amt">${money(x.amount)}</div>
+      <div class="pend-sub">${esc(x.concept || "Sin concepto")} · ${esc(fmtPhone(x.phone || ""))}</div>
+      <div class="pend-state"><span class="waiting ${live ? "" : "expired"}"><i></i><span id="pendLeft">${live ? "Esperando pago · vence en " + mmss(left) : "La solicitud venció"}</span></span></div>
+      ${live && waited >= 45 ? `<div class="alert info">¿No le llegó? Algunos bancos piden activar CoDi con el número del cliente. Si está cerca, muéstrale un QR; si no, reenvía la solicitud.</div>` : ""}
+      ${!live ? `<div class="alert info">Tu cliente ya no puede pagar esta solicitud. Reenvíala o, si está cerca, muéstrale un QR.</div>` : ""}
+      <div class="stack">
+        <div style="display:flex;gap:8px">
+          <button class="btn ghostblue" id="pendResend">${ICON("phone")}Reenviar</button>
+          <button class="btn primary" id="pendQr">${ICON("qr")}Mostrar QR</button>
+        </div>
+        ${Bocina.status?.allowSimulation && live ? `<button class="btn" id="pendSim">Simular pago (prueba)</button>` : ""}
+        <button class="linkbtn" id="pendDismiss">Quitar de la lista</button>
+      </div>`;
+    $("pendResend").onclick = () => { openSheet("amountSheet"); showPhoneStep({ amount: x.amount, concept: x.concept, saleId: x.saleId }, x.phone || ""); };
+    $("pendQr").onclick = async () => {
+      try { await createCharge(x.amount, x.concept, x.saleId); }
+      catch (e) { toast("No se pudo crear el QR: " + e.message, 6000); }
+    };
+    $("pendDismiss").onclick = async () => {
+      closeSheet(); pending = pending.filter((y) => y.id !== x.id); renderList();
+      api(`/api/push/${encodeURIComponent(x.id)}/dismiss`, { method: "POST" }).catch(() => {});
+    };
+    if ($("pendSim")) $("pendSim").onclick = () => api(`/api/dev/simulate/${encodeURIComponent(x.id)}`, { method: "POST" }).catch((e) => toast(e.message));
+  }
+  // cuenta regresiva en la lista y en el detalle; aviso único al vencer
+  setInterval(() => {
+    for (const x of pending) {
+      const left = leftOf(x), el = document.querySelector(`[data-left="${CSS.escape(x.id)}"]`);
+      if (el) el.textContent = `···· ${x.phone4} · ${left > 0 ? "vence en " + mmss(left) : "venció"}`;
+      if (left <= 0 && !expiredSeen.has(x.id)) {
+        expiredSeen.add(x.id); toast(`Venció el cobro de ${money(x.amount)} a ···· ${x.phone4}`, 4500); renderList();
+        if (pendOpen === x.id) renderPending();
+      }
+    }
+    if (pendOpen && openSheetId === "pendSheet") {
+      const x = pending.find((y) => y.id === pendOpen);
+      if (x && $("pendLeft") && leftOf(x) > 0) {
+        $("pendLeft").textContent = "Esperando pago · vence en " + mmss(leftOf(x));
+        if (Math.floor(Date.now() / 1000) - x.createdAt === 45) renderPending();
+      }
+    }
+  }, 1000);
 
   // ---------- comprobante ----------
   function showReceipt(p, { fresh }) {
@@ -668,10 +860,12 @@
         <div class="val">${esc(bizName())}</div>
         <div class="sub">${esc(Bocina.status?.depositAccount || "Cuenta pey")}</div>
         <hr/>
-        <div class="row"><span>Tipo</span><span>${p.kind === "amount" ? "Cobro con monto" : p.kind === "fixed" ? "QR fijo" : "QR externo"}</span></div>
-        ${p.kind === "amount" && p.concept ? `<div class="row"><span>Concepto</span><span>${esc(p.concept)}</span></div>` : ""}
+        <div class="row"><span>Tipo</span><span>${typeOf(p)}</span></div>
+        ${p.kind === "push" && p.phone4 ? `<div class="row"><span>Celular</span><span>···· ${esc(p.phone4)}</span></div>` : ""}
+        ${(p.kind === "amount" || p.kind === "push") && p.concept ? `<div class="row"><span>Concepto</span><span>${esc(p.concept)}</span></div>` : ""}
         <div class="row"><span>Fecha</span><span>${date} · ${hhmm(when(p))}</span></div>
         <div class="row"><span>Referencia</span><span class="mono" style="font-size:12.5px">${esc(ref.length > 16 ? ref.slice(0, 14) + "…" : ref)}</span></div>
+        ${p.duplicateSale ? `<div class="mismatch">Pago duplicado: esta venta ya se había pagado. Revisa con tu cliente si hay que devolverlo.</div>` : ""}
         ${mismatch ? `<div class="mismatch">Se cobraron ${money(p.expectedAmount)} y llegaron ${money(p.amount)}</div>` : ""}
         <div class="verified ${sim ? "sim" : ""}">${ICON(sim ? "sparkle" : "shield")}${sim ? "No es un pago real" : "Verificado por pey"}</div>
       </div></div>
@@ -806,12 +1000,15 @@
     payment: (p) => {
       loadPayments();
       // el pago es del QR que está en pantalla → el comprobante toma la pantalla
-      const onScreen = shown && (shown.kind === "fixed" ? p.chargeId === fixed?.id : p.chargeId === shown.id);
+      const onScreen = (shown && (shown.kind === "fixed" ? p.chargeId === fixed?.id : p.chargeId === shown.id))
+        || p.kind === "push";   // el cobro al celular se confirma aunque estés en otra pantalla
+      if (p.kind === "push") { pending = pending.filter((x) => x.id !== p.chargeId); if (pendOpen === p.chargeId) closeSheet(); renderList(); }
       if (onScreen && !$("receipt").classList.contains("on")) showReceipt(p, { fresh: true });
       else toast(`${p.simulated ? "Simulación · " : "✓ "}${money(p.amount)} recibido`, 3500);
       if (prefs().cajaSound) Voice.enqueue({ text: p.speech, chime: true, gap: 700 });
     },
     fixed: () => loadFixed(),
+    pending: () => loadPayments(),
   });
 
   renderAmount(); renderList();

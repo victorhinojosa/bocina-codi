@@ -53,6 +53,8 @@ DEFAULT_EXPIRATION = int(env("DEFAULT_EXPIRATION", "0"))  # 0 = sin expiración;
 BUSINESS_NAME = env("BUSINESS_NAME", "Mi tienda")
 # Etiqueta de la cuenta donde cae el dinero, solo para mostrar en el perfil (ej. "BBVA ···· 2702"). Opcional.
 DEPOSIT_ACCOUNT_LABEL = env("DEPOSIT_ACCOUNT_LABEL", "")
+# Cuánto dura una solicitud de cobro al celular (CoDi push). pey exige mínimo 360 s.
+PUSH_EXPIRATION = max(360, int(env("PUSH_EXPIRATION", "900")))
 
 ELEVENLABS_API_KEY = env("ELEVENLABS_API_KEY", "")
 ELEVENLABS_VOICE_ID = env("ELEVENLABS_VOICE_ID", "21m00Tcm4TlvDq8ikWAM")
@@ -122,7 +124,7 @@ def init_db() -> None:
             CREATE TABLE IF NOT EXISTS payments (
                 transaction_id TEXT PRIMARY KEY,
                 codi_qr_id TEXT,
-                kind TEXT,                    -- fixed | amount | external
+                kind TEXT,                    -- fixed | amount | push | external
                 amount REAL NOT NULL,
                 concept TEXT,
                 paid_at INTEGER NOT NULL,
@@ -142,6 +144,16 @@ def init_db() -> None:
             conn.execute("ALTER TABLE charges ADD COLUMN kind TEXT NOT NULL DEFAULT 'amount'")
         if "qr_string" not in cols:
             conn.execute("ALTER TABLE charges ADD COLUMN qr_string TEXT")
+        # Cobro al celular: número del cliente y venta a la que pertenece (para detectar pagos dobles)
+        if "phone" not in cols:
+            conn.execute("ALTER TABLE charges ADD COLUMN phone TEXT")
+        if "sale_id" not in cols:
+            conn.execute("ALTER TABLE charges ADD COLUMN sale_id TEXT")
+        pcols = {r["name"] for r in conn.execute("PRAGMA table_info(payments)")}
+        if "phone4" not in pcols:
+            conn.execute("ALTER TABLE payments ADD COLUMN phone4 TEXT")
+        if "duplicate_sale" not in pcols:
+            conn.execute("ALTER TABLE payments ADD COLUMN duplicate_sale INTEGER NOT NULL DEFAULT 0")
         # Pagos viejos -> tabla payments
         conn.execute(
             "INSERT OR IGNORE INTO payments (transaction_id, codi_qr_id, kind, amount, concept, paid_at, simulated)"
@@ -196,6 +208,8 @@ def payment_to_dict(r: sqlite3.Row) -> dict:
         "concept": r["concept"],
         "paidAt": r["paid_at"],
         "simulated": bool(r["simulated"]),
+        "phone4": r["phone4"],
+        "duplicateSale": bool(r["duplicate_sale"]),
     }
 
 
@@ -211,7 +225,27 @@ def today_summary(limit: int = 50, days: int = 1) -> dict:
             "SELECT COALESCE(SUM(amount),0), COUNT(*) FROM payments WHERE paid_at >= ? AND simulated = 0",
             (today,),
         ).fetchone()
-    return {"payments": [payment_to_dict(r) for r in rows], "todayTotal": round(total, 2), "todayCount": count}
+        # Cobros al celular sin pagar de las últimas 24 h (los vencidos siguen visibles para reenviar)
+        pend = conn.execute(
+            "SELECT * FROM charges WHERE kind='push' AND status='pending' AND created_at >= ? ORDER BY created_at DESC",
+            (int(time.time()) - 86400,),
+        ).fetchall()
+    return {
+        "payments": [payment_to_dict(r) for r in rows],
+        "pending": [push_to_dict(r) for r in pend],
+        "todayTotal": round(total, 2), "todayCount": count,
+    }
+
+
+def push_to_dict(r: sqlite3.Row) -> dict:
+    now = int(time.time())
+    expires_at = r["created_at"] + r["expiration"]
+    return {
+        "id": r["id"], "kind": "push", "amount": r["amount"], "concept": r["concept"],
+        "phone": r["phone"], "phone4": (r["phone"] or "")[-4:], "saleId": r["sale_id"] or r["id"],
+        "createdAt": r["created_at"], "expiresAt": expires_at,
+        "status": "pending" if now < expires_at else "expired",
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -331,6 +365,59 @@ async def pey_create_qr(amount: float, concept: str, expiration: int) -> tuple[s
     return data["id"], data["qrString"], num_ref
 
 
+class PeyError(HTTPException):
+    """Error de pey traducido para el tendero. `code` le dice a la app qué salida ofrecer."""
+
+    def __init__(self, status: int, code: str, message: str) -> None:
+        super().__init__(status, {"code": code, "message": message})
+
+
+async def pey_push(amount: float, phone: str, concept: str, expiration: int, metadata: dict) -> dict:
+    """Solicitud de cobro CoDi al celular del cliente (POST /codi/pn)."""
+    if not PEY_API_KEY:
+        raise PeyError(400, "config", "Falta PEY_API_KEY en el servidor.")
+    payload = {
+        "amount": amount, "phoneNumber": phone, "concept": concept,
+        "expiration": max(360, expiration), "numRef": str(random.randint(1, 9_999_999)), "metadata": metadata,
+    }
+    try:
+        async with httpx.AsyncClient(timeout=20) as client:
+            r = await client.post(f"{PEY_BASE_URL}/codi/pn", headers={"Authorization": f"Bearer {PEY_API_KEY}"}, json=payload)
+    except httpx.HTTPError as e:
+        log.warning("No se pudo contactar a pey (push): %s", e)
+        raise PeyError(503, "unavailable", "No pudimos conectar con pey. Intenta de nuevo.") from e
+    if r.status_code >= 400:
+        log.warning("pey push respondió %s: %s", r.status_code, r.text[:500])
+        try:
+            err = r.json().get("error") or {}
+        except ValueError:
+            err = {}
+        etype, emsg = err.get("type", ""), (err.get("message") or "").lower()
+        if r.status_code >= 500:
+            raise PeyError(503, "unavailable", "pey no está respondiendo en este momento. Intenta de nuevo.")
+        if etype == "INVALID_STATE" or "codi" in emsg and "enabled" in emsg:
+            raise PeyError(409, "codi_disabled", "Tu cuenta de pey no tiene habilitado el cobro al celular.")
+        if "phone" in emsg or etype in ("INVALID_PARAMETER", "INCOMPLETE_PARAMETERS"):
+            raise PeyError(422, "bad_phone", "pey no aceptó ese número. Revísalo con tu cliente.")
+        if etype == "INVALID_AMOUNT":
+            raise PeyError(422, "bad_amount", "El monto no es válido.")
+        raise PeyError(502, "rejected", "pey rechazó el cobro. Intenta de nuevo o usa el QR.")
+    data = r.json()
+    if not data.get("transactionId"):
+        raise PeyError(502, "rejected", "pey respondió algo inesperado. Intenta de nuevo o usa el QR.")
+    return data
+
+
+def clean_phone(raw: str) -> str | None:
+    """Acepta '55 1234 5678', '+52 55…', '521…' y deja los 10 dígitos."""
+    digits = re.sub(r"\D", "", raw or "")
+    if len(digits) == 13 and digits.startswith("521"):
+        digits = digits[3:]
+    elif len(digits) == 12 and digits.startswith("52"):
+        digits = digits[2:]
+    return digits if len(digits) == 10 else None
+
+
 # ---------------------------------------------------------------------------
 # API: estado
 # ---------------------------------------------------------------------------
@@ -425,28 +512,73 @@ class ChargeIn(BaseModel):
     amount: float = Field(gt=0, le=1_000_000)
     concept: str = Field(default="", max_length=100)
     expiration: int | None = Field(default=None, ge=0)
+    saleId: str | None = Field(default=None, max_length=64)  # QR de respaldo de un cobro al celular
+
+
+def _clean_concept(concept: str) -> tuple[str, str]:
+    """(concepto para la app, concepto que ve el cliente en su banco: 'Negocio · concepto')."""
+    concept = concept.strip()
+    if concept.lower() == "venta":  # el asistente usa "Venta" cuando no hay concepto
+        concept = ""
+    fixed = _fixed_row()
+    biz = (fixed["concept"] if fixed else "") or BUSINESS_NAME
+    return concept, (f"{biz} · {concept}"[:100] if concept else biz)
+
+
+class PushIn(BaseModel):
+    amount: float = Field(gt=0, le=1_000_000)
+    phone: str = Field(min_length=1, max_length=20)
+    concept: str = Field(default="", max_length=100)
+    saleId: str | None = Field(default=None, max_length=64)  # al reenviar, la misma venta
+
+
+@app.post("/api/push")
+async def create_push(body: PushIn) -> dict:
+    """Cobro al celular: pey le manda al cliente una solicitud CoDi a su app del banco."""
+    phone = clean_phone(body.phone)
+    if not phone:
+        raise PeyError(422, "bad_phone", "El número debe tener 10 dígitos.")
+    amount = round(body.amount, 2)
+    concept, pey_concept = _clean_concept(body.concept)
+    data = await pey_push(amount, phone, pey_concept, PUSH_EXPIRATION, {"source": "bocina-codi"})
+    tx_id, now = data["transactionId"], int(time.time())
+    with db() as conn:
+        if body.saleId:  # reenvío: el cobro anterior queda reemplazado
+            conn.execute("UPDATE charges SET status='replaced' WHERE kind='push' AND status='pending' AND sale_id=?", (body.saleId,))
+        conn.execute(
+            "INSERT OR REPLACE INTO charges (id, amount, concept, num_ref, status, created_at, expiration, kind, phone, sale_id)"
+            " VALUES (?, ?, ?, ?, 'pending', ?, ?, 'push', ?, ?)",
+            (tx_id, amount, concept, data.get("codiId") or "0", now, PUSH_EXPIRATION, phone, body.saleId or tx_id),
+        )
+        row = conn.execute("SELECT * FROM charges WHERE id=?", (tx_id,)).fetchone()
+    log.info("Cobro al celular %s por $%.2f a ···%s", tx_id, amount, phone[-4:])
+    await bus.publish({"type": "pending"})
+    return push_to_dict(row)
+
+
+@app.post("/api/push/{charge_id}/dismiss")
+async def dismiss_push(charge_id: str) -> dict:
+    """Quitar de la lista un cobro al celular que ya no se va a pagar."""
+    with db() as conn:
+        conn.execute("UPDATE charges SET status='dismissed' WHERE id=? AND kind='push' AND status='pending'", (charge_id,))
+    await bus.publish({"type": "pending"})
+    return {"ok": True}
 
 
 @app.post("/api/charges")
 async def create_charge(body: ChargeIn) -> dict:
     amount = round(body.amount, 2)
     expiration = DEFAULT_EXPIRATION if body.expiration is None else body.expiration
-    concept = body.concept.strip()
-    if concept.lower() == "venta":  # el asistente usa "Venta" cuando no hay concepto
-        concept = ""
-    # Lo que ve el cliente en su banco: el nombre del negocio y, si hay, el concepto
-    fixed = _fixed_row()
-    biz = (fixed["concept"] if fixed else "") or BUSINESS_NAME
-    pey_concept = f"{biz} · {concept}"[:100] if concept else biz
+    concept, pey_concept = _clean_concept(body.concept)
     qr_id, qr_string, num_ref = await pey_create_qr(amount, pey_concept, expiration)
     if 0 < expiration < 360:
         expiration = 360
     now = int(time.time())
     with db() as conn:
         conn.execute(
-            "INSERT OR REPLACE INTO charges (id, amount, concept, num_ref, status, created_at, expiration, kind, qr_string)"
-            " VALUES (?, ?, ?, ?, 'pending', ?, ?, 'amount', ?)",
-            (qr_id, amount, concept, num_ref, now, expiration, qr_string),
+            "INSERT OR REPLACE INTO charges (id, amount, concept, num_ref, status, created_at, expiration, kind, qr_string, sale_id)"
+            " VALUES (?, ?, ?, ?, 'pending', ?, ?, 'amount', ?, ?)",
+            (qr_id, amount, concept, num_ref, now, expiration, qr_string, body.saleId or qr_id),
         )
     log.info("Cobro creado %s por $%.2f (%s)", qr_id, amount, concept)
     # El QR con monto se muestra en el celular del dueño (la App); el mostrador solo tiene el QR fijo.
@@ -484,22 +616,40 @@ async def list_payments(limit: int = 50, days: int = 1) -> dict:
 # Webhook de pey: LA fuente de verdad del pago
 # ---------------------------------------------------------------------------
 async def handle_payment(payload: dict, *, simulated: bool = False) -> dict:
-    qr_id = payload.get("codiQrId")
+    # QR: se liga por codiQrId. Cobro al celular: no trae codiQrId, se liga por transactionId (el id que guardamos).
+    qr_id = payload.get("codiQrId") or payload.get("transactionId")
     amount = float(payload.get("amount") or 0)
     paid_at = int(payload.get("datePaid") or time.time())
     tx_id = payload.get("transactionId") or f"noid-{time.time_ns()}"
 
     with db() as conn:
         row = conn.execute("SELECT * FROM charges WHERE id = ?", (qr_id,)).fetchone()
+        if not row and payload.get("type") == "codi.pn.payment_received":
+            # Respaldo por si el transactionId del aviso no fuera el mismo que nos dio pey al crear la solicitud:
+            # el cobro al celular pendiente más reciente con ese monto.
+            row = conn.execute(
+                "SELECT * FROM charges WHERE kind='push' AND status='pending' AND ABS(amount - ?) < 0.001"
+                " AND created_at >= ? ORDER BY created_at DESC LIMIT 1",
+                (amount, int(time.time()) - 86400),
+            ).fetchone()
+            if row:
+                qr_id = row["id"]
         kind = row["kind"] if row else "external"
         # Preferimos el concepto que guardamos nosotros (el webhook puede traer "Negocio · concepto")
         concept = row["concept"] if row else (payload.get("concept") or "")
+        phone4 = (row["phone"] or "")[-4:] if row and kind == "push" else None
+        # ¿Esta venta ya estaba pagada? (p. ej. pagó el QR de respaldo y también la solicitud al celular)
+        sale_id = (row["sale_id"] or row["id"]) if row and kind in ("amount", "push") else None
+        dup_sale = bool(sale_id) and conn.execute(
+            "SELECT 1 FROM payments p JOIN charges c ON c.id = p.codi_qr_id"
+            " WHERE COALESCE(c.sale_id, c.id) = ? AND p.transaction_id != ? LIMIT 1", (sale_id, tx_id),
+        ).fetchone() is not None
         inserted = conn.execute(
-            "INSERT OR IGNORE INTO payments (transaction_id, codi_qr_id, kind, amount, concept, paid_at, simulated)"
-            " VALUES (?, ?, ?, ?, ?, ?, ?)",
-            (tx_id, qr_id, kind, amount, concept, paid_at, int(simulated)),
+            "INSERT OR IGNORE INTO payments (transaction_id, codi_qr_id, kind, amount, concept, paid_at, simulated, phone4, duplicate_sale)"
+            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (tx_id, qr_id, kind, amount, concept, paid_at, int(simulated), phone4, int(dup_sale)),
         ).rowcount
-        if row and kind == "amount":
+        if row and kind in ("amount", "push"):
             conn.execute(
                 "UPDATE charges SET status='paid', paid_at=?, paid_amount=?, transaction_id=?, simulated=? WHERE id=?",
                 (paid_at, amount, tx_id, int(simulated), qr_id),
@@ -511,10 +661,12 @@ async def handle_payment(payload: dict, *, simulated: bool = False) -> dict:
         "simulated": simulated,
         "duplicate": not inserted,
         "chargeId": qr_id,
-        "kind": kind,  # fixed | amount | external
+        "kind": kind,  # fixed | amount | push | external
+        "phone4": phone4,
+        "duplicateSale": dup_sale,
         "amount": amount,
         "amountWords": amount_letters(amount),
-        "expectedAmount": row["amount"] if row and kind == "amount" else None,
+        "expectedAmount": row["amount"] if row and kind in ("amount", "push") else None,
         "concept": concept,
         "transactionId": tx_id,
         "datePaid": paid_at,
@@ -556,7 +708,7 @@ async def pey_webhook(request: Request) -> JSONResponse:
         )
 
     # 3) Procesar
-    if event_type == "codi.qr.payment_received":
+    if event_type in ("codi.qr.payment_received", "codi.pn.payment_received"):
         await handle_payment(payload)
     else:
         log.info("Webhook %s recibido (sin manejador): %s", event_type, raw[:300])
@@ -656,7 +808,7 @@ def _context_for_assistant() -> str:
         "Pagos de hoy (más reciente primero):",
     ]
     for p in s["payments"]:
-        tipo = {"fixed": "QR fijo", "amount": "cobro con monto", "external": "QR externo"}.get(p["kind"], p["kind"])
+        tipo = {"fixed": "QR fijo", "amount": "cobro con monto", "push": "cobro al celular", "external": "QR externo"}.get(p["kind"], p["kind"])
         sim = " (SIMULADO, no cuenta)" if p["simulated"] else ""
         lines.append(f"- {_hhmm(p['paidAt'])} · {money_words(p['amount'])} · {p['concept'] or 'sin concepto'} · {tipo}{sim}")
     if not s["payments"]:
@@ -733,6 +885,12 @@ async def simulate(charge_id: str, request: Request, amount: float | None = None
     amt = amount if row["kind"] == "fixed" else row["amount"]
     if not amt or amt <= 0:
         amt = round(random.choice([12, 18.5, 25, 37, 85]), 2)
+    if row["kind"] == "push":  # el aviso real de pey no trae codiQrId: se liga por transactionId
+        return await handle_payment(
+            {"type": "codi.pn.payment_received", "amount": amt, "concept": row["concept"],
+             "datePaid": int(time.time()), "transactionId": charge_id},
+            simulated=True,
+        )
     return await handle_payment(
         {"type": "codi.qr.payment_received", "codiQrId": charge_id, "amount": amt, "concept": row["concept"],
          "datePaid": int(time.time()), "transactionId": f"SIM-{time.time_ns()}"},

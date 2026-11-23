@@ -26,7 +26,13 @@
     const pin = getPin(); if (pin) headers["X-Admin-Pin"] = pin;
     const r = await fetch(url, { ...opts, headers: { ...headers, ...(opts.headers || {}) } });
     const d = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(typeof d.detail === "string" ? d.detail : JSON.stringify(d.detail || d));
+    if (!r.ok) {
+      // El servidor manda {code, message} en errores de pey para que la página ofrezca la salida correcta
+      const det = d.detail;
+      const msg = typeof det === "string" ? det : det?.message || (Array.isArray(det) ? "Revisa los datos" : JSON.stringify(det || d));
+      const err = new Error(msg); err.status = r.status; err.code = det?.code || null;
+      throw err;
+    }
     return d;
   }
 
@@ -163,7 +169,7 @@
       es = new EventSource("/api/events");
       es.addEventListener("hello", () => { beat(); setLive(true, "En vivo"); handlers.hello?.(); });
       es.addEventListener("ping", () => { beat(); if (!isOn) setLive(true, "En vivo"); });
-      for (const type of ["payment", "fixed"]) {
+      for (const type of ["payment", "fixed", "pending"]) {
         es.addEventListener(type, (ev) => { beat(); handlers[type]?.(JSON.parse(ev.data)); });
       }
       es.onerror = () => setLive(false, "Reconectando…");
