@@ -186,6 +186,22 @@ def seed_fixed_qr() -> None:
 
 
 init_db()
+
+
+def storage_is_persistent() -> bool:
+    """¿El historial sobrevive a un nuevo despliegue? En Railway solo si la base vive en un volumen montado."""
+    if not os.getenv("RAILWAY_ENVIRONMENT") and not os.getenv("RAILWAY_ENVIRONMENT_NAME"):
+        return True  # en tu compu el archivo se queda donde está
+    mount = os.getenv("RAILWAY_VOLUME_MOUNT_PATH", "")
+    return bool(mount) and str(Path(DB_PATH).resolve()).startswith(str(Path(mount).resolve()))
+
+
+PERSISTENT_STORAGE = storage_is_persistent()
+if not PERSISTENT_STORAGE:
+    log.warning(
+        "⚠ La base de datos (%s) NO está en un volumen: el historial de pagos se borrará en cada despliegue. "
+        "En Railway agrega un volumen en /data y define DB_PATH=/data/bocina.db.", DB_PATH,
+    )
 seed_fixed_qr()
 
 
@@ -481,6 +497,7 @@ async def status() -> dict:
         "elevenlabs": bool(ELEVENLABS_API_KEY),
         "claude": bool(ANTHROPIC_API_KEY),
         "allowSimulation": ALLOW_SIMULATION,
+        "persistentStorage": PERSISTENT_STORAGE,
         "pinRequired": bool(ADMIN_PIN),
         "fixedLocked": FIXED_LOCKED,
         "defaultExpiration": DEFAULT_EXPIRATION,

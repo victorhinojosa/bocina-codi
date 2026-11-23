@@ -979,6 +979,7 @@
     const st = await Bocina.loadStatus();
     const row = (n, ok, h) => `<div class="set-row"><span>${n}</span><span class="${ok ? "ok-t" : "bad-t"}">${ok ? "✓" : "✕ " + h}</span></div>`;
     $("checks").innerHTML = row("pey", st.pey, "falta API key") + row("Webhook firmado", st.webhookSecret, "falta secreto")
+      + row("Historial guardado", st.persistentStorage !== false, "se borra en cada despliegue")
       + row("ElevenLabs", st.elevenlabs, "opcional") + row("Claude", st.claude, "opcional");
     $("whUrl").value = location.origin + (st.webhookPath || "/webhooks/pey");
     $("whWarn").textContent = /localhost|127\.0\.0\.1/.test(location.host) ? "Estás en localhost: en el portal usa tu URL de ngrok + /webhooks/pey." : "";
