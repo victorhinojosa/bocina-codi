@@ -31,6 +31,7 @@
   .side .open img { width: 104px; height: 104px; border-radius: 10px; background: #fff; }
   .side .open span { font-size: 14px; color: #d3dae6; line-height: 1.45; }
   .side a { color: #fff; }
+  .side .links { margin: 18px 0 0; font-size: 14px; }
 
   /* ---------- el teléfono ---------- */
   .phone { position: relative; height: min(844px, calc(100vh - 48px)); aspect-ratio: 390 / 844; background: #0b0d12;
@@ -265,12 +266,13 @@
 
 <div class="side">
   <img class="logo" src="/static/pey-codi.svg" alt="pey · CoDi" />
-  <h1>Tus cobros CoDi, en tu celular.</h1>
-  <p>La bocina anuncia cada pago en el mostrador. Aquí ves tus movimientos al instante, cobras montos exactos y le preguntas a pey cómo va el día.</p>
-  <div class="open">
+  <h1>Cobra con CoDi desde tu celular.</h1>
+  <p>Ve cada pago al instante con el banco de quien te pagó, genera un QR con monto o envía el cobro directo al celular de tu cliente. Y si tienes la bocina, también te lo dice en voz alta.</p>
+  <div class="open" id="openBox">
     <img id="openQr" alt="QR para abrir la app" />
-    <span>Escanea para abrir esta app en tu celular.<br/><a href="/">Ver el mostrador →</a></span>
+    <span>Escanea para abrir esta app en tu celular.</span>
   </div>
+  <p class="links"><a href="/">Ver la bocina 3D →</a> &nbsp;·&nbsp; <a href="/demo">Ver el demo completo →</a></p>
 </div>
 
 <div class="phone">
@@ -560,7 +562,11 @@
   // reloj y QR para abrir en el celular
   const tick = () => { $("clock").textContent = new Date().toLocaleTimeString("es-MX", { hour: "numeric", minute: "2-digit", hour12: false }); };
   tick(); setInterval(tick, 20000);
-  $("openQr").src = "/api/qr.svg?text=" + encodeURIComponent(location.origin + "/app");
+  // El QR abre esta app en otro celular; en localhost no serviría (el celular no llega a tu compu), así que se oculta
+  if (/^(localhost|127\.|0\.0\.0\.0|\[::1\])/.test(location.hostname)) $("openBox").style.display = "none";
+  else $("openQr").src = "/api/qr.svg?text=" + encodeURIComponent(location.origin + "/app");
+  // Dentro de /demo la bocina ya habla: aquí no se repite la voz
+  const EMBED = new URLSearchParams(location.search).has("embed");
 
   function renderIdentity() {
     const n = bizName(), ini = initials(n);
@@ -656,7 +662,7 @@
       } else {
         showAnswer(text, d.answer || "No te entendí, ¿me lo repites?");
         $("q").value = ""; renderList();
-        if (prefs().cajaSound && d.answer) Voice.enqueue({ text: d.answer, gap: 200 });
+        if (prefs().cajaSound && !EMBED && d.answer) Voice.enqueue({ text: d.answer, gap: 200 });
       }
     } catch (e) { showAnswer(text, "No pude responder: " + e.message); }
   }
@@ -1017,9 +1023,12 @@
       const onScreen = (shown && (shown.kind === "fixed" ? p.chargeId === fixed?.id : p.chargeId === shown.id))
         || p.kind === "push";   // el cobro al celular se confirma aunque estés en otra pantalla
       if (p.kind === "push") { pending = pending.filter((x) => x.id !== p.chargeId); if (pendOpen === p.chargeId) closeSheet(); renderList(); }
-      if (onScreen && !$("receipt").classList.contains("on")) showReceipt(p, { fresh: true });
+      if (EMBED) {   // en /demo cada pago imprime su ticket y se cierra solo
+        showReceipt(p, { fresh: true });
+        clearTimeout(window._demoClose); window._demoClose = setTimeout(() => closeLayer("receipt"), 9000);
+      } else if (onScreen && !$("receipt").classList.contains("on")) showReceipt(p, { fresh: true });
       else toast(`${p.simulated ? "Simulación · " : "✓ "}${money(p.amount)} recibido`, 3500);
-      if (prefs().cajaSound) Voice.enqueue({ text: p.speech, chime: true, gap: 700 });
+      if (prefs().cajaSound && !EMBED) Voice.enqueue({ text: p.speech, chime: true, gap: 700 });
     },
     fixed: () => loadFixed(),
     pending: () => loadPayments(),

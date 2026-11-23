@@ -953,6 +953,12 @@ async def owner_app() -> FileResponse:
     return FileResponse(STATIC_DIR / "app.html", headers=NO_CACHE)
 
 
+@app.get("/demo")
+async def demo_page() -> FileResponse:
+    """Demo para presentar: la bocina y la app del dueño lado a lado, reaccionando al mismo pago."""
+    return FileResponse(STATIC_DIR / "demo.html", headers=NO_CACHE)
+
+
 @app.get("/api/qr.svg", include_in_schema=False)
 async def any_qr(text: str) -> Response:
     """QR genérico (p. ej. para abrir la App en el celular desde la pantalla de la computadora)."""

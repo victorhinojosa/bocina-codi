@@ -6,6 +6,17 @@
 
 Construido sobre la API de [pey](https://docs.pey.mx) para el Hackatón México 2026.
 
+## Pruébalo en vivo, con un pago real
+
+Esto no es una simulación: está en producción y cobra con CoDi de verdad a través de pey.
+
+1. Abre el **[demo completo](https://web-production-e9e63f91.up.railway.app/demo)** en tu computadora y toca la bocina una vez para activar el sonido.
+2. Escanea el QR de la bocina con la app de tu banco, en la sección **CoDi**.
+3. Paga cualquier monto, por ejemplo **$1**.
+4. En segundos la bocina dice **"Recibiste un peso"** y el celular del dueño imprime el comprobante con tu banco y la clave de rastreo.
+
+El pago es real y llega a la cuenta del proyecto. También puedes abrir por separado la [bocina 3D](https://web-production-e9e63f91.up.railway.app/) o la [app del dueño](https://web-production-e9e63f91.up.railway.app/app).
+
 ---
 
 ## El problema
@@ -73,8 +84,12 @@ Cliente escanea el QR fijo ──► paga desde su app bancaria (CoDi / SPEI)
 app/
   main.py            API, webhook de pey, SSE, voz y asistente
   static/
-    index.html       Mostrador
+    index.html       Mostrador: bocina 3D interactiva
     app.html         App del dueño
+    demo.html        Demo: bocina y app lado a lado con el mismo pago
+    soundbox-display.js  Modelo 3D de la bocina (three.js)
+    pey-codi.svg     Logo pey · CoDi
+    vendor/three/    three.js r170
     common.js        Fila de voz, eventos en vivo y utilidades compartidas
     icon.svg
 requirements.txt
@@ -154,7 +169,7 @@ El servidor necesita un proceso siempre activo (para los eventos en vivo) y un d
 
 ## Roadmap
 
-- **Cobro directo al celular:** enviar la solicitud de pago al número del cliente con la notificación push de CoDi, sin escanear.
-- **Link de pago:** un QR que se abre con la cámara nativa del teléfono, para clientes sin CoDi activado.
-- **Activación por voz** ("Oye pey") con detección de palabra clave en el dispositivo.
 - **Bocina física de bajo costo** (ESP32 + bocina + WiFi) conectada al mismo flujo de eventos.
+- **Enlace de pago** para compartir por WhatsApp, como respaldo cuando el cliente no tiene CoDi ligado a su número.
+- **Ajustes de la bocina desde la app:** voz y volumen guardados en el servidor, para controlar la bocina del mostrador desde el celular.
+- **Varios negocios:** alta con nombre y cuenta propios, en lugar de un solo negocio configurado por variables de entorno.

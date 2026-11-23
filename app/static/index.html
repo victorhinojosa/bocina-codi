@@ -24,6 +24,7 @@
   .live.on i { background: var(--ok); box-shadow: 0 0 0 4px rgba(18,148,90,.15); }
   .to-caja { font-size: 13px; color: var(--muted); text-decoration: none; padding: 7px 12px; border-radius: 10px; border: 1px solid transparent; }
   .to-caja:hover { border-color: var(--line); background: var(--card); }
+  .embed .to-caja { visibility: hidden; }
 
   .screen { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px 110px; text-align: center; }
 
@@ -100,9 +101,13 @@
 
 <div class="top">
   <div></div>
-  <a class="to-caja" href="/app">App →</a>
+  <a class="to-caja" href="/app" id="toApp">Abrir la app →</a>
 </div>
 
+<script>
+  // Dentro de /demo no hace falta el enlace a la app: está al lado
+  if (new URLSearchParams(location.search).has("embed")) document.documentElement.classList.add("embed");
+</script>
 <div class="sound-hint" id="soundHint">🔈 Toca la pantalla una vez para activar el sonido</div>
 <div class="screen" id="screen">
   <div id="setup" style="display:none"></div>
