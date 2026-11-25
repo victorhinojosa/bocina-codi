@@ -1063,8 +1063,9 @@ export function createSoundbox(THREE, options = {}) {
   cap.castShadow = true; cap.receiveShadow = false;
   front.add(cap);
   const bandMat = own(new THREE.MeshPhysicalMaterial({ color: opts.cardAccent, roughness: 0.6 }));
-  const band = new THREE.Mesh(own(roundedPlane(THREE, 0.104, 0.046, 0.012)), bandMat);
-  band.position.set(0, LF / 2 - 0.052 + 0.005 + 0.023, CAP_T + 0.00008);
+  // Marco azul alrededor de toda la tarjeta (4 mm por lado), como el marco del QR en la app
+  const band = new THREE.Mesh(own(roundedPlane(THREE, 0.094 + 0.008, 0.082 + 0.008, 0.009)), bandMat);
+  band.position.set(0, LF / 2 + 0.004, CAP_T + 0.00008);
   front.add(band);
   const L = {
     W: 94, H: 82, ppm: 10, pad: 3,
