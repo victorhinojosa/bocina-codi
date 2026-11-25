@@ -203,7 +203,25 @@
     return api("/api/assistant", { method: "POST", body: JSON.stringify({ text }) });
   }
 
+  // Logo Din horizontal (símbolo D-moneda + "Din") en un canvas, centrado en (cx, cy).
+  // S = lado de la caja del símbolo (viewBox 120). Separación = ancho del centro de la moneda.
+  const DIN_D = "M18 12H58A48 48 0 0 1 58 108H18Z M58 38A22 22 0 1 0 58 82A22 22 0 1 0 58 38Z";
+  function drawDinLogo(g, cx, cy, S, { ink, coin, font }) {
+    g.save();
+    g.font = `800 ${S * 1.1}px ${font}`;
+    const tw = g.measureText("Din").width, symW = S * 88 / 120, gap = S * 22 / 120;
+    const x0 = cx - (symW + gap + tw) / 2;
+    g.translate(x0 - S * 18 / 120, cy - S / 2); g.scale(S / 120, S / 120);
+    g.fillStyle = ink; g.fill(new Path2D(DIN_D), "evenodd");
+    g.fillStyle = coin; g.beginPath(); g.arc(58, 60, 11, 0, Math.PI * 2); g.fill();
+    g.restore(); g.save();
+    g.font = `800 ${S * 1.1}px ${font}`; g.fillStyle = ink; g.textAlign = "left"; g.textBaseline = "alphabetic";
+    g.fillText("Din", x0 + symW + gap, cy + S * 0.4);
+    g.restore();
+  }
+
   window.Bocina = {
+    drawDinLogo,
     $, money, hhmm, esc, sleep, api, toast, prefs, setPref, getPin, setPin,
     loadStatus, get status() { return status; },
     unlockAudio, chime, Voice, connect, dictate, askAssistant, volume, setVolume,

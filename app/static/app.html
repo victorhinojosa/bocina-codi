@@ -3,49 +3,61 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<meta name="theme-color" content="#ffffff" />
+<meta name="theme-color" content="#F4F6FA" />
 <link rel="manifest" href="/manifest.webmanifest" />
 <link rel="icon" href="/static/icon.svg" type="image/svg+xml" />
-<title>pey · CoDi</title>
+<link rel="icon" href="/static/icons/favicon-32.png" sizes="32x32" type="image/png" />
+<link rel="apple-touch-icon" href="/static/icons/apple-touch-icon.png" />
+<link rel="stylesheet" href="/static/tokens.css" />
+<title>Din</title>
 <style>
-  :root {
-    --pey: #0067f1; --pey-deep: #0a3a8c; --pey-ink: #06275e; --pey-soft: #e8f1fe; --pey-sky: #4c9bff;
-    --bg: #f5f7fb; --card: #fff; --ink: #121826; --muted: #667085; --faint: #98a2b3; --line: #e7ebf2;
-    --ok: #12945a; --ok-bg: #e7f6ee; --warn: #b7791f; --warn-bg: #fdf3e1; --bad: #c4352b; --sim: #7c3aed; --sim-bg: #f1eafe;
-    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  }
+  /* Colores, tipografía, radios y sombras: tokens.css (marca Din). Aquí solo se usan sus variables. */
   * { box-sizing: border-box; }
   html, body { height: 100%; }
-  body { margin: 0; color: var(--ink); background: radial-gradient(1200px 700px at 30% 20%, #1d2a44, #0d1220); display: flex;
+  body { margin: 0; color: var(--ink); font-family: var(--font-sans); background: radial-gradient(1200px 700px at 30% 20%, var(--brand-pressed), var(--ink)); display: flex;
     align-items: center; justify-content: center; gap: 64px; overflow: hidden; }
   button { font: inherit; cursor: pointer; color: inherit; }
-  svg.i { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  svg.i { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
   .mono { font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+  .tabular { font-variant-numeric: tabular-nums; }
+
+  /* ---------- logo Din (símbolo D-moneda + palabra) ---------- */
+  .din { display: inline-flex; align-items: center; gap: 6px; font-size: 24px; line-height: 1; font-weight: 800; letter-spacing: -.5px; color: var(--ink); }
+  .din img { width: 24px; height: 24px; display: block; }
+  .din.sm { font-size: 20px; gap: 5px; } .din.sm img { width: 20px; height: 20px; }
+  .din.on-dark { color: var(--on-brand); }
+  .din.lg { font-size: 34px; gap: 8px; } .din.lg img { width: 34px; height: 34px; }
+
+  /* ---------- Powered by pey × CoDi (siempre hasta abajo) ---------- */
+  .powered { display: flex; justify-content: center; align-items: center; gap: var(--space-2); color: var(--ink-muted); }
+  .powered img { height: 14px; display: block; }
 
   /* ---------- texto al lado del teléfono (solo en computadora) ---------- */
-  .side { color: #e6ebf5; max-width: 330px; }
-  .side img.logo { height: 34px; background: #fff; padding: 8px 12px; border-radius: 12px; }
-  .side h1 { font-size: 40px; line-height: 1.05; margin: 18px 0 14px; letter-spacing: -.02em; }
-  .side p { color: #b9c2d3; line-height: 1.55; margin: 0 0 22px; }
-  .side .open { display: flex; gap: 14px; align-items: center; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1); border-radius: 18px; padding: 14px; }
-  .side .open img { width: 104px; height: 104px; border-radius: 10px; background: #fff; }
-  .side .open span { font-size: 14px; color: #d3dae6; line-height: 1.45; }
-  .side a { color: #fff; }
+  .side { color: var(--on-brand); max-width: 330px; display: flex; flex-direction: column; }
+  .side h1 { font-size: 40px; line-height: 1.05; margin: 22px 0 14px; letter-spacing: -1px; font-weight: 800; }
+  .side p { color: var(--brand-tint); opacity: .8; line-height: 1.55; margin: 0 0 22px; }
+  .side .open { display: flex; gap: 14px; align-items: center; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1); border-radius: var(--radius-lg); padding: 14px; }
+  .side .open img { width: 104px; height: 104px; border-radius: var(--radius-md); background: var(--surface); }
+  .side .open span { font-size: 14px; color: var(--brand-tint); line-height: 1.45; }
+  .side a { color: var(--on-brand); }
   .side .links { margin: 18px 0 0; font-size: 14px; }
+  .side .powered { justify-content: flex-start; margin-top: var(--space-8); }
+  .side .powered img { background: var(--surface); padding: 3px 7px; height: 14px; box-sizing: content-box; border-radius: var(--radius-sm); }
 
   /* ---------- el teléfono ---------- */
-  .phone { position: relative; height: min(844px, calc(100vh - 48px)); aspect-ratio: 390 / 844; background: #0b0d12;
-    border-radius: 56px; padding: 12px; box-shadow: 0 0 0 2px #39404f, 0 40px 90px rgba(0,0,0,.55); flex-shrink: 0; }
+  .phone { position: relative; width: 414px; height: 868px; background: var(--ink);
+    border-radius: 56px; padding: 12px; box-shadow: 0 0 0 2px var(--ink-muted), 0 40px 90px rgba(0,0,0,.55); flex-shrink: 0; }
   .device { position: relative; height: 100%; width: 100%; background: var(--bg); border-radius: 44px; overflow: hidden; }
-  .island { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); width: 112px; height: 32px; background: #0b0d12; border-radius: 20px; z-index: 50; }
+  .island { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); width: 112px; height: 32px; background: var(--ink); border-radius: 20px; z-index: 50; }
   .statusbar { position: absolute; top: 0; left: 0; right: 0; height: 50px; z-index: 40; display: flex; justify-content: space-between; align-items: flex-end;
-    padding: 0 30px 6px; font-size: 14px; font-weight: 650; pointer-events: none; }
+    padding: 0 30px 6px; font-size: 14px; font-weight: 700; pointer-events: none; }
   .statusbar .icons { letter-spacing: 2px; font-size: 12px; }
   .homebar { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); height: 5px; width: 134px; background: var(--ink); border-radius: 3px; opacity: .8; z-index: 60; pointer-events: none; }
   @media (max-width: 560px), (max-height: 560px) {
     body { background: var(--bg); display: block; overflow: hidden; }
     .side { display: none; }
-    .phone { height: 100dvh; width: 100%; aspect-ratio: auto; padding: 0; border-radius: 0; box-shadow: none; background: var(--bg); }
+    .phone { height: 100dvh; width: 100%; zoom: 1 !important; padding: 0; border-radius: 0; box-shadow: none; background: var(--bg); }
     .device { border-radius: 0; }
     .island, .statusbar, .homebar { display: none; }
     .screen { padding-top: env(safe-area-inset-top); }
@@ -56,182 +68,187 @@
   .screen { position: absolute; inset: 0; display: flex; flex-direction: column; background: var(--bg); padding-top: 50px; }
   .screen.layer { z-index: 10; transform: translateY(100%); transition: transform .32s cubic-bezier(.2,.8,.2,1); visibility: hidden; }
   .screen.layer.on { transform: none; visibility: visible; }
-  .screen.white { background: #fff; }
+  .screen.white { background: var(--surface); }
   .topbar { display: flex; align-items: center; justify-content: space-between; padding: 8px 14px; flex-shrink: 0; min-height: 52px; }
-  .iconbtn { width: 40px; height: 40px; border-radius: 50%; border: 0; background: transparent; display: grid; place-items: center; color: var(--ink); }
-  .iconbtn:active { background: rgba(0,0,0,.05); }
+  .topbar .ttl { font-size: 17px; line-height: 24px; font-weight: 700; }
+  .iconbtn { width: 40px; height: 40px; border-radius: var(--radius-full); border: 0; background: transparent; display: grid; place-items: center; color: var(--ink); }
+  .iconbtn:active { background: var(--brand-tint); }
   .scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
   .scroll::-webkit-scrollbar { display: none; }
 
   /* ---------- inicio ---------- */
-  .avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--pey-soft); color: var(--pey); display: grid; place-items: center;
-    font-weight: 750; font-size: 14px; border: 0; letter-spacing: .02em; }
-  .brand { height: 26px; display: block; }
-  .search { margin: 4px 16px 0; display: flex; align-items: center; gap: 8px; background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 4px 4px 4px 14px; color: var(--faint); }
-  .search input { flex: 1; border: 0; outline: 0; font: inherit; font-size: 15px; padding: 8px 0; background: transparent; color: var(--ink); min-width: 0; }
-  .search input::placeholder { color: var(--faint); }
-  .search .mic { width: 38px; height: 38px; border-radius: 50%; border: 0; background: var(--pey-soft); color: var(--pey); display: grid; place-items: center; }
-  .search .mic.on { background: var(--bad); color: #fff; animation: pulse 1.2s infinite; }
-  @keyframes pulse { 50% { box-shadow: 0 0 0 6px rgba(196,53,43,.15); } }
-  .answer { margin: 10px 16px 0; background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 12px 14px; position: relative; animation: rise .25s ease-out; }
-  .answer .q { font-size: 13px; color: var(--muted); margin-bottom: 6px; padding-right: 26px; }
-  .answer .a { font-size: 15px; line-height: 1.45; }
-  .answer .pl { color: var(--pey); font-weight: 750; margin-right: 6px; }
+  .avatar { width: 38px; height: 38px; border-radius: var(--radius-full); background: var(--brand-tint); color: var(--brand); display: grid; place-items: center;
+    font-weight: 700; font-size: 14px; border: 0; letter-spacing: .02em; }
+  .search { margin: 4px var(--space-4) 0; display: flex; align-items: center; gap: var(--space-2); background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-full); padding: 4px 4px 4px 14px; color: var(--ink-muted); }
+  .search input { flex: 1; border: 0; outline: 0; font: inherit; font-size: 15px; font-weight: 500; padding: 8px 0; background: transparent; color: var(--ink); min-width: 0; }
+  .search input::placeholder { color: var(--ink-muted); }
+  .search:focus-within { border-color: var(--accent); }
+  .search .mic { width: 38px; height: 38px; border-radius: var(--radius-full); border: 0; background: var(--brand-tint); color: var(--brand); display: grid; place-items: center; }
+  .search .mic.on { background: var(--error); color: var(--on-brand); animation: pulse 1.2s infinite; }
+  @keyframes pulse { 50% { box-shadow: 0 0 0 6px var(--error-bg); } }
+  .answer { margin: var(--space-3) var(--space-4) 0; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 12px 14px; position: relative; animation: rise .25s ease-out; }
+  .answer .q { font-size: 13px; color: var(--ink-muted); margin-bottom: 6px; padding-right: 26px; }
+  .answer .a { font-size: 15px; line-height: 22px; font-weight: 500; }
+  .answer .pl { color: var(--brand); font-weight: 800; margin-right: 6px; }
   .answer .x { position: absolute; top: 4px; right: 4px; }
   @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 
-  .today { margin: 12px 16px 0; background: var(--pey); color: #fff; border-radius: 22px; padding: 16px 18px; position: relative; overflow: hidden; }
-  .today::after { content: ""; position: absolute; right: -40px; top: -60px; width: 180px; height: 180px; border-radius: 50%; background: rgba(255,255,255,.08); }
-  .today .k { font-size: 13px; font-weight: 600; display: flex; justify-content: space-between; position: relative; z-index: 1; }
+  .today { margin: var(--space-3) var(--space-4) 0; background: var(--brand); color: var(--on-brand); border-radius: var(--radius-xl); padding: var(--space-5); position: relative; overflow: hidden; }
+  .today::after { content: ""; position: absolute; right: -40px; top: -60px; width: 180px; height: 180px; border-radius: 50%; background: rgba(255,255,255,.06); }
+  .today .k { font-size: 13px; line-height: 18px; font-weight: 600; display: flex; justify-content: space-between; position: relative; z-index: 1; }
   .today .k > span:first-child { opacity: .85; }
   .today .yest { font-weight: 500; opacity: .75; }
-  .today .total { font-size: 36px; font-weight: 820; letter-spacing: -.02em; margin-top: 2px; }
-  .today .sub { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; font-size: 13px; opacity: .92; }
+  .today .total { font-size: 40px; line-height: 44px; font-weight: 800; letter-spacing: -1px; margin-top: var(--space-1); }
+  .today .sub { display: flex; justify-content: space-between; align-items: center; margin-top: var(--space-2); font-size: 13px; font-weight: 600; opacity: .92; }
   .dot { display: inline-flex; align-items: center; gap: 6px; }
-  .dot i { width: 7px; height: 7px; border-radius: 50%; background: #7ef0b2; }
-  .dot.off i { background: #ffd27a; }
+  .dot i { width: 7px; height: 7px; border-radius: 50%; background: var(--live); }
+  .dot.off i { background: var(--pending-bg); }
 
-  .list { padding: 6px 16px 120px; }
-  .day { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); font-weight: 650; padding: 16px 2px 6px; }
-  .group { background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 0 14px; }
-  .mv { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); width: 100%; background: none; border-left: 0; border-right: 0; border-top: 0; text-align: left; }
+  .list { padding: 6px var(--space-4) var(--space-6); }
+  .day { display: flex; justify-content: space-between; font-size: 13px; line-height: 18px; color: var(--ink-muted); font-weight: 600; padding: var(--space-4) 2px 6px; }
+  .group { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 0 14px; }
+  .mv { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3) 0; border-bottom: 1px solid var(--line); width: 100%; background: none; border-left: 0; border-right: 0; border-top: 0; text-align: left; }
   .mv:last-child { border-bottom: 0; }
-  .mv .ic { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: var(--pey-soft); color: var(--pey); flex-shrink: 0; }
-  .mv .ic.sim { background: var(--sim-bg); color: var(--sim); }
+  .mv .ic { width: 40px; height: 40px; border-radius: var(--radius-full); display: grid; place-items: center; background: var(--brand-tint); color: var(--brand); flex-shrink: 0; }
+  .mv .ic.sim { background: var(--test-bg); color: var(--test); }
   .mv .mid { flex: 1; min-width: 0; }
-  .mv .c { font-weight: 640; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .mv .t { font-size: 12.5px; color: var(--muted); margin-top: 1px; }
-  .tag { display: inline-block; margin-top: 5px; font-size: 11.5px; font-weight: 650; padding: 2px 8px; border-radius: 7px; background: var(--pey-soft); color: var(--pey-deep); }
-  .tag.amt-tag { background: var(--ok-bg); color: #0d6b41; }
-  .tag.sim { background: var(--sim-bg); color: var(--sim); }
-  .tag.push-tag { background: #eef0ff; color: #3a3fb8; }
-  .tag.wait { background: var(--warn-bg); color: #8a5a0b; }
-  .tag.gone { background: #f0f2f6; color: var(--muted); }
-  .tag.dup { background: #fdecea; color: var(--bad); }
-  .mv .a.pend { color: var(--muted); }
-  .mv .ic.pend { background: var(--warn-bg); color: #b26b00; }
-  .mv .ic.gone { background: #f0f2f6; color: var(--faint); }
+  .mv .c { font-weight: 600; font-size: 15px; line-height: 20px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mv .t { font-size: 12px; line-height: 16px; font-weight: 500; color: var(--ink-muted); margin-top: var(--space-1); }
+  .tag { display: inline-block; margin-top: 5px; font-size: 11px; line-height: 14px; font-weight: 600; padding: 3px 8px; border-radius: var(--radius-sm); background: var(--brand-tint); color: var(--brand); }
+  .tag.sim { background: var(--test-bg); color: var(--test); }
+  .tag.wait { background: var(--pending-bg); color: var(--pending); }
+  .tag.gone { background: var(--expired-bg); color: var(--expired); }
+  .tag.dup { background: var(--error-bg); color: var(--error); }
+  .mv .a.pend { color: var(--ink-muted); }
+  .mv .ic.pend { background: var(--pending-bg); color: var(--pending); }
+  .mv .ic.gone { background: var(--expired-bg); color: var(--expired); }
   .step-head { display: flex; align-items: center; gap: 4px; margin: -4px 0 4px -8px; }
-  .sum { display: flex; justify-content: space-between; align-items: baseline; background: var(--bg); border-radius: 14px; padding: 12px 14px; margin: 10px 0 12px; }
-  .sum b { font-size: 22px; letter-spacing: -.01em; }
-  .sum span { color: var(--muted); font-size: 13.5px; max-width: 55%; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sum { display: flex; justify-content: space-between; align-items: baseline; background: var(--bg); border-radius: var(--radius-md); padding: 12px 14px; margin: 10px 0 12px; }
+  .sum b { font-size: 22px; font-weight: 800; letter-spacing: -.5px; }
+  .sum span { color: var(--ink-muted); font-size: 13px; max-width: 55%; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .phone-in { font-size: 26px; font-weight: 700; letter-spacing: .04em; text-align: center; padding: 14px; }
-  .alert { margin-top: 10px; border-radius: 14px; padding: 11px 13px; font-size: 14px; line-height: 1.4; }
-  .alert.err { background: #fdecea; color: #8f241c; }
-  .alert.info { background: var(--pey-soft); color: var(--pey-ink); }
+  .alert { margin-top: 10px; border-radius: var(--radius-md); padding: 11px 13px; font-size: 14px; line-height: 1.4; font-weight: 500; }
+  .alert.err { background: var(--error-bg); color: var(--error); }
+  .alert.info { background: var(--brand-tint); color: var(--brand); }
   .alert .acts { display: flex; gap: 8px; margin-top: 9px; }
-  .alert .acts button { border: 0; border-radius: 10px; padding: 8px 12px; font-weight: 650; font-size: 13.5px; background: #fff; color: inherit; }
-  .pend-amt { font-size: 40px; font-weight: 820; letter-spacing: -.02em; text-align: center; margin-top: 4px; }
-  .pend-sub { text-align: center; color: var(--muted); font-size: 14px; }
+  .alert .acts button { border: 0; border-radius: var(--radius-md); padding: 8px 12px; font-weight: 600; font-size: 13px; background: var(--surface); color: inherit; }
+  .pend-amt { font-size: 40px; line-height: 44px; font-weight: 800; letter-spacing: -1px; text-align: center; margin-top: 4px; }
+  .pend-sub { text-align: center; color: var(--ink-muted); font-size: 14px; }
   .pend-state { display: flex; justify-content: center; margin: 12px 0 4px; }
-  .linkbtn { border: 0; background: none; color: var(--bad); font-weight: 650; font-size: 14px; padding: 10px; width: 100%; }
+  .linkbtn { border: 0; background: none; color: var(--error); font-weight: 600; font-size: 14px; padding: 10px; width: 100%; }
   .stack { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
-  .mv .a { font-weight: 760; font-size: 16px; color: var(--ok); white-space: nowrap; }
-  .mv .a.sim { color: var(--sim); }
+  .mv .a { font-size: 16px; line-height: 20px; font-weight: 700; color: var(--success); white-space: nowrap; }
+  .mv .a.sim { color: var(--test); }
   .mv.new { animation: flash 2.6s ease-out; }
-  @keyframes flash { from { background: var(--pey-soft); } to { background: transparent; } }
-  .empty { background: #fff; border: 1px dashed #cfd6e3; border-radius: 18px; padding: 22px 16px; text-align: center; color: var(--muted); font-size: 14px; line-height: 1.5; margin-top: 16px; }
-  .empty b { display: block; color: var(--ink); font-size: 16px; margin-bottom: 4px; }
+  @keyframes flash { from { background: var(--brand-tint); } to { background: transparent; } }
+  .empty { background: var(--surface); border: 1px dashed var(--line); border-radius: var(--radius-lg); padding: 22px 16px; text-align: center; color: var(--ink-muted); font-size: 14px; line-height: 1.5; margin-top: 16px; }
+  .empty b { display: block; color: var(--ink); font-size: 17px; font-weight: 700; margin-bottom: 4px; }
+  .home-foot { padding: var(--space-2) 0 110px; }
 
-  .fab { position: absolute; left: 50%; bottom: 30px; transform: translateX(-50%); z-index: 5; border: 0; background: var(--pey); color: #fff;
-    border-radius: 999px; padding: 15px 30px; font-size: 18px; font-weight: 750; display: flex; align-items: center; gap: 10px; box-shadow: 0 12px 30px rgba(0,103,241,.35); }
-  .fab:active { transform: translateX(-50%) scale(.97); }
-  .fab svg.i { width: 24px; height: 24px; }
+  .fab { position: absolute; left: 50%; bottom: 30px; transform: translateX(-50%); z-index: 5; border: 0; background: var(--brand); color: var(--on-brand);
+    border-radius: var(--radius-full); padding: 15px 30px; font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 10px; box-shadow: var(--shadow-float); }
+  .fab:hover { background: var(--brand-pressed); }
+  .fab:active { background: var(--brand-pressed); transform: translateX(-50%) scale(.97); }
+  .fab svg.i { width: 22px; height: 22px; }
   @media (max-width: 560px), (max-height: 560px) { .fab { bottom: calc(22px + env(safe-area-inset-bottom)); } }
 
   /* ---------- tarjeta del QR (cobrar y mi QR) ---------- */
   .qrwrap { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 0 22px 22px; }
   .who { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 14px; }
   .who .avatar { width: 56px; height: 56px; font-size: 19px; }
-  .who .name { font-size: 19px; font-weight: 760; display: flex; align-items: center; gap: 6px; text-align: center; letter-spacing: -.01em; }
-  .who .name svg { color: var(--pey); width: 20px; height: 20px; }
-  .frame { width: 100%; border-radius: 28px; padding: 14px; background: linear-gradient(180deg, var(--pey-sky) 0 47%, var(--pey) 47% 100%); }
-  .frame .inner { background: #fff; border-radius: 18px; padding: 16px 16px 14px; display: flex; flex-direction: column; align-items: center; }
-  .frame .brand { height: 24px; margin-bottom: 8px; }
-  .frame .amt { font-size: 30px; font-weight: 820; letter-spacing: -.02em; line-height: 1.1; }
-  .frame .cpt { font-size: 13px; color: var(--muted); margin-bottom: 4px; }
+  .who .name { font-size: 17px; line-height: 24px; font-weight: 700; display: flex; align-items: center; gap: 6px; text-align: center; }
+  .who .name svg { color: var(--brand); width: 18px; height: 18px; }
+  .frame { width: 100%; border-radius: var(--radius-xl); padding: 14px; background: var(--brand); }
+  .frame .inner { background: var(--surface); border-radius: var(--radius-lg); padding: 16px 16px 14px; display: flex; flex-direction: column; align-items: center; }
+  .frame .card-din { margin-bottom: 10px; }
+  .frame .card-pey { height: 16px; display: block; margin-top: 10px; }
+  .frame .biz { font-weight: 700; font-size: 15px; margin-bottom: 2px; }
+  .frame .amt { font-size: 30px; font-weight: 800; letter-spacing: -.5px; line-height: 1.1; }
+  .frame .cpt { font-size: 13px; color: var(--ink-muted); margin-bottom: 4px; }
   .frame .qr { width: 100%; max-width: 236px; aspect-ratio: 1; }
   .frame .qr svg { width: 100%; height: 100%; display: block; }
-  .frame .id { margin-top: 6px; font-size: 13.5px; color: var(--muted); }
-  .hint { margin-top: 14px; font-size: 13.5px; color: var(--muted); text-align: center; line-height: 1.45; }
-  .waiting { margin-top: 12px; display: inline-flex; align-items: center; gap: 8px; color: var(--pey); font-weight: 650; font-size: 14px; background: var(--pey-soft); padding: 8px 14px; border-radius: 999px; }
-  .waiting.expired { color: var(--warn); background: var(--warn-bg); }
+  .frame .id { margin-top: 6px; font-size: 13px; color: var(--ink-muted); }
+  .hint { margin-top: 14px; font-size: 13px; color: var(--ink-muted); text-align: center; line-height: 1.45; font-weight: 500; }
+  .waiting { margin-top: 12px; display: inline-flex; align-items: center; gap: 8px; color: var(--pending); font-weight: 600; font-size: 14px; background: var(--pending-bg); padding: 8px 14px; border-radius: var(--radius-full); }
+  .waiting.expired { color: var(--expired); background: var(--expired-bg); }
   .waiting i { width: 8px; height: 8px; border-radius: 50%; background: currentColor; animation: blink 1.2s infinite; }
+  .waiting.expired i { animation: none; }
   @keyframes blink { 50% { opacity: .25; } }
   .actions { display: flex; gap: 10px; width: 100%; margin-top: auto; padding-top: 14px; }
-  .btn { flex: 1; border: 1px solid var(--line); background: #fff; border-radius: 16px; padding: 14px; font-size: 15.5px; font-weight: 680; display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--ink); }
-  .btn.primary { background: var(--pey); border-color: var(--pey); color: #fff; }
+  .btn { flex: 1; border: 1px solid var(--line); background: var(--surface); border-radius: var(--radius-full); padding: 14px; font-size: 15px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--ink); }
+  .btn.primary { background: var(--brand); border-color: var(--brand); color: var(--on-brand); }
+  .btn.primary:not(:disabled):hover, .btn.primary:not(:disabled):active { background: var(--brand-pressed); border-color: var(--brand-pressed); }
   .btn:disabled { opacity: .4; cursor: not-allowed; }
-  .btn.ghostblue { color: var(--pey); border-color: #cfe0fb; background: var(--pey-soft); }
+  .btn.ghostblue { color: var(--brand); border-color: var(--brand-tint); background: var(--brand-tint); }
   .btn.nowrap { white-space: nowrap; padding-left: 8px; padding-right: 8px; gap: 6px; }
 
   /* ---------- teclado de monto (hoja) ---------- */
-  .sheetbg { position: absolute; inset: 0; background: rgba(10,18,35,.45); z-index: 30; opacity: 0; visibility: hidden; transition: .25s; }
+  .sheetbg { position: absolute; inset: 0; background: rgba(11,26,51,.45); z-index: 30; opacity: 0; visibility: hidden; transition: .25s; }
   .sheetbg.on { opacity: 1; visibility: visible; }
-  .sheet { position: absolute; left: 0; right: 0; bottom: 0; z-index: 31; background: #fff; border-radius: 26px 26px 0 0; padding: 10px 18px 26px;
-    transform: translateY(105%); transition: transform .3s cubic-bezier(.2,.8,.2,1); max-height: 88%; overflow-y: auto; }
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; z-index: 31; background: var(--surface); border-radius: var(--radius-xl) var(--radius-xl) 0 0; padding: 10px 18px 26px;
+    box-shadow: var(--shadow-sheet); transform: translateY(105%); transition: transform .3s cubic-bezier(.2,.8,.2,1); max-height: 88%; overflow-y: auto; }
   .sheet.on { transform: none; }
-  .sheet .grip { width: 40px; height: 5px; border-radius: 3px; background: #d6dce6; margin: 0 auto 10px; }
-  .sheet h3 { margin: 4px 0 2px; font-size: 18px; }
-  .amount { font-size: 48px; font-weight: 820; letter-spacing: -.02em; text-align: center; padding: 10px 0 4px; }
-  .amount small { font-size: 22px; color: var(--muted); font-weight: 600; margin-right: 2px; }
-  .input { width: 100%; padding: 13px 14px; border: 1px solid var(--line); border-radius: 14px; font-size: 16px; background: #fff; font-family: inherit; }
-  .input:focus { outline: 2px solid var(--pey-soft); border-color: var(--pey); }
+  .sheet .grip { width: 40px; height: 5px; border-radius: 3px; background: var(--line); margin: 0 auto 10px; }
+  .sheet h3 { margin: 4px 0 2px; font-size: 17px; line-height: 24px; font-weight: 700; }
+  .amount { font-size: 48px; font-weight: 800; letter-spacing: -1px; text-align: center; padding: 10px 0 4px; }
+  .amount small { font-size: 22px; color: var(--ink-muted); font-weight: 600; margin-right: 2px; }
+  .input { width: 100%; padding: 13px 14px; border: 1px solid var(--line); border-radius: var(--radius-md); font-size: 16px; font-weight: 500; background: var(--surface); color: var(--ink); font-family: inherit; }
+  .input::placeholder { color: var(--ink-muted); }
+  .input:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: transparent; }
   .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 0; }
-  .keypad button { border: 0; background: var(--bg); border-radius: 16px; padding: 13px 0; font-size: 24px; font-weight: 600; }
-  .keypad button:active { background: #e6eaf2; }
+  .keypad button { border: 0; background: var(--bg); border-radius: var(--radius-md); padding: 13px 0; font-size: 24px; font-weight: 600; }
+  .keypad button:active { background: var(--line); }
 
   /* ---------- comprobante (ticket) ---------- */
   .ticketwrap { flex: 1; padding: 6px 20px 22px; display: flex; flex-direction: column; }
-  .ticket-top { background: var(--pey-soft); border-radius: 22px; overflow: hidden; padding: 22px 16px 18px; text-align: center; position: relative; animation: pop .35s ease-out; }
-  .ticket-top::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 8px; background: linear-gradient(90deg, var(--pey-sky), var(--pey)); }
-  .ticket-top.sim { background: var(--sim-bg); }
-  .ticket-top.sim::after { background: var(--sim); }
-  .ticket-top .k { font-size: 13px; letter-spacing: .12em; text-transform: uppercase; font-weight: 750; color: var(--pey-ink); }
-  .ticket-top.sim .k { color: var(--sim); }
-  .ticket-top .amt { font-size: 46px; font-weight: 850; letter-spacing: -.03em; margin: 4px 0 2px; display: flex; align-items: center; justify-content: center; gap: 8px; }
-  .ticket-top .amt .seal { width: 34px; height: 34px; border-radius: 50%; background: var(--ok); color: #fff; display: grid; place-items: center; animation: seal .5s .15s both cubic-bezier(.3,1.6,.5,1); }
-  .ticket-top.sim .amt .seal { background: var(--sim); }
-  .ticket-top .amt .seal svg { width: 20px; height: 20px; stroke-width: 3; }
-  .ticket-top .words { font-size: 13px; color: var(--pey-ink); opacity: .8; }
-  .slot { height: 8px; margin-top: 18px; border-radius: 6px; background: linear-gradient(#c5ccd8, #8d97a8); position: relative; z-index: 2;
-    box-shadow: 0 1px 0 rgba(255,255,255,.6) inset; }
-  .printer { overflow: hidden; margin-top: -4px; padding: 0 12px 24px; filter: drop-shadow(0 6px 10px rgba(16,24,40,.10)) drop-shadow(0 1px 1px rgba(16,24,40,.08)); }
-  .ticket-body { background: #fff; position: relative; padding: 20px 18px 16px; animation: print .75s .15s both cubic-bezier(.25,.9,.3,1); }
+  .ticket-top { background: var(--brand-tint); border-radius: var(--radius-xl); overflow: hidden; padding: 22px 16px 18px; text-align: center; position: relative; animation: pop .35s ease-out; }
+  .ticket-top::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 8px; background: var(--brand); }
+  .ticket-top.sim { background: var(--test-bg); }
+  .ticket-top.sim::after { background: var(--test); }
+  .ticket-top .k { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; color: var(--brand); }
+  .ticket-top.sim .k { color: var(--test); }
+  .ticket-top .amt { font-size: 40px; line-height: 44px; font-weight: 800; letter-spacing: -1px; margin: 6px 0 2px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .ticket-top .amt .seal { width: 32px; height: 32px; border-radius: 50%; background: var(--success); color: var(--on-brand); display: grid; place-items: center; animation: seal .5s .15s both cubic-bezier(.3,1.6,.5,1); }
+  .ticket-top.sim .amt .seal { background: var(--test); }
+  .ticket-top .amt .seal svg { width: 18px; height: 18px; stroke-width: 3; }
+  .ticket-top .words { font-size: 13px; color: var(--brand); opacity: .8; }
+  .ticket-top.sim .words { color: var(--test); }
+  .slot { height: 8px; margin-top: 18px; border-radius: 6px; background: linear-gradient(var(--line), var(--ink-muted)); position: relative; z-index: 2; }
+  .printer { overflow: hidden; margin-top: -4px; padding: 0 12px 24px; filter: drop-shadow(0 6px 10px rgba(11,26,51,.10)) drop-shadow(0 1px 1px rgba(11,26,51,.08)); }
+  .ticket-body { background: var(--surface); position: relative; padding: 20px 18px 16px; animation: print .75s .15s both cubic-bezier(.25,.9,.3,1); }
   .ticket-body::after { content: ""; position: absolute; left: 0; right: 0; bottom: -13px; height: 14px;
-    background: linear-gradient(135deg, #fff 50%, transparent 50%) 0 0 / 22px 14px repeat-x,
-                linear-gradient(225deg, #fff 50%, transparent 50%) 0 0 / 22px 14px repeat-x; }
+    background: linear-gradient(135deg, var(--surface) 50%, transparent 50%) 0 0 / 22px 14px repeat-x,
+                linear-gradient(225deg, var(--surface) 50%, transparent 50%) 0 0 / 22px 14px repeat-x; }
   @keyframes print { from { transform: translateY(-102%); } to { transform: none; } }
-  .ticket-body .lbl { font-size: 12.5px; color: var(--muted); }
-  .ticket-body .val { font-size: 16px; font-weight: 680; margin-top: 1px; }
-  .ticket-body .sub { font-size: 13px; color: var(--muted); margin-top: 1px; }
+  .ticket-body .lbl { font-size: 12px; color: var(--ink-muted); }
+  .ticket-body .val { font-size: 16px; font-weight: 700; margin-top: 1px; }
+  .ticket-body .sub { font-size: 13px; color: var(--ink-muted); margin-top: 1px; }
   .ticket-body hr { border: 0; border-top: 1.5px dashed var(--line); margin: 14px 0; }
   .ticket-body .row { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; padding: 4px 0; }
-  .ticket-body .row span:first-child { color: var(--muted); }
+  .ticket-body .row span:first-child { color: var(--ink-muted); }
   .ticket-body .row span:last-child { text-align: right; font-weight: 600; }
   .ticket-body .row.track { flex-direction: column; gap: 2px; }
-  .ticket-body .row.track span:last-child { text-align: left; font-size: 12.5px; word-break: break-all; font-weight: 600; }
-  .verified { margin-top: 12px; display: flex; align-items: center; gap: 6px; color: var(--ok); font-weight: 680; font-size: 14px; }
-  .verified.sim { color: var(--sim); }
-  .mismatch { margin-top: 12px; background: #fdecea; color: var(--bad); padding: 10px 12px; border-radius: 12px; font-weight: 650; font-size: 13.5px; }
+  .ticket-body .row.track span:last-child { text-align: left; font-size: 12px; word-break: break-all; font-weight: 600; }
+  .verified { margin-top: 12px; display: flex; align-items: center; gap: 6px; color: var(--success); font-weight: 700; font-size: 14px; }
+  .verified.sim { color: var(--test); }
+  .mismatch { margin-top: 12px; background: var(--error-bg); color: var(--error); padding: 10px 12px; border-radius: var(--radius-md); font-weight: 600; font-size: 13px; }
   @keyframes pop { from { transform: scale(.94); opacity: 0; } to { transform: none; opacity: 1; } }
   @keyframes seal { from { transform: scale(0); } to { transform: none; } }
 
   /* ---------- perfil ---------- */
   .prof-head { display: flex; align-items: center; gap: 12px; padding: 4px 2px 14px; }
   .prof-head .avatar { width: 52px; height: 52px; font-size: 18px; }
-  .prof-head .n { font-size: 18px; font-weight: 760; }
-  .prof-head .v { font-size: 13px; color: var(--ok); display: flex; align-items: center; gap: 4px; margin-top: 2px; }
+  .prof-head .n { font-size: 17px; line-height: 24px; font-weight: 700; }
+  .prof-head .v { font-size: 13px; font-weight: 600; color: var(--success); display: flex; align-items: center; gap: 4px; margin-top: 2px; }
   .prof-head .v svg { width: 15px; height: 15px; }
-  .menu { border: 1px solid var(--line); border-radius: 18px; overflow: hidden; margin-bottom: 12px; }
-  .menu .it { display: flex; align-items: center; gap: 12px; padding: 13px 14px; border-bottom: 1px solid var(--line); background: #fff; width: 100%; border-left: 0; border-right: 0; border-top: 0; text-align: left; font-size: 15px; }
+  .menu { border: 1px solid var(--line); border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 12px; }
+  .menu .it { display: flex; align-items: center; gap: 12px; padding: 13px 14px; border-bottom: 1px solid var(--line); background: var(--surface); width: 100%; border-left: 0; border-right: 0; border-top: 0; text-align: left; font-size: 15px; font-weight: 600; }
   .menu .it:last-child { border-bottom: 0; }
-  .menu .it .ic { width: 34px; height: 34px; border-radius: 10px; background: var(--pey-soft); color: var(--pey); display: grid; place-items: center; flex-shrink: 0; }
-  .menu .it .ic svg { width: 18px; height: 18px; }
+  .menu .it .ic { width: 34px; height: 34px; border-radius: var(--radius-full); background: var(--brand-tint); color: var(--brand); display: grid; place-items: center; flex-shrink: 0; }
   .menu .it .mid { flex: 1; min-width: 0; }
-  .menu .it .s { font-size: 12.5px; color: var(--muted); margin-top: 1px; }
-  .menu .it .end { color: var(--faint); }
-  .menu .it.sub { padding-left: 60px; background: #fafbfd; }
+  .menu .it .s { font-size: 12px; line-height: 16px; font-weight: 500; color: var(--ink-muted); margin-top: 2px; }
+  .menu .it .end { color: var(--ink-muted); }
+  .menu .it.sub { padding-left: 60px; background: var(--bg); }
   .fold { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .25s ease; }
   .fold.open { grid-template-rows: 1fr; }
   .fold-in { min-height: 0; overflow: hidden; }
@@ -239,24 +256,24 @@
   .menu .it[aria-expanded="false"] { border-bottom: 0; }
   .menu .it .chev { transition: transform .2s; }
   .menu .it[aria-expanded="true"] .chev { transform: rotate(90deg); }
-  .menu .it select { border: 1px solid var(--line); border-radius: 10px; padding: 6px 8px; font: inherit; font-size: 13px; background: #fff; }
+  .menu .it select { border: 1px solid var(--line); border-radius: var(--radius-md); padding: 6px 8px; font: inherit; font-size: 13px; background: var(--surface); color: var(--ink); }
   .st { display: inline-flex; align-items: center; gap: 6px; }
-  .st i { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); flex-shrink: 0; }
-  .st.warn i { background: #e0a100; } .st.bad i { background: var(--bad); }
-  .ok-t { color: var(--ok); font-weight: 650; } .bad-t { color: var(--bad); font-weight: 650; }
-  .switch { appearance: none; width: 44px; height: 26px; border-radius: 999px; background: #d6dce6; position: relative; cursor: pointer; transition: .2s; flex-shrink: 0; }
-  .switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: .2s; box-shadow: 0 1px 3px rgba(0,0,0,.2); }
-  .switch:checked { background: var(--pey); } .switch:checked::after { left: 21px; }
+  .st i { width: 7px; height: 7px; border-radius: 50%; background: var(--brand); flex-shrink: 0; }
+  .st.warn i { background: var(--pending); } .st.bad i { background: var(--error); }
+  .ok-t { color: var(--brand); font-weight: 600; } .bad-t { color: var(--error); font-weight: 600; }
+  .switch { appearance: none; width: 44px; height: 26px; border-radius: var(--radius-full); background: var(--line); position: relative; cursor: pointer; transition: .2s; flex-shrink: 0; }
+  .switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: var(--surface); transition: .2s; box-shadow: 0 1px 3px rgba(11,26,51,.2); }
+  .switch:checked { background: var(--brand); } .switch:checked::after { left: 21px; }
 
   /* ---------- ajustes avanzados ---------- */
-  .adv { padding: 4px 16px 30px; display: flex; flex-direction: column; gap: 12px; }
-  .card { background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 14px 16px; }
-  .card h4 { margin: 0 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+  .adv { padding: 4px var(--space-4) 30px; display: flex; flex-direction: column; gap: var(--space-3); }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 14px 16px; }
+  .card h4 { margin: 0 0 8px; font-size: 11px; line-height: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-muted); }
   .set-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; font-size: 14px; gap: 10px; }
-  .small { font-size: 12.5px; color: var(--muted); line-height: 1.5; margin: 8px 0 0; }
-  .ghost { border: 1px solid var(--line); background: #fff; border-radius: 12px; padding: 9px 13px; font-size: 14px; }
+  .small { font-size: 12px; line-height: 1.5; font-weight: 500; color: var(--ink-muted); margin: 8px 0 0; }
+  .ghost { border: 1px solid var(--line); background: var(--surface); border-radius: var(--radius-full); padding: 9px 14px; font-size: 14px; font-weight: 600; }
 
-  .toast { position: absolute; top: 58px; left: 50%; transform: translateX(-50%); background: var(--ink); color: #fff; padding: 11px 16px; border-radius: 16px;
+  .toast { position: absolute; top: 58px; left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--on-brand); padding: 11px 16px; border-radius: var(--radius-lg);
     font-size: 14px; font-weight: 600; z-index: 70; opacity: 0; transition: .2s; pointer-events: none; width: max-content; max-width: 86%; text-align: center; }
   .toast.show { opacity: 1; }
   @media (max-width: 560px), (max-height: 560px) { .toast { top: calc(14px + env(safe-area-inset-top)); } }
@@ -265,7 +282,7 @@
 <body>
 
 <div class="side">
-  <img class="logo" src="/static/pey-codi.svg" alt="pey · CoDi" />
+  <span class="din lg on-dark"><img src="/static/logo-din-white.svg" alt="" />Din</span>
   <h1>Cobra con CoDi desde tu celular.</h1>
   <p>Ve cada pago al instante con el banco de quien te pagó, genera un QR con monto o envía el cobro directo al celular de tu cliente. Y si tienes la bocina, también te lo dice en voz alta.</p>
   <div class="open" id="openBox">
@@ -273,6 +290,7 @@
     <span>Escanea para abrir esta app en tu celular.</span>
   </div>
   <p class="links"><a href="/">Ver la bocina 3D →</a> &nbsp;·&nbsp; <a href="/demo">Ver el demo completo →</a></p>
+  <div class="powered"><img src="/static/pey-codi.svg" alt="pey × CoDi" /></div>
 </div>
 
 <div class="phone">
@@ -284,22 +302,23 @@
     <section class="screen" id="home">
       <div class="topbar">
         <button class="avatar" id="avatarBtn" aria-label="Tu perfil">MT</button>
-        <img class="brand" src="/static/pey-codi.svg" alt="pey · CoDi" />
+        <span class="din"><img src="/static/logo-din.svg" alt="" />Din</span>
         <span style="width:38px"></span>
       </div>
       <div class="scroll" id="homeScroll">
         <label class="search">
           <svg class="i"><use href="#i-search"/></svg>
-          <input id="q" placeholder="Busca un pago o pregúntale a pey" autocomplete="off" enterkeyhint="send" />
+          <input id="q" placeholder="Busca un pago o pregúntale a Din" autocomplete="off" enterkeyhint="send" />
           <button class="mic" id="micBtn" aria-label="Preguntar por voz"><svg class="i"><use href="#i-mic"/></svg></button>
         </label>
         <div id="answer"></div>
         <div class="today">
           <div class="k"><span>Hoy</span><span class="yest" id="yest"></span></div>
-          <div class="total" id="total">$0.00</div>
+          <div class="total tabular" id="total">$0.00</div>
           <div class="sub"><span id="count">0 pagos</span><span class="dot off" id="conn"><i></i><span>Conectando…</span></span></div>
         </div>
         <div class="list" id="list"></div>
+        <footer class="powered home-foot"><img src="/static/pey-codi.svg" alt="pey × CoDi" /></footer>
       </div>
       <button class="fab" id="fab"><svg class="i"><use href="#i-qr"/></svg>Cobrar</button>
     </section>
@@ -308,16 +327,17 @@
     <section class="screen layer white" id="charge">
       <div class="topbar">
         <button class="iconbtn" data-close aria-label="Cerrar"><svg class="i"><use href="#i-x"/></svg></button>
-        <span style="font-weight:700" id="chargeTitle">Cobrar</span>
+        <span class="ttl" id="chargeTitle">Cobrar</span>
         <span style="width:40px"></span>
       </div>
       <div class="qrwrap">
         <div class="frame">
           <div class="inner">
-            <img class="brand" src="/static/pey-codi.svg" alt="pey · CoDi" />
-            <div style="font-weight:700;font-size:15px;margin-bottom:2px" id="chargeBiz"></div>
+            <span class="din card-din"><img src="/static/logo-din.svg" alt="" />Din</span>
+            <div class="biz" id="chargeBiz"></div>
             <div id="chargeAmt"></div>
             <div class="qr" id="chargeQr"></div>
+            <img class="card-pey" src="/static/pey-codi.svg" alt="pey × CoDi" />
           </div>
         </div>
         <div class="hint">Escanea con la app de tu banco<br/>en la sección <b>CoDi</b></div>
@@ -330,7 +350,7 @@
     <section class="screen layer" id="receipt">
       <div class="topbar">
         <button class="iconbtn" data-close aria-label="Cerrar"><svg class="i"><use href="#i-x"/></svg></button>
-        <img class="brand" src="/static/pey-codi.svg" alt="pey · CoDi" style="height:22px" />
+        <span class="din sm"><img src="/static/logo-din.svg" alt="" />Din</span>
         <span style="width:40px"></span>
       </div>
       <div class="scroll"><div class="ticketwrap" id="ticket"></div></div>
@@ -340,7 +360,7 @@
     <section class="screen layer white" id="myqr">
       <div class="topbar">
         <button class="iconbtn" data-close aria-label="Cerrar"><svg class="i"><use href="#i-x"/></svg></button>
-        <span style="font-weight:700">Mi QR</span>
+        <span class="ttl">Mi QR</span>
         <span style="width:40px"></span>
       </div>
       <div class="qrwrap">
@@ -350,9 +370,10 @@
         </div>
         <div class="frame">
           <div class="inner">
-            <img class="brand" src="/static/pey-codi.svg" alt="pey · CoDi" />
+            <span class="din card-din"><img src="/static/logo-din.svg" alt="" />Din</span>
             <div class="qr" id="myQrSvg"></div>
             <div class="id" id="myQrId"></div>
+            <img class="card-pey" src="/static/pey-codi.svg" alt="pey × CoDi" />
           </div>
         </div>
         <div class="hint">Escanea con la app de cualquier banco en CoDi</div>
@@ -366,18 +387,18 @@
     <section class="screen layer" id="advanced">
       <div class="topbar">
         <button class="iconbtn" data-close aria-label="Regresar"><svg class="i"><use href="#i-back"/></svg></button>
-        <span style="font-weight:700">Ajustes avanzados</span>
+        <span class="ttl">Ajustes avanzados</span>
         <span style="width:40px"></span>
       </div>
       <div class="scroll">
         <div class="adv" id="pinGate" style="display:none">
           <div class="card" style="text-align:center;padding:26px 18px">
-            <div style="color:var(--pey)"><svg class="i" style="width:34px;height:34px"><use href="#i-lock"/></svg></div>
-            <div style="font-weight:750;font-size:18px;margin:6px 0 4px">Ajustes protegidos</div>
+            <div style="color:var(--brand)"><svg class="i" style="width:34px;height:34px"><use href="#i-lock"/></svg></div>
+            <div style="font-weight:700;font-size:17px;line-height:24px;margin:6px 0 4px">Ajustes protegidos</div>
             <p class="small" style="margin:0 0 14px">Escribe el PIN del negocio para continuar.</p>
             <input class="input" id="pinInput" type="password" inputmode="numeric" autocomplete="off" placeholder="PIN" style="text-align:center;letter-spacing:.3em" />
             <button class="btn primary" id="pinBtn" style="margin-top:10px;width:100%">Entrar</button>
-            <p class="small" id="pinErr" style="color:var(--bad)"></p>
+            <p class="small" id="pinErr" style="color:var(--error)"></p>
           </div>
         </div>
         <div class="adv" id="advBody">
@@ -403,7 +424,7 @@
             <h4>Pruebas</h4>
             <input class="input" id="simAmount" type="number" min="0.01" step="0.01" placeholder="Monto (vacío = al azar)" />
             <div style="display:flex;gap:8px;margin-top:10px"><button class="ghost" id="simOne">Simular 1</button><button class="ghost" id="simBurst">Ráfaga de 3</button></div>
-            <p class="small">Salen en morado y no cuentan en el total.</p>
+            <p class="small">Salen en gris con la etiqueta Simulación y no cuentan en el total.</p>
           </div>
         </div>
       </div>
@@ -417,7 +438,7 @@
       <div id="amountStep">
       <h3>Agregar monto</h3>
       <div class="small" style="margin:0">Elige cómo cobrarle a tu cliente.</div>
-      <div class="amount" id="amountView"><small>$</small>0</div>
+      <div class="amount tabular" id="amountView"><small>$</small>0</div>
       <input class="input" id="concept" maxlength="100" placeholder="Concepto (opcional)" />
       <div class="keypad" id="keypad">
         <button>1</button><button>2</button><button>3</button>
@@ -432,7 +453,7 @@
       </div>
       <div id="phoneStep" style="display:none">
         <div class="step-head"><button class="iconbtn" id="phoneBack" aria-label="Regresar"><svg class="i"><use href="#i-back"/></svg></button><h3 style="margin:0">Enviar al celular</h3></div>
-        <div class="sum"><b id="pushSumAmt">$0.00</b><span id="pushSumCpt"></span></div>
+        <div class="sum"><b class="tabular" id="pushSumAmt">$0.00</b><span id="pushSumCpt"></span></div>
         <label class="small" for="phone" style="display:block;margin:0 0 6px">Celular de tu cliente</label>
         <input class="input phone-in" id="phone" type="tel" inputmode="numeric" autocomplete="off" placeholder="5512345678" maxlength="16" />
         <p class="small" style="margin:8px 0 0">Le llegará el cobro en la app de su banco. Te avisamos cuando pague.</p>
@@ -450,7 +471,7 @@
       <div class="grip"></div>
       <div class="prof-head">
         <div class="avatar" data-initials>MT</div>
-        <div><div class="n" data-biz></div><div class="v"><svg class="i"><use href="#i-verified"/></svg>Cuenta verificada por pey</div></div>
+        <div><div class="n" data-biz></div><div class="v"><svg class="i"><use href="#i-verified"/></svg>Cuenta verificada</div></div>
       </div>
       <div class="menu">
         <button class="it" id="openMyQr"><span class="ic"><svg class="i"><use href="#i-qr"/></svg></span><span class="mid">Mi QR<div class="s">Compártelo con tus clientes</div></span><svg class="i end"><use href="#i-chev"/></svg></button>
@@ -462,7 +483,7 @@
           <label class="it sub"><span class="mid">Sonar también en el celular<div class="s">Escucha los pagos aunque no estés en el mostrador</div></span><input type="checkbox" class="switch" id="cajaSound" /></label>
           <div class="it sub"><span class="mid">Voz en el celular</span>
             <select id="voiceMode"><option value="elevenlabs">Natural</option><option value="browser">Del teléfono</option></select></div>
-          <button class="it sub" id="testVoice"><span class="mid" style="color:var(--pey);font-weight:650">Probar voz</span><svg class="i end" style="color:var(--pey)"><use href="#i-play"/></svg></button>
+          <button class="it sub" id="testVoice"><span class="mid" style="color:var(--brand)">Probar voz</span><svg class="i end" style="color:var(--brand)"><use href="#i-play"/></svg></button>
         </div></div>
       </div>
       <div class="menu">
@@ -475,28 +496,28 @@
   </div>
 </div>
 
-<!-- iconos (trazo) -->
+<!-- iconos: Lucide (lucide.dev, ISC), trazo 2 -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
-  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
-  <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M9 21h6"/></symbol>
-  <symbol id="i-qr" viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><path d="M14 14h2v2h-2zM18 14h2M14 18h2M18 18h2v2M18 16v2"/></symbol>
-  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
-  <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></symbol>
-  <symbol id="i-chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
-  <symbol id="i-share" viewBox="0 0 24 24"><path d="M12 15V3M8 7l4-4 4 4"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></symbol>
-  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
-  <symbol id="i-verified" viewBox="0 0 24 24"><path d="M12 2.5l2.4 1.8 3 .1.9 2.9 2.4 1.8-1 2.9 1 2.9-2.4 1.8-.9 2.9-3 .1L12 21.5l-2.4-1.8-3-.1-.9-2.9-2.4-1.8 1-2.9-1-2.9 2.4-1.8.9-2.9 3-.1z"/><path d="M8.5 12l2.4 2.4L15.5 9.8"/></symbol>
-  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"/><path d="M8.5 12l2.4 2.4L15.5 9.8"/></symbol>
-  <symbol id="i-bank" viewBox="0 0 24 24"><path d="M3 9l9-5 9 5M5 9v9M9.5 9v9M14.5 9v9M19 9v9M3 20h18"/></symbol>
-  <symbol id="i-speaker" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="3"/><circle cx="12" cy="14" r="3.5"/><path d="M12 7h.01"/></symbol>
-  <symbol id="i-wave" viewBox="0 0 24 24"><path d="M4 10v4M8 6v12M12 9v6M16 4v16M20 10v4"/></symbol>
-  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 21h4"/></symbol>
-  <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 5v14l11-7z"/></symbol>
-  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
-  <symbol id="i-receipt" viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6"/></symbol>
-  <symbol id="i-phone" viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/></symbol>
-  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></symbol>
-  <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 4l1.8 4.2L18 10l-4.2 1.8L12 16l-1.8-4.2L6 10l4.2-1.8z"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol>
+  <symbol id="i-mic" viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><path d="M12 19v3"/></symbol>
+  <symbol id="i-qr" viewBox="0 0 24 24"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+  <symbol id="i-share" viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="m16 6-4-4-4 4"/><path d="M12 2v13"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="i-verified" viewBox="0 0 24 24"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><path d="m9 12 2 2 4-4"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></symbol>
+  <symbol id="i-bank" viewBox="0 0 24 24"><path d="M3 22h18"/><path d="M6 18v-7"/><path d="M10 18v-7"/><path d="M14 18v-7"/><path d="M18 18v-7"/><path d="M12 2 20 7H4z"/></symbol>
+  <symbol id="i-speaker" viewBox="0 0 24 24"><rect width="16" height="20" x="4" y="2" rx="2"/><path d="M12 6h.01"/><circle cx="12" cy="14" r="4"/><path d="M12 14h.01"/></symbol>
+  <symbol id="i-wave" viewBox="0 0 24 24"><path d="M2 10v3"/><path d="M6 6v11"/><path d="M10 3v18"/><path d="M14 8v7"/><path d="M18 5v13"/><path d="M22 10v3"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M10.27 21a2 2 0 0 0 3.46 0"/><path d="M3.26 15.33A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.67C19.41 13.96 18 12.5 18 8A6 6 0 0 0 6 8c0 4.5-1.41 5.96-2.74 7.33"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M6 3 20 12 6 21Z"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+  <symbol id="i-receipt" viewBox="0 0 24 24"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 17.5v-11"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><rect width="14" height="20" x="5" y="2" rx="2"/><path d="M12 18h.01"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol>
+  <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></symbol>
 </svg>
 
 <script src="/static/common.js"></script>
@@ -535,8 +556,8 @@
     const t = [];
     if (p.duplicateSale) t.push(`<span class="tag dup">Pago duplicado</span>`);
     if (p.simulated) t.push(`<span class="tag sim">Simulación</span>`);
-    if (p.kind === "amount") t.push(`<span class="tag amt-tag">${esc(payerOf(p) && p.concept ? p.concept : "Cobro con monto")}</span>`);
-    if (p.kind === "push") t.push(`<span class="tag push-tag">Al celular${payerOf(p) && p.concept ? " · " + esc(p.concept) : ""}</span>`);
+    if (p.kind === "amount") t.push(`<span class="tag">${esc(payerOf(p) && p.concept ? p.concept : "Cobro con monto")}</span>`);
+    if (p.kind === "push") t.push(`<span class="tag">Al celular${payerOf(p) && p.concept ? " · " + esc(p.concept) : ""}</span>`);
     if (p.kind === "external") t.push(`<span class="tag gone">QR externo</span>`);
     return t.join(" ");
   };
@@ -560,6 +581,15 @@
   $("sheetbg").onclick = closeSheet;
 
   // reloj y QR para abrir en el celular
+  // En computadora el celular de muestra se dibuja a tamaño real (390×844) y se escala para caber:
+  // así en una laptop se ve igual que en un monitor grande, solo más chico, en vez de apretado.
+  const phoneEl = document.querySelector(".phone"), sideEl = document.querySelector(".side");
+  function fitPhone() {
+    const sideW = sideEl && getComputedStyle(sideEl).display !== "none" ? sideEl.offsetWidth + 64 : 0;
+    const z = Math.min(1, (innerHeight - 40) / 868, (innerWidth - sideW - 32) / 414);
+    phoneEl.style.zoom = z > 0 ? String(z) : "";
+  }
+  addEventListener("resize", fitPhone); fitPhone();
   const tick = () => { $("clock").textContent = new Date().toLocaleTimeString("es-MX", { hour: "numeric", minute: "2-digit", hour12: false }); };
   tick(); setInterval(tick, 20000);
   // El QR abre esta app en otro celular; en localhost no serviría (el celular no llega a tu compu), así que se oculta
@@ -605,7 +635,7 @@
       <span class="mid"><div class="c">${esc(x.concept || "Cobro al celular")}</div>
         <div class="t" data-left="${esc(x.id)}">···· ${esc(x.phone4)} · ${live ? "vence en " + mmss(left) : "venció"}</div>
         <span class="tag ${live ? "wait" : "gone"}">${live ? "Esperando pago" : "Venció · toca para reenviar"}</span></span>
-      <span class="a pend">${money(x.amount)}</span>
+      <span class="a pend tabular">${money(x.amount)}</span>
     </button>`;
   }
   function renderList() {
@@ -618,7 +648,7 @@
       $("list").innerHTML = `<div class="empty"><b>Tus pagos aparecerán aquí</b>Cuando un cliente pague con CoDi, lo verás al instante y la bocina lo anunciará.</div>`;
       return;
     }
-    if (!items.length) { $("list").innerHTML = `<div class="empty"><b>Sin resultados</b>Presiona enviar para preguntarle a pey.</div>`; return; }
+    if (!items.length) { $("list").innerHTML = `<div class="empty"><b>Sin resultados</b>Presiona enviar para preguntarle a Din.</div>`; return; }
     const groups = [];
     for (const p of items) {
       const k = dayLabel(when(p));
@@ -628,12 +658,12 @@
     }
     const top = payments[0]?.transactionId;
     $("list").innerHTML = pendHtml + groups.map((g) => `
-      <div class="day"><span>${g.k}</span><span>${money(g.total)}</span></div>
+      <div class="day"><span>${g.k}</span><span class="tabular">${money(g.total)}</span></div>
       <div class="group">${g.items.map((p) => `
         <button class="mv ${lastTop && p.transactionId === top && top !== lastTop ? "new" : ""}" data-tx="${esc(p.transactionId)}">
           <span class="ic ${p.simulated ? "sim" : ""}">${ICON(p.kind === "amount" ? "receipt" : p.kind === "push" ? "phone" : "qr")}</span>
           <span class="mid"><div class="c">${esc(titleOf(p))}</div><div class="t">${hhmm(when(p))}</div>${tagOf(p)}</span>
-          <span class="a ${p.simulated ? "sim" : ""}">+${money(p.amount)}</span>
+          <span class="a tabular ${p.simulated ? "sim" : ""}">+${money(p.amount)}</span>
         </button>`).join("")}</div>`).join("");
     lastTop = top || "none";
   }
@@ -648,7 +678,7 @@
   $("q").addEventListener("keydown", (e) => { if (e.key === "Enter") { const t = e.target.value.trim(); if (t) ask(t); } });
   function showAnswer(q, a) {
     $("answer").innerHTML = `<div class="answer"><button class="iconbtn x" aria-label="Cerrar">${ICON("x")}</button>
-      <div class="q">"${esc(q)}"</div><div class="a"><span class="pl">pey</span>${esc(a)}</div></div>`;
+      <div class="q">"${esc(q)}"</div><div class="a"><span class="pl">Din</span>${esc(a)}</div></div>`;
     $("answer").querySelector(".x").onclick = () => { $("answer").innerHTML = ""; };
   }
   async function ask(text) {
@@ -689,7 +719,7 @@
     $("chargeTitle").textContent = isFixed ? "Cobrar" : "Cobro con monto";
     $("chargeBiz").textContent = bizName();
     $("chargeAmt").innerHTML = isFixed ? `<div class="cpt">Tu cliente escribe el monto en su banco</div>`
-      : `<div class="amt">${money(what.amount)}</div><div class="cpt">${esc(what.concept)}</div>`;
+      : `<div class="amt tabular">${money(what.amount)}</div><div class="cpt">${esc(what.concept)}</div>`;
     $("chargeQr").innerHTML = svgFix(isFixed ? fixed.qrSvg : what.qrSvg);
     $("waiting").className = "waiting"; $("waitTxt").textContent = "Esperando pago…";
     $("chargeActions").innerHTML = isFixed
@@ -819,7 +849,7 @@
     const left = leftOf(x), live = left > 0, waited = Math.floor(Date.now() / 1000) - x.createdAt;
     $("pendBody").innerHTML = `
       <h3 style="text-align:center;margin-bottom:0">Cobro al celular</h3>
-      <div class="pend-amt">${money(x.amount)}</div>
+      <div class="pend-amt tabular">${money(x.amount)}</div>
       <div class="pend-sub">${x.concept ? esc(x.concept) + " · " : ""}${esc(x.phone || "")}</div>
       <div class="pend-state"><span class="waiting ${live ? "" : "expired"}"><i></i><span id="pendLeft">${live ? "Esperando pago · vence en " + mmss(left) : "El cobro venció"}</span></span></div>
       ${live && waited >= 45 ? `<div class="alert info">¿No le llegó? Algunos bancos piden activar CoDi con el número del cliente. Si está cerca, genera un QR; si no, reenvía el cobro.</div>` : ""}
@@ -871,7 +901,7 @@
     $("ticket").innerHTML = `
       <div class="ticket-top ${sim ? "sim" : ""}">
         <div class="k">${sim ? "Simulación" : "Pago recibido"}</div>
-        <div class="amt">${money(p.amount)}<span class="seal">${ICON("check")}</span></div>
+        <div class="amt tabular">${money(p.amount)}<span class="seal">${ICON("check")}</span></div>
         <div class="words">${esc(p.amountWords || "")}</div>
       </div>
       <div class="slot"></div>
@@ -905,25 +935,29 @@
   const svgUrl = (s) => "data:image/svg+xml;charset=utf-8," + encodeURIComponent(s);
   function rr(g, x, y, w, h, r) { g.beginPath(); g.roundRect(x, y, w, h, r); }
   async function qrCardBlob() {
+    await document.fonts.ready;
     const W = 1080, H = 1500, c = document.createElement("canvas"); c.width = W; c.height = H;
-    const g = c.getContext("2d"); const F = "600 48px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif";
-    g.fillStyle = "#fff"; g.fillRect(0, 0, W, H);
-    g.fillStyle = "#e8f1fe"; g.beginPath(); g.arc(W / 2, 140, 74, 0, Math.PI * 2); g.fill();
-    g.fillStyle = "#0067f1"; g.font = F.replace("600 48px", "800 54px"); g.textAlign = "center"; g.textBaseline = "middle";
-    g.fillText(initials(bizName()), W / 2, 142);
-    g.fillStyle = "#121826"; g.font = F.replace("600 48px", "800 52px"); g.fillText(bizName(), W / 2, 290);
-    const fx = 90, fy = 370, fw = W - 180, fh = 930;
-    rr(g, fx, fy, fw, fh, 64); g.save(); g.clip();
-    g.fillStyle = "#4c9bff"; g.fillRect(fx, fy, fw, fh * 0.47); g.fillStyle = "#0067f1"; g.fillRect(fx, fy + fh * 0.47, fw, fh * 0.53); g.restore();
-    g.fillStyle = "#fff"; rr(g, fx + 34, fy + 34, fw - 68, fh - 68, 40); g.fill();
-    const logo = await loadImg("/static/pey-codi.svg");
-    const lw = 330, lh = lw * logo.naturalHeight / logo.naturalWidth; g.drawImage(logo, W / 2 - lw / 2, fy + 80, lw, lh);
+    const tk = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+    const FONT = tk("--font-sans"), F = (w, px) => `${w} ${px}px ${FONT}`;
+    const g = c.getContext("2d");
+    // Arriba: marca Din · centro: tarjeta con negocio y QR · abajo: instrucción y pey × CoDi
+    g.fillStyle = tk("--bg"); g.fillRect(0, 0, W, H);
+    Bocina.drawDinLogo(g, W / 2, 125, 92, { ink: tk("--ink"), coin: tk("--brand"), font: FONT });
+    const fx = 90, fy = 230, fw = W - 180, fh = 1010;
+    g.fillStyle = tk("--brand"); rr(g, fx, fy, fw, fh, 66); g.fill();
+    g.fillStyle = tk("--surface"); rr(g, fx + 34, fy + 34, fw - 68, fh - 68, 44); g.fill();
+    g.textAlign = "center"; g.textBaseline = "middle";
+    g.fillStyle = tk("--ink"); g.font = F(800, 56);
+    let fs = 56; while (g.measureText(bizName()).width > fw - 140 && fs > 30) g.font = F(800, (fs -= 2));
+    g.fillText(bizName(), W / 2, fy + 125);
     const qr = await loadImg(svgUrl(svgFix(fixed.qrSvg)));
-    const q = 600; g.drawImage(qr, W / 2 - q / 2, fy + 110 + lh, q, q);
-    g.fillStyle = "#667085"; g.font = F.replace("600 48px", "500 36px");
-    g.fillText(Bocina.status?.depositAccount || "Cobros CoDi con pey", W / 2, fy + fh - 90);
-    g.fillStyle = "#121826"; g.font = F.replace("600 48px", "500 38px");
-    g.fillText("Escanea con la app de cualquier banco en CoDi", W / 2, 1390);
+    const q = 660; g.drawImage(qr, W / 2 - q / 2, fy + 185, q, q);
+    g.fillStyle = tk("--ink-muted"); g.font = F(500, 36);
+    g.fillText(Bocina.status?.depositAccount || "Cobros CoDi con pey", W / 2, fy + fh - 95);
+    g.fillStyle = tk("--ink"); g.font = F(600, 38);
+    g.fillText("Escanea con la app de cualquier banco en CoDi", W / 2, 1318);
+    const logo = await loadImg("/static/pey-codi.svg");
+    const lh = 58, lw = lh * logo.naturalWidth / logo.naturalHeight; g.drawImage(logo, W / 2 - lw / 2, 1395, lw, lh);
     return new Promise((ok) => c.toBlob(ok, "image/png"));
   }
   $("shareQr").onclick = async () => {

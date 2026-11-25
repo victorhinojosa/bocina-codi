@@ -3,27 +3,31 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<meta name="theme-color" content="#f6f4ef" />
+<meta name="theme-color" content="#F4F6FA" />
 <link rel="manifest" href="/manifest.webmanifest" />
 <link rel="icon" href="/static/icon.svg" type="image/svg+xml" />
-<title>Bocina CoDi · Mostrador</title>
+<link rel="icon" href="/static/icons/favicon-32.png" sizes="32x32" type="image/png" />
+<link rel="apple-touch-icon" href="/static/icons/apple-touch-icon.png" />
+<link rel="stylesheet" href="/static/tokens.css" />
+<title>Din · Mostrador</title>
 <style>
-  :root {
-    --bg: #f6f4ef; --card: #fff; --ink: #17161a; --muted: #6d6a73; --line: #e6e2d9;
-    --ok: #12945a; --ok-deep: #0d7a49; --sim: #7c3aed; --blue: #1f5eff; --blue-bg: #e9efff; --warn: #b7791f; --warn-bg: #fdf3e1;
-    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  }
+  /* Colores, tipografía y radios: tokens.css (marca Din) */
   * { box-sizing: border-box; }
   html, body { height: 100%; }
-  body { margin: 0; background: var(--bg); color: var(--ink); overflow: hidden; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font-sans); overflow: hidden; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  svg.i { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; vertical-align: -3px; }
+  .powered { position: fixed; left: 0; right: 0; bottom: 8px; display: flex; justify-content: center; z-index: 5; pointer-events: none; }
+  .powered img { height: 14px; display: block; }
+  .embed .powered { display: none; }
   button { font: inherit; cursor: pointer; }
 
   .top { position: fixed; top: 0; left: 0; right: 0; display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; z-index: 3; }
-  .live { display: flex; align-items: center; gap: 7px; font-size: 13px; color: var(--muted); }
-  .live i { width: 9px; height: 9px; border-radius: 50%; background: #bbb; }
-  .live.on i { background: var(--ok); box-shadow: 0 0 0 4px rgba(18,148,90,.15); }
-  .to-caja { font-size: 13px; color: var(--muted); text-decoration: none; padding: 7px 12px; border-radius: 10px; border: 1px solid transparent; }
-  .to-caja:hover { border-color: var(--line); background: var(--card); }
+  .live { display: flex; align-items: center; gap: 7px; font-size: 13px; color: var(--ink-muted); }
+  .live i { width: 9px; height: 9px; border-radius: 50%; background: var(--line); }
+  .live.on i { background: var(--brand); box-shadow: 0 0 0 4px var(--brand-tint); }
+  .to-caja { font-size: 13px; color: var(--ink-muted); text-decoration: none; padding: 7px 12px; border-radius: var(--radius-full); border: 1px solid transparent; }
+  .to-caja:hover { border-color: var(--line); background: var(--surface); }
   .embed .to-caja { visibility: hidden; }
 
   .screen { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px 110px; text-align: center; }
@@ -33,65 +37,67 @@
   .device.on { display: flex; }
   .stage { position: relative; flex: 1; width: 100%; max-width: 1100px; min-height: 0; touch-action: none; }
   .stage canvas { display: block; width: 100%; height: 100%; outline: none; }
-  .stage .loading { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); font-size: 14px; pointer-events: none; }
+  .stage .loading { position: absolute; inset: 0; display: grid; place-items: center; color: var(--ink-muted); font-size: 14px; pointer-events: none; }
   .views { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; justify-content: center; }
-  .views button { border: 1px solid var(--line); background: var(--card); color: var(--ink); border-radius: 999px; padding: 8px 14px; font-size: 13px; font-weight: 600; }
-  .views button:hover { border-color: #d9d4c8; background: #fbfaf7; }
-  .views button.on { background: var(--ink); color: #fff; border-color: var(--ink); }
-  .drag-hint { margin-top: 8px; font-size: 12px; color: var(--muted); }
+  .views button { border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: var(--radius-full); padding: 8px 14px; font-size: 13px; font-weight: 600; }
+  .views button:hover { border-color: var(--brand-tint); background: var(--brand-tint); }
+  .views button.on { background: var(--brand); color: var(--on-brand); border-color: var(--brand); }
+  .drag-hint { margin-top: 8px; font-size: 12px; color: var(--ink-muted); }
 
   /* log de eventos reales (pagos verificados y conexión) */
   .paylog { margin-top: 12px; width: min(560px, 100%); font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 12px;
-    color: var(--muted); text-align: left; min-height: 18px; }
+    color: var(--ink-muted); text-align: left; min-height: 18px; }
   .paylog .row { display: flex; gap: 10px; padding: 3px 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; animation: logIn .35s ease-out; }
   .paylog .row:not(:first-child) { opacity: .62; }
-  .paylog .t { color: #a19ea7; flex-shrink: 0; }
-  .paylog .ok { color: var(--ok); font-weight: 650; }
-  .paylog .sim { color: var(--sim); font-weight: 650; }
-  .paylog .warn { color: var(--warn); font-weight: 650; }
+  .paylog .t { color: var(--ink-muted); opacity: .75; flex-shrink: 0; }
+  .paylog .ok { color: var(--success); font-weight: 700; }
+  .paylog .sim { color: var(--test); font-weight: 650; }
+  .paylog .warn { color: var(--pending); font-weight: 650; }
   .paylog .muted { overflow: hidden; text-overflow: ellipsis; }
   @keyframes logIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
-  .biz { font-size: clamp(24px, 4vw, 34px); font-weight: 760; letter-spacing: -.01em; }
-  .sub { color: var(--muted); margin: 6px 0 20px; font-size: 16px; }
-  .qr { width: min(440px, 78vw, 52vh); background: #fff; padding: 10px; border-radius: 22px; box-shadow: 0 1px 0 var(--line), 0 18px 50px rgba(20,18,25,.08); }
+  .biz { font-size: clamp(24px, 4vw, 34px); font-weight: 800; letter-spacing: -.5px; }
+  .sub { color: var(--ink-muted); margin: 6px 0 20px; font-size: 16px; }
+  .qr { width: min(440px, 78vw, 52vh); background: var(--surface); padding: 10px; border-radius: var(--radius-xl); border: 1px solid var(--line); }
   .qr svg { width: 100%; height: auto; display: block; }
-  .badge { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; font-size: 14px; font-weight: 600; margin-top: 18px; }
-  .badge.listen { background: #e7f6ee; color: var(--ok); }
+  .badge { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: var(--radius-full); font-size: 14px; font-weight: 600; margin-top: 18px; }
+  .badge.listen { background: var(--brand-tint); color: var(--brand); }
   .badge.listen i { width: 8px; height: 8px; border-radius: 50%; background: currentColor; animation: pulse-dot 1.6s infinite; }
-  @keyframes pulse-dot { 0% { box-shadow: 0 0 0 0 rgba(18,148,90,.5); } 70% { box-shadow: 0 0 0 7px rgba(18,148,90,0); } 100% { box-shadow: 0 0 0 0 rgba(18,148,90,0); } }
+  @keyframes pulse-dot { 0% { box-shadow: 0 0 0 0 rgba(21,71,129,.5); } 70% { box-shadow: 0 0 0 7px rgba(21,71,129,0); } 100% { box-shadow: 0 0 0 0 rgba(21,71,129,0); } }
   @keyframes blink { 50% { opacity: .25; } }
-  .badge.wait { background: var(--warn-bg); color: var(--warn); }
+  .badge.wait { background: var(--pending-bg); color: var(--pending); }
   .badge.wait i { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
-  .badge.bad { background: #fdecea; color: #c4352b; }
+  .badge.bad { background: var(--error-bg); color: var(--error); }
   .badge.bad i { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
   .spinner { width: 13px; height: 13px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .8s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
-  .to-pay { font-size: clamp(34px, 6vw, 52px); font-weight: 800; letter-spacing: -.02em; }
-  .x { margin-top: 12px; border: 1px solid var(--line); background: transparent; color: var(--muted); border-radius: 12px; padding: 8px 14px; font-size: 14px; }
+  .to-pay { font-size: clamp(34px, 6vw, 52px); font-weight: 800; letter-spacing: -1px; font-variant-numeric: tabular-nums; }
+  .x { margin-top: 12px; border: 1px solid var(--line); background: transparent; color: var(--ink-muted); border-radius: var(--radius-full); padding: 8px 14px; font-size: 14px; }
 
   /* momento del pago */
 
   /* burbuja del asistente */
   .dock { position: fixed; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; align-items: center; padding: 0 20px 26px; z-index: 6; pointer-events: none; }
   .bubble { max-width: 520px; margin-bottom: 14px; pointer-events: auto; }
-  .bubble .you { color: var(--muted); font-size: 14px; margin-bottom: 6px; }
-  .bubble .pey { background: var(--card); border: 1px solid var(--line); padding: 12px 16px; border-radius: 16px; font-size: 16px; line-height: 1.45; box-shadow: 0 10px 30px rgba(20,18,25,.08); }
+  .bubble .you { color: var(--ink-muted); font-size: 14px; margin-bottom: 6px; }
+  .bubble .pey { background: var(--surface); border: 1px solid var(--line); padding: 12px 16px; border-radius: var(--radius-lg); font-size: 16px; line-height: 1.45; font-weight: 500; }
 
   /* último pago y volumen */
-  .vol { position: fixed; top: 58px; left: 50%; transform: translateX(-50%); background: rgba(23,22,26,.92); color: #fff; z-index: 8; border-radius: 14px;
+  .vol { position: fixed; top: 58px; left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--on-brand); z-index: 8; border-radius: var(--radius-md);
     padding: 10px 14px; display: none; align-items: center; gap: 10px; font-size: 13px; font-weight: 650; }
   .vol.show { display: flex; }
   .vol .bars { display: flex; gap: 3px; align-items: flex-end; }
-  .vol .bars b { width: 6px; background: #4a4950; border-radius: 2px; }
-  .vol .bars b.f { background: #22c55e; }
+  .vol .bars b { width: 6px; background: var(--ink-muted); border-radius: 2px; }
+  .vol .bars b.f { background: var(--live); }
 
-  .setup input { padding: 13px 15px; border: 1px solid var(--line); border-radius: 12px; font-size: 16px; width: 320px; max-width: 100%; background: #fff; }
-  .primary { border: 0; background: var(--ink); color: #fff; border-radius: 14px; padding: 13px 24px; font-size: 16px; font-weight: 650; margin-top: 12px; }
+  .setup input { padding: 13px 15px; border: 1px solid var(--line); border-radius: var(--radius-md); font-size: 16px; font-family: inherit; width: 320px; max-width: 100%; background: var(--surface); }
+  .setup input:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: transparent; }
+  .primary { border: 0; background: var(--brand); color: var(--on-brand); border-radius: var(--radius-full); padding: 13px 24px; font-size: 16px; font-weight: 700; margin-top: 12px; }
+  .primary:hover { background: var(--brand-pressed); }
 
-  .sound-hint { position: fixed; top: 14px; left: 50%; transform: translateX(-50%); z-index: 6; background: var(--ink); color: #fff;
-    padding: 8px 14px; border-radius: 999px; font-size: 13px; display: none; }
+  .sound-hint { position: fixed; top: 14px; left: 50%; transform: translateX(-50%); z-index: 6; background: var(--ink); color: var(--on-brand);
+    padding: 8px 14px; border-radius: var(--radius-full); font-size: 13px; display: none; }
   .sound-hint.show { display: block; animation: in .2s ease-out; }
-  .toast { position: fixed; top: 64px; left: 50%; transform: translateX(-50%); background: var(--ink); color: #fff; padding: 12px 18px; border-radius: 12px;
+  .toast { position: fixed; top: 64px; left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--on-brand); padding: 12px 18px; border-radius: var(--radius-lg);
     font-size: 14px; z-index: 20; opacity: 0; transition: .2s; pointer-events: none; max-width: 90vw; }
   .toast.show { opacity: 1; }
 </style>
@@ -108,7 +114,7 @@
   // Dentro de /demo no hace falta el enlace a la app: está al lado
   if (new URLSearchParams(location.search).has("embed")) document.documentElement.classList.add("embed");
 </script>
-<div class="sound-hint" id="soundHint">🔈 Toca la pantalla una vez para activar el sonido</div>
+<div class="sound-hint" id="soundHint"><svg class="i" viewBox="0 0 24 24"><path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z"/></svg> Toca la pantalla una vez para activar el sonido</div>
 <div class="screen" id="screen">
   <div id="setup" style="display:none"></div>
   <div class="device" id="device">
@@ -125,7 +131,9 @@
   </div>
 </div>
 
-<div class="vol" id="vol"><span id="volIcon">🔊</span><div class="bars" id="volBars"></div><span id="volPct"></span></div>
+<div class="vol" id="vol"><span id="volIcon"></span><div class="bars" id="volBars"></div><span id="volPct"></span></div>
+
+<div class="powered"><img src="/static/pey-codi.svg" alt="pey × CoDi" /></div>
 
 <div class="dock">
   <div class="bubble" id="bubble"></div>
@@ -157,7 +165,7 @@ import { createSoundbox } from "/static/soundbox-display.js";
       setup.style.display = "";
       setup.innerHTML = `
         <div class="setup">
-          <div style="font-size:52px">🏪</div>
+          <div style="color:var(--brand)"><svg class="i" viewBox="0 0 24 24" style="width:48px;height:48px"><path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/><path d="M2 7h20"/><path d="M22 7v3a2 2 0 0 1-2 2a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 16 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 12 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 8 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 4 12a2 2 0 0 1-2-2V7"/></svg></div>
           <div class="biz" style="margin-top:6px">Crea tu QR fijo</div>
           <div class="sub" style="max-width:360px;margin:8px auto 18px">El cliente lo escanea con su app bancaria, pone el monto y esta pantalla te avisa en voz alta.</div>
           <input id="bizName" placeholder="Nombre del negocio" value="${esc(Bocina.status.businessName || "")}" />
@@ -401,7 +409,7 @@ import { createSoundbox } from "/static/soundbox-display.js";
     const n = Math.round(Bocina.volume() * 10);
     $("volBars").innerHTML = Array.from({ length: 10 }, (_, i) => `<b class="${i < n ? "f" : ""}" style="height:${6 + i * 1.6}px"></b>`).join("");
     $("volPct").textContent = n === 0 ? "Silencio" : `${n * 10}%`;
-    $("volIcon").textContent = n === 0 ? "🔇" : n < 5 ? "🔉" : "🔊";
+    $("volIcon").innerHTML = '<svg class="i" viewBox="0 0 24 24"><path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z"/>' + (n === 0 ? '<path d="m22 9-6 6"/><path d="m16 9 6 6"/>' : n < 5 ? '<path d="M16 9a5 5 0 0 1 0 6"/>' : '<path d="M16 9a5 5 0 0 1 0 6"/><path d="M19.364 18.364a9 9 0 0 0 0-12.728"/>') + '</svg>';
     $("vol").classList.add("show"); clearTimeout(volTimer); volTimer = setTimeout(() => $("vol").classList.remove("show"), 1400);
   }
   function changeVolume(delta) { Bocina.setVolume(Bocina.volume() + delta); showVolume(); Speaker.volume(Bocina.volume()); if (!Voice.busy) Bocina.chime(); }

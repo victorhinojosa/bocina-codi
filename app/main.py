@@ -991,14 +991,19 @@ async def manifest() -> JSONResponse:
     """Permite 'Instalar app' / 'Agregar a pantalla de inicio' en Chrome y Android."""
     return JSONResponse(
         {
-            "name": "Bocina CoDi",
-            "short_name": "Bocina",
+            "name": "Din",
+            "short_name": "Din",
             "description": "Tu QR de CoDi que te avisa en voz alta cada pago.",
             "start_url": "/app",
             "display": "standalone",
-            "background_color": "#f6f4ef",
-            "theme_color": "#f6f4ef",
-            "icons": [{"src": "/static/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any"}],
+            "background_color": "#F4F6FA",
+            "theme_color": "#F4F6FA",
+            "icons": [
+                {"src": "/static/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+                {"src": "/static/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+                {"src": "/static/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"},
+                {"src": "/static/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any"},
+            ],
         },
         media_type="application/manifest+json",
     )

@@ -60,7 +60,7 @@ const LOGO_ASPECT = 671.73 / 219.42;
 // Utilidades
 // ═════════════════════════════════════════════════════════════════════════
 
-const FONT = 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+const FONT = '"Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
 const COLOR_BODY = '#17161a';
 const COLOR_LIGHT = '#f6f4ef';
 const LED_COLORS = { green: '#25e07e', red: '#ff3b30', amber: '#ffb01f' };
@@ -70,6 +70,9 @@ const PRESS_DOWN = 0.07;      // s
 const PRESS_UP = 0.16;        // s
 const DEG = Math.PI / 180;
 const CARD_INSTRUCTION = 'Abre tu app de banco, ve a CoDi, escanea y paga.';
+// Marca Din (tokens.css): tinta, azul Din y símbolo D-moneda (viewBox 120)
+const DIN_INK = '#0B1A33', DIN_BRAND = '#154781';
+const DIN_D = 'M18 12H58A48 48 0 0 1 58 108H18Z M58 38A22 22 0 1 0 58 82A22 22 0 1 0 58 38Z';
 
 function makeCanvas(w, h) {
   const c = document.createElement('canvas');
@@ -481,31 +484,48 @@ function drawQRPlaceholder(target) {
   g.font = `600 64px ${FONT}`; g.fillText('QR', 512, 512);
 }
 
+/** Logo Din horizontal (símbolo + "Din") centrado en (cx, cy); S = caja del símbolo. */
+function drawDinLogo(g, cx, cy, S) {
+  g.save();
+  g.font = `800 ${S * 1.1}px ${FONT}`;
+  const tw = g.measureText('Din').width, symW = S * 88 / 120, gap = S * 22 / 120;
+  const x0 = cx - (symW + gap + tw) / 2;
+  g.translate(x0 - S * 18 / 120, cy - S / 2); g.scale(S / 120, S / 120);
+  g.fillStyle = DIN_INK; g.fill(new Path2D(DIN_D), 'evenodd');
+  g.fillStyle = DIN_BRAND; g.beginPath(); g.arc(58, 60, 11, 0, Math.PI * 2); g.fill();
+  g.restore(); g.save();
+  g.font = `800 ${S * 1.1}px ${FONT}`; g.fillStyle = DIN_INK; g.textAlign = 'left'; g.textBaseline = 'alphabetic';
+  g.fillText('Din', x0 + symW + gap, cy + S * 0.4);
+  g.restore();
+}
+
 /**
- * Tarjeta impresa (estilo referencia): logo pey | CoDi, "Aceptado aquí",
- * instrucción y hueco del QR. Coordenadas en milímetros (L.ppm px por mm).
+ * Tarjeta impresa: arriba la marca Din, "Aceptado aquí", instrucción, hueco del QR
+ * y abajo el logo pey | CoDi. Coordenadas en milímetros (L.ppm px por mm).
  */
 function drawCard(canvas, L, logoImg) {
   const g = canvas.getContext('2d');
   g.setTransform(L.ppm, 0, 0, L.ppm, 0, 0);
   g.fillStyle = '#ffffff'; g.fillRect(0, 0, L.W, L.H);
+  // Marca Din
+  drawDinLogo(g, L.W / 2, L.dinY, L.dinS);
   g.textAlign = 'center'; g.textBaseline = 'middle';
-  // Logo
-  const lw = L.logoH * LOGO_ASPECT;
-  if (logoImg) g.drawImage(logoImg, (L.W - lw) / 2, L.logoTop, lw, L.logoH);
   // Aceptado aquí
-  g.fillStyle = COLOR_BODY;
-  fitFont(g, 'Aceptado aquí', L.W - 10, L.accSize, 700);
+  g.fillStyle = DIN_INK;
+  fitFont(g, 'Aceptado aquí', L.W - 10, L.accSize, 800);
   g.fillText('Aceptado aquí', L.W / 2, L.accY);
   // Instrucción (una o dos líneas)
-  g.fillStyle = '#34322e';
+  g.fillStyle = '#3A4660';
   g.font = `600 ${L.insSize}px ${FONT}`;
   const lines = wrapLines(g, CARD_INSTRUCTION, L.W - 2 * L.pad);
   lines.forEach((ln, i) => g.fillText(ln, L.W / 2, L.insY + i * L.insSize * 1.28));
   // Marco del QR (la textura del QR ya incluye su quiet zone blanca)
   const qx = (L.W - L.qrSize) / 2;
-  g.strokeStyle = 'rgba(23,22,26,0.12)'; g.lineWidth = 0.3;
+  g.strokeStyle = 'rgba(11,26,51,0.14)'; g.lineWidth = 0.3;
   roundRectPath(g, qx - 0.8, L.qrTop - 0.8, L.qrSize + 1.6, L.qrSize + 1.6, 1.6); g.stroke();
+  // Abajo: pey | CoDi
+  const lw = L.logoH * LOGO_ASPECT;
+  if (logoImg) g.drawImage(logoImg, (L.W - lw) / 2, L.logoTop, lw, L.logoH);
   g.setTransform(1, 0, 0, 1, 0, 0);
 }
 
@@ -725,6 +745,8 @@ function makeQRCard(THREE, own, parent, L, cx, cy, z, cornerMm = 5) {
   let logo = null;
   const redraw = () => { drawCard(cardCanvas, L, logo); cardTex.needsUpdate = true; };
   redraw();
+  // La tipografía de marca llega de Google Fonts: se vuelve a pintar cuando carga
+  document.fonts?.load(`800 40px ${FONT}`).then(redraw).catch(() => {});
   return {
     qrMesh, qrSize, qrCanvas, qrTex, redraw,
     setLogo(img) { logo = img; redraw(); },
@@ -991,7 +1013,7 @@ function resolveOptions(options) {
     qr: null,
     businessName: 'Mi negocio',      // se muestra en la pantalla del comerciante
     accent: '#12945a',               // botón de hablar, pantalla de pago, luces
-    cardAccent: '#0067f1',           // banda de color de la tarjeta (azul del logo pey)
+    cardAccent: '#154781',           // banda de color de la tarjeta (azul Din)
     logoSvg: LOGO_SVG_LIGHT,         // logo de la tarjeta (fondo claro)
     logoSvgDark: LOGO_SVG_DARK,      // logo sobre el plástico oscuro
     paymentHoldSeconds: 8,           // tras showPayment vuelve solo a reposo; 0 = manual con setIdle()
@@ -1046,10 +1068,11 @@ export function createSoundbox(THREE, options = {}) {
   front.add(band);
   const L = {
     W: 94, H: 82, ppm: 10, pad: 3,
-    logoTop: 4.5, logoH: 11,
-    accY: 19.5, accSize: 3.8,
-    insY: 24.8, insSize: 3.0,
-    qrTop: 28, qrSize: 50,
+    dinY: 7.5, dinS: 8,          // arriba: marca Din
+    accY: 16.2, accSize: 3.6,
+    insY: 20.6, insSize: 2.7,
+    qrTop: 24, qrSize: 46,
+    logoTop: 72.5, logoH: 6.5,   // abajo: pey | CoDi
   };
   const card = makeQRCard(THREE, own, front, L, 0, LF / 2 + 0.004, CAP_T + 0.00018, 5);
 
