@@ -5,11 +5,12 @@ import logging
 import re
 
 import httpx
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import Response
 from pydantic import BaseModel, Field
 
-from app import config, timeutil
+from app import auth, config, timeutil
+from app.auth import Viewer
 from app.payments import today_summary
 from app.speech import money_words
 
@@ -26,7 +27,7 @@ _tts_cache: dict[str, bytes] = {}
 
 
 @router.post("/api/tts")
-async def tts(body: TTSIn) -> Response:
+async def tts(body: TTSIn, v: Viewer = Depends(auth.viewer)) -> Response:
     if not config.ELEVENLABS_API_KEY:
         raise HTTPException(400, "Falta ELEVENLABS_API_KEY")
     key = f"{config.ELEVENLABS_VOICE_ID}:{body.text}"
@@ -68,8 +69,8 @@ Responde SOLO con JSON válido, sin texto extra:
 """
 
 
-def _context_for_assistant() -> str:
-    s = today_summary(limit=15)
+def _context_for_assistant(merchant_id: str) -> str:
+    s = today_summary(merchant_id, limit=15)
     lines = [
         f"Hora actual: {timeutil.spoken_time(timeutil.now_ts())}",
         f"Total verificado hoy: {money_words(s['todayTotal'])} en {s['todayCount']} pagos",
@@ -84,10 +85,10 @@ def _context_for_assistant() -> str:
     return "\n".join(lines)
 
 
-def fallback_assistant(text: str) -> dict:
+def fallback_assistant(text: str, merchant_id: str) -> dict:
     """Sin Claude: reglas simples para que el demo no se caiga."""
     t = text.lower()
-    s = today_summary(limit=10)
+    s = today_summary(merchant_id, limit=10)
     if any(w in t for w in ("cuánto", "cuanto", "total", "vendí", "vendi", "llevo")):
         return {"intent": "query", "amount": None, "concept": None,
                 "answer": f"Hoy llevas {money_words(s['todayTotal'])} en {s['todayCount']} pagos."}
@@ -106,9 +107,9 @@ def fallback_assistant(text: str) -> dict:
 
 
 @router.post("/api/assistant")
-async def assistant(body: AskIn) -> dict:
+async def assistant(body: AskIn, v: Viewer = Depends(auth.viewer)) -> dict:
     if not config.ANTHROPIC_API_KEY:
-        return {**fallback_assistant(body.text), "source": "reglas"}
+        return {**fallback_assistant(body.text, v.merchant_id), "source": "reglas"}
     try:
         async with httpx.AsyncClient(timeout=20) as client:
             r = await client.post(
@@ -119,7 +120,7 @@ async def assistant(body: AskIn) -> dict:
                     "model": config.CLAUDE_MODEL,
                     "max_tokens": 300,
                     "system": ASSISTANT_SYSTEM,
-                    "messages": [{"role": "user", "content": f"DATOS:\n{_context_for_assistant()}\n\nEL TENDERO DIJO: {body.text}"}],
+                    "messages": [{"role": "user", "content": f"DATOS:\n{_context_for_assistant(v.merchant_id)}\n\nEL TENDERO DIJO: {body.text}"}],
                 },
             )
         r.raise_for_status()
@@ -135,4 +136,4 @@ async def assistant(body: AskIn) -> dict:
         }
     except Exception as e:
         log.warning("Asistente con Claude falló, uso reglas: %s", e)
-        return {**fallback_assistant(body.text), "source": "reglas"}
+        return {**fallback_assistant(body.text, v.merchant_id), "source": "reglas"}

@@ -72,7 +72,7 @@ def push_to_dict(r: sqlite3.Row) -> dict:
     }
 
 
-def today_summary(limit: int = 50, days: int = 1) -> dict:
+def today_summary(merchant_id: str, limit: int = 50, days: int = 1) -> dict:
     """Pagos desde hace `days` días (1 = solo hoy). Los totales siempre son de hoy y sin simulaciones.
     'Hoy' empieza a medianoche en la zona del negocio (BUSINESS_TZ), no la del servidor."""
     today = timeutil.start_of_day()
@@ -80,20 +80,22 @@ def today_summary(limit: int = 50, days: int = 1) -> dict:
     since = timeutil.start_of_day(max(1, days) - 1)
     with connect() as conn:
         rows = conn.execute(
-            "SELECT * FROM payments WHERE paid_at >= ? ORDER BY paid_at DESC, rowid DESC LIMIT ?", (since, limit)
+            "SELECT * FROM payments WHERE merchant_id=? AND paid_at >= ? ORDER BY paid_at DESC, rowid DESC LIMIT ?",
+            (merchant_id, since, limit),
         ).fetchall()
         total, count = conn.execute(
-            "SELECT COALESCE(SUM(amount),0), COUNT(*) FROM payments WHERE paid_at >= ? AND simulated = 0",
-            (today,),
+            "SELECT COALESCE(SUM(amount),0), COUNT(*) FROM payments WHERE merchant_id=? AND paid_at >= ? AND simulated = 0",
+            (merchant_id, today),
         ).fetchone()
         yesterday = conn.execute(
-            "SELECT COALESCE(SUM(amount),0) FROM payments WHERE paid_at >= ? AND paid_at < ? AND simulated = 0",
-            (yesterday_start, today),
+            "SELECT COALESCE(SUM(amount),0) FROM payments WHERE merchant_id=? AND paid_at >= ? AND paid_at < ? AND simulated = 0",
+            (merchant_id, yesterday_start, today),
         ).fetchone()[0]
         # Cobros al celular sin pagar de las últimas 24 h (los vencidos siguen visibles para reenviar)
         pend = conn.execute(
-            "SELECT * FROM charges WHERE kind='push' AND status='pending' AND created_at >= ? ORDER BY created_at DESC",
-            (timeutil.now_ts() - 86400,),
+            "SELECT * FROM charges WHERE merchant_id=? AND kind='push' AND status='pending' AND created_at >= ?"
+            " ORDER BY created_at DESC",
+            (merchant_id, timeutil.now_ts() - 86400),
         ).fetchall()
     return {
         "payments": [payment_to_dict(r) for r in rows],
@@ -102,21 +104,34 @@ def today_summary(limit: int = 50, days: int = 1) -> dict:
     }
 
 
-def last_payment():
+def last_payment(merchant_id: str, store_id: str | None = None):
     with connect() as conn:
-        return conn.execute("SELECT * FROM payments ORDER BY paid_at DESC, rowid DESC LIMIT 1").fetchone()
+        return conn.execute(
+            "SELECT * FROM payments WHERE merchant_id=? AND (? IS NULL OR store_id=?) ORDER BY paid_at DESC, rowid DESC LIMIT 1",
+            (merchant_id, store_id, store_id),
+        ).fetchone()
+
+
+def merchant_for_payment(conn: sqlite3.Connection, bank_account_id: str | None):
+    """Negocio de un pago que no corresponde a ningún cobro nuestro: por su bankAccountId, o la demo si cayó
+    en la cuenta de la API key (la única que la usa)."""
+    if bank_account_id:
+        return conn.execute("SELECT * FROM merchants WHERE pey_bank_account_id=?", (bank_account_id,)).fetchone()
+    return conn.execute("SELECT * FROM merchants WHERE is_demo=1 AND pey_bank_account_id IS NULL LIMIT 1").fetchone()
 
 
 def _find_charge(conn: sqlite3.Connection, payload: dict, qr_id: str, amount: float):
     row = conn.execute("SELECT * FROM charges WHERE id = ?", (qr_id,)).fetchone()
     if not row and payload.get("type") == "codi.pn.payment_received":
         # Respaldo por si el transactionId del aviso no fuera el mismo que nos dio pey al crear la solicitud:
-        # el cobro al celular pendiente más reciente con ese monto.
-        row = conn.execute(
-            "SELECT * FROM charges WHERE kind='push' AND status='pending' AND ABS(amount - ?) < 0.001"
-            " AND created_at >= ? ORDER BY created_at DESC LIMIT 1",
-            (amount, timeutil.now_ts() - 86400),
-        ).fetchone()
+        # el cobro al celular pendiente más reciente con ese monto, del mismo negocio.
+        m = merchant_for_payment(conn, payload.get("bankAccountId"))
+        if m:
+            row = conn.execute(
+                "SELECT * FROM charges WHERE merchant_id=? AND kind='push' AND status='pending' AND ABS(amount - ?) < 0.001"
+                " AND created_at >= ? ORDER BY created_at DESC LIMIT 1",
+                (m["id"], amount, timeutil.now_ts() - 86400),
+            ).fetchone()
     return row
 
 
@@ -142,6 +157,13 @@ async def record_payment(payload: dict, *, source: str = "webhook") -> dict:
         row = _find_charge(conn, payload, qr_id, amount)
         if row:
             qr_id = row["id"]
+            merchant_id, store_id = row["merchant_id"], row["store_id"]
+        else:
+            m = merchant_for_payment(conn, payload.get("bankAccountId"))
+            merchant_id = m["id"] if m else None
+            st = conn.execute("SELECT id FROM stores WHERE merchant_id=? ORDER BY created_at LIMIT 1",
+                              (merchant_id,)).fetchone() if m else None
+            store_id = st["id"] if st else None
         kind = row["kind"] if row else "external"
         charge_has_amount = bool(row) and kind in ("amount", "push")
         expected = row["amount"] if charge_has_amount else None
@@ -158,9 +180,9 @@ async def record_payment(payload: dict, *, source: str = "webhook") -> dict:
         inserted = conn.execute(
             "INSERT OR IGNORE INTO payments (transaction_id, codi_qr_id, kind, amount, expected_amount, concept,"
             " paid_at, created_at, received_at, source, simulated, phone4, duplicate_sale, payer_bank, payer_clabe4,"
-            " tracking_key) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            " tracking_key, merchant_id, store_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             (tx_id, qr_id, kind, amount, expected, concept, paid_at, now, received_at, source, int(simulated),
-             phone4, int(dup_sale), payer_bank, payer_clabe4, tracking_key),
+             phone4, int(dup_sale), payer_bank, payer_clabe4, tracking_key, merchant_id, store_id),
         ).rowcount == 1
         if not inserted:
             if received_at:
@@ -199,7 +221,8 @@ async def record_payment(payload: dict, *, source: str = "webhook") -> dict:
         "datePaid": paid_at,
         "speech": speech_for_amount(amount, simulated),
     }
-    await bus.publish(event)
-    log.info("PAGO %s %s (%s%s): $%.2f qr=%s tx=%s", kind, "SIMULADO" if simulated else "VERIFICADO", source,
-             "" if announce else ", sin anunciar", amount, qr_id, tx_id)
+    event["merchantId"], event["storeId"] = merchant_id, store_id
+    await bus.publish(event, merchant_id, store_id)
+    log.info("PAGO %s %s (%s%s): $%.2f qr=%s tx=%s negocio=%s", kind, "SIMULADO" if simulated else "VERIFICADO", source,
+             "" if announce else ", sin anunciar", amount, qr_id, tx_id, merchant_id or "?")
     return event

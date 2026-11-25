@@ -1,35 +1,10 @@
-"""Estado del servidor y PIN de administración."""
+"""Estado del servidor (público: no dice nada de ningún negocio, salvo las credenciales de la demo)."""
 
-import asyncio
-import hmac
-
-from fastapi import APIRouter, HTTPException, Request
-from pydantic import BaseModel, Field
+from fastapi import APIRouter
 
 from app import config, db
 
 router = APIRouter()
-
-
-def require_admin(request: Request) -> None:
-    """Protege Ajustes y acciones de administración con ADMIN_PIN (header X-Admin-Pin)."""
-    if not config.ADMIN_PIN:
-        return
-    given = request.headers.get("x-admin-pin", "")
-    if not hmac.compare_digest(given.encode(), config.ADMIN_PIN.encode()):
-        raise HTTPException(401, "PIN incorrecto")
-
-
-class PinIn(BaseModel):
-    pin: str = Field(default="", max_length=64)
-
-
-@router.post("/api/admin/check")
-async def admin_check(body: PinIn) -> dict:
-    if config.ADMIN_PIN and not hmac.compare_digest(body.pin.encode(), config.ADMIN_PIN.encode()):
-        await asyncio.sleep(0.8)  # frena intentos por fuerza bruta
-        raise HTTPException(401, "PIN incorrecto")
-    return {"ok": True}
 
 
 @router.get("/api/status")
@@ -41,12 +16,12 @@ async def status() -> dict:
         "claude": bool(config.ANTHROPIC_API_KEY),
         "allowSimulation": config.ALLOW_SIMULATION,
         "persistentStorage": db.storage_is_persistent(),
-        "pinRequired": bool(config.ADMIN_PIN),
-        "fixedLocked": config.FIXED_LOCKED,
         "defaultExpiration": config.DEFAULT_EXPIRATION,
-        "businessName": config.BUSINESS_NAME,
-        "depositAccount": config.DEPOSIT_ACCOUNT_LABEL,
         "timezone": config.BUSINESS_TZ,
         "recoveryPollSeconds": config.RECOVERY_POLL_SECONDS,
         "webhookPath": "/webhooks/pey",
+        # La cuenta demo es pública a propósito: se muestra en /app en computadora para que cualquiera entre
+        "demo": {"phone": config.DEMO_PHONE, "pin": config.DEMO_PIN, "name": config.DEMO_FIRST_NAME,
+                 "pushPerSession": config.DEMO_PUSH_PER_SESSION, "pushMaxAmount": config.DEMO_PUSH_MAX_AMOUNT}
+        if config.DEMO_PHONE and config.DEMO_PIN else None,
     }

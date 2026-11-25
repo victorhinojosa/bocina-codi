@@ -23,7 +23,8 @@ class PeyError(HTTPException):
         super().__init__(status, {"code": code, "message": message})
 
 
-async def create_qr(amount: float, concept: str, expiration: int) -> tuple[str, str, str]:
+async def create_qr(amount: float, concept: str, expiration: int, bank_account_id: str | None = None) -> tuple[str, str, str]:
+    """`bank_account_id`: la CLABE del negocio registrada en pey. Sin él, el dinero cae en la cuenta de la API key."""
     if not config.PEY_API_KEY:
         raise HTTPException(400, "Falta PEY_API_KEY en el .env")
     if 0 < expiration < 360:
@@ -37,6 +38,8 @@ async def create_qr(amount: float, concept: str, expiration: int) -> tuple[str, 
         "generateImage": False,
         "metadata": {},
     }
+    if bank_account_id:
+        payload["bankAccountId"] = bank_account_id
     try:
         async with httpx.AsyncClient(timeout=20) as client:
             r = await client.post(f"{config.PEY_BASE_URL}/codi/qr", headers=_headers(), json=payload)
@@ -51,7 +54,8 @@ async def create_qr(amount: float, concept: str, expiration: int) -> tuple[str, 
     return data["id"], data["qrString"], num_ref
 
 
-async def push(amount: float, phone: str, concept: str, expiration: int, metadata: dict) -> dict:
+async def push(amount: float, phone: str, concept: str, expiration: int, metadata: dict,
+               bank_account_id: str | None = None) -> dict:
     """Solicitud de cobro CoDi al celular del cliente (POST /codi/pn)."""
     if not config.PEY_API_KEY:
         raise PeyError(400, "config", "Falta PEY_API_KEY en el servidor.")
@@ -59,6 +63,8 @@ async def push(amount: float, phone: str, concept: str, expiration: int, metadat
         "amount": amount, "phoneNumber": phone, "concept": concept,
         "expiration": max(360, expiration), "numRef": str(random.randint(1, 9_999_999)), "metadata": metadata,
     }
+    if bank_account_id:
+        payload["bankAccountId"] = bank_account_id
     try:
         async with httpx.AsyncClient(timeout=20) as client:
             r = await client.post(f"{config.PEY_BASE_URL}/codi/pn", headers=_headers(), json=payload)
@@ -87,7 +93,57 @@ async def push(amount: float, phone: str, concept: str, expiration: int, metadat
     return data
 
 
+# --- Cuentas bancarias de los negocios ---------------------------------------
+async def register_bank_account(alias: str, name: str, clabe: str) -> dict:
+    """POST /bank-account: registra la CLABE del negocio. Queda PENDING; pey la da de alta en Banxico
+    (hasta 5 días hábiles) y avisa con el webhook bank.account.updated cuando pasa a ACTIVE."""
+    if not config.PEY_API_KEY:
+        raise PeyError(503, "config", "Falta PEY_API_KEY en el servidor.")
+    payload = {"alias": alias[:255], "name": name[:255], "clabe": clabe, "entity": "PERSON"}
+    try:
+        async with httpx.AsyncClient(timeout=20) as client:
+            r = await client.post(f"{config.PEY_BASE_URL}/bank-account", headers=_headers(), json=payload)
+    except httpx.HTTPError as e:
+        log.warning("No se pudo contactar a pey (bank-account): %s", e)
+        raise PeyError(503, "unavailable", "No pudimos conectar con pey. Intenta de nuevo.") from e
+    if r.status_code >= 400:
+        log.warning("pey bank-account respondió %s: %s", r.status_code, r.text[:500])
+        if r.status_code >= 500 or r.status_code == 429:
+            raise PeyError(503, "unavailable", "pey no está respondiendo en este momento. Intenta de nuevo.")
+        try:
+            msg = (r.json().get("error") or {}).get("message") or ""
+        except ValueError:
+            msg = ""
+        if "clabe" in msg.lower() or "codi" in msg.lower() or "bank" in msg.lower():
+            raise PeyError(422, "bad_clabe", "pey no aceptó esa CLABE. Revisa que sea correcta y que tu banco tenga CoDi.")
+        raise PeyError(422, "rejected", "pey no pudo registrar tu cuenta. Revisa tus datos.")
+    data = r.json()
+    if not data.get("id"):
+        raise PeyError(502, "rejected", "pey respondió algo inesperado. Intenta de nuevo.")
+    return data
+
+
+async def get_bank_account(bank_account_id: str) -> dict:
+    """GET /bank-account/{id}: estado del alta en CoDi (PENDING | PROCESSING | ACTIVE | ERROR)."""
+    async with httpx.AsyncClient(timeout=15) as client:
+        r = await client.get(f"{config.PEY_BASE_URL}/bank-account/{bank_account_id}", headers=_headers())
+    r.raise_for_status()
+    return r.json()
+
+
 # --- Consultas para el respaldo del webhook ---------------------------------
+async def list_bank_account_transactions(client: httpx.AsyncClient, bank_account_id: str,
+                                         next_token: str | None = None) -> dict:
+    """GET /transaction/bank-account/{id}: pagos de una cuenta (QR y cobro al celular), 80 por página.
+    Item: {id, status, amount, payableType (API_CODI_QR|API_CODI_PN), payableId, datePaid, metadata, ...}."""
+    r = await client.get(
+        f"{config.PEY_BASE_URL}/transaction/bank-account/{bank_account_id}",
+        params={"nextToken": next_token} if next_token else None, headers=_headers(),
+    )
+    r.raise_for_status()
+    return r.json()
+
+
 async def list_qr_transactions(client: httpx.AsyncClient, qr_id: str, next_token: str | None = None) -> dict:
     """GET /transaction/codi/qr/{qrId}: pagos de un QR, 20 por página, el más reciente primero.
     Cada item: {id, status, amount, description, dateCreated, datePaid, metadata}. `id` = transactionId del webhook."""

@@ -273,6 +273,52 @@
   .small { font-size: 12px; line-height: 1.5; font-weight: 500; color: var(--ink-muted); margin: 8px 0 0; }
   .ghost { border: 1px solid var(--line); background: var(--surface); border-radius: var(--radius-full); padding: 9px 14px; font-size: 14px; font-weight: 600; }
 
+  /* ---------- entrar / crear cuenta / activación ---------- */
+  .screen.gate { z-index: 20; display: none; }
+  .screen.gate.on { display: flex; }
+  .authwrap { padding: 18px 24px 30px; display: flex; flex-direction: column; min-height: 100%; }
+  .authwrap .din { align-self: center; margin: 14px 0 22px; }
+  .authwrap h2 { margin: 0 0 4px; font-size: 24px; line-height: 30px; font-weight: 800; letter-spacing: -.5px; }
+  .authwrap .lead { color: var(--ink-muted); font-size: 14px; line-height: 1.45; margin: 0 0 18px; }
+  .lbl { display: block; font-size: 13px; font-weight: 600; margin: 12px 0 6px; }
+  .lbl small { color: var(--ink-muted); font-weight: 500; }
+  .input.pin { letter-spacing: .5em; text-align: center; font-size: 22px; font-weight: 700; }
+  .input.mono { font-variant-numeric: tabular-nums; letter-spacing: .04em; }
+  .row2 { display: flex; gap: 10px; } .row2 > div { flex: 1; min-width: 0; }
+  .fieldhint { font-size: 12px; font-weight: 600; margin-top: 6px; min-height: 16px; color: var(--ink-muted); }
+  .fieldhint.ok { color: var(--success); } .fieldhint.bad { color: var(--error); }
+  .formerr { color: var(--error); font-size: 14px; font-weight: 600; min-height: 20px; margin: 10px 0 4px; }
+  .btn.wide { width: 100%; flex: none; }
+  .linkish { border: 0; background: none; color: var(--brand); font-weight: 700; font-size: 14px; padding: 14px 8px; }
+  .steps-dots { display: flex; gap: 6px; margin-bottom: 14px; } .steps-dots i { height: 4px; flex: 1; border-radius: 2px; background: var(--line); }
+  .steps-dots i.on { background: var(--brand); }
+  .demo-cta { margin-top: auto; padding-top: 18px; }
+  .demo-cta .box { background: var(--brand-tint); color: var(--brand); border-radius: var(--radius-lg); padding: 12px 14px; font-size: 13px; line-height: 1.45; }
+  .demo-cta .box b { display: block; font-size: 14px; margin-bottom: 2px; }
+  .demo-cta button { margin-top: 10px; }
+  .act-card { margin: 4px var(--space-4) 0; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-xl); padding: 20px 18px; }
+  .act-card .biz { font-size: 20px; font-weight: 800; letter-spacing: -.3px; }
+  .act-card .acc { color: var(--ink-muted); font-size: 13px; margin-top: 2px; }
+  .timeline { margin: 18px 0 6px; display: flex; flex-direction: column; gap: 0; }
+  .tl { display: flex; gap: 12px; position: relative; padding-bottom: 18px; }
+  .tl:last-child { padding-bottom: 0; }
+  .tl::before { content: ""; position: absolute; left: 13px; top: 28px; bottom: 0; width: 2px; background: var(--line); }
+  .tl:last-child::before { display: none; }
+  .tl .b { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; flex-shrink: 0; background: var(--bg); color: var(--ink-muted); border: 2px solid var(--line); }
+  .tl.done .b { background: var(--success); border-color: var(--success); color: var(--on-brand); }
+  .tl.now .b { background: var(--pending-bg); border-color: var(--pending); color: var(--pending); }
+  .tl.err .b { background: var(--error-bg); border-color: var(--error); color: var(--error); }
+  .tl .b svg { width: 15px; height: 15px; stroke-width: 3; }
+  .tl .tx b { display: block; font-size: 15px; line-height: 20px; } .tl .tx span { font-size: 13px; color: var(--ink-muted); line-height: 1.4; }
+  .tl.now .tx span { color: var(--pending); font-weight: 600; } .tl.err .tx span { color: var(--error); font-weight: 600; }
+  .demo-badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: var(--radius-sm); background: var(--pending-bg); color: var(--pending); margin-left: 6px; vertical-align: 2px; }
+  .side .demo { margin-top: 14px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1); border-radius: var(--radius-lg); padding: 14px; }
+  .side .demo .k { font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--brand-tint); opacity: .85; }
+  .side .demo .creds { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 10px 0 12px; font-size: 14px; color: var(--brand-tint); }
+  .side .demo .creds b { color: var(--on-brand); font-size: 17px; letter-spacing: .06em; font-variant-numeric: tabular-nums; }
+  .side .demo button { border: 0; background: var(--on-brand); color: var(--brand); border-radius: var(--radius-full); padding: 10px 16px; font-weight: 700; font-size: 14px; }
+  .side .demo p { margin: 10px 0 0; font-size: 12px; line-height: 1.45; }
+
   .toast { position: absolute; top: 58px; left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--on-brand); padding: 11px 16px; border-radius: var(--radius-lg);
     font-size: 14px; font-weight: 600; z-index: 70; opacity: 0; transition: .2s; pointer-events: none; width: max-content; max-width: 86%; text-align: center; }
   .toast.show { opacity: 1; }
@@ -289,6 +335,12 @@
     <img id="openQr" alt="QR para abrir la app" />
     <span>Escanea para abrir esta app en tu celular.</span>
   </div>
+  <div class="demo" id="demoBox" hidden>
+    <div class="k">Prueba la demo</div>
+    <div class="creds"><span>Celular</span><b id="demoPhone"></b><span>PIN</span><b id="demoPin"></b></div>
+    <button id="demoLogin">Entrar como <span id="demoName">Ramón</span></button>
+    <p>Cuenta y pagos reales con CoDi. El cobro al celular está limitado a <span id="demoLimits">3 por sesión y $50</span>.</p>
+  </div>
   <p class="links"><a href="/">Ver la bocina 3D →</a> &nbsp;·&nbsp; <a href="/demo">Ver el demo completo →</a></p>
   <div class="powered"><img src="/static/pey-codi.svg" alt="pey × CoDi" /></div>
 </div>
@@ -297,6 +349,73 @@
   <div class="device" id="device">
     <div class="island"></div>
     <div class="statusbar"><span id="clock">9:41</span><span class="icons">▂▄▆ ᯤ ▮</span></div>
+
+    <!-- ================= ENTRAR / CREAR CUENTA ================= -->
+    <section class="screen gate white" id="auth">
+      <div class="scroll"><div class="authwrap">
+        <span class="din lg"><img src="/static/logo-din.svg" alt="" />Din</span>
+
+        <div id="loginView">
+          <h2>Entra a tu negocio</h2>
+          <p class="lead">Con tu celular y tu PIN de 6 dígitos.</p>
+          <label class="lbl" for="loginPhone">Celular</label>
+          <input class="input mono" id="loginPhone" type="tel" inputmode="numeric" autocomplete="tel-national" placeholder="55 1234 5678" maxlength="16" />
+          <label class="lbl" for="loginPin">PIN</label>
+          <input class="input pin" id="loginPin" type="password" inputmode="numeric" autocomplete="current-password" maxlength="6" placeholder="••••••" />
+          <div class="formerr" id="loginErr"></div>
+          <button class="btn primary wide" id="loginBtn">Entrar</button>
+          <button class="linkish" id="toSignup">¿Tienes un negocio? Crea tu cuenta</button>
+          <div class="demo-cta" id="demoCta" hidden>
+            <div class="box"><b>¿Solo quieres verla?</b>Entra a la cuenta demo: pagos reales con CoDi en una tiendita de verdad.</div>
+            <button class="btn ghostblue wide" id="demoCtaBtn">Probar la demo</button>
+          </div>
+        </div>
+
+        <div id="signupView" hidden>
+          <div class="steps-dots"><i class="on"></i><i id="dot2"></i></div>
+          <div id="su1">
+            <h2>Crea tu cuenta</h2>
+            <p class="lead">Recibe pagos CoDi directo en tu cuenta de banco, sin comisiones de terminal.</p>
+            <label class="lbl" for="suBiz">Nombre de tu negocio <small>· lo ven tus clientes al pagar</small></label>
+            <input class="input" id="suBiz" maxlength="60" autocomplete="organization" placeholder="Abarrotes Doña Mari" />
+            <div class="row2">
+              <div><label class="lbl" for="suFirst">Nombre(s)</label><input class="input" id="suFirst" maxlength="80" autocomplete="given-name" /></div>
+              <div><label class="lbl" for="suLast">Apellidos</label><input class="input" id="suLast" maxlength="80" autocomplete="family-name" /></div>
+            </div>
+            <div class="fieldhint">Como aparecen en tu cuenta de banco.</div>
+            <label class="lbl" for="suClabe">CLABE de tu cuenta <small>· 18 dígitos</small></label>
+            <input class="input mono" id="suClabe" inputmode="numeric" autocomplete="off" maxlength="22" placeholder="0121 8000 1234 5678 99" />
+            <div class="fieldhint" id="clabeHint">Ahí te llega el dinero de cada pago.</div>
+            <div class="formerr" id="su1Err"></div>
+            <button class="btn primary wide" id="su1Btn">Continuar</button>
+          </div>
+          <div id="su2" hidden>
+            <div class="step-head"><button class="iconbtn" id="su2Back" aria-label="Regresar"><svg class="i"><use href="#i-back"/></svg></button><h2 style="margin:0">Tu acceso</h2></div>
+            <p class="lead">Con esto entras a tu negocio desde cualquier celular.</p>
+            <label class="lbl" for="suPhone">Tu celular</label>
+            <input class="input mono" id="suPhone" type="tel" inputmode="numeric" autocomplete="tel-national" placeholder="55 1234 5678" maxlength="16" />
+            <label class="lbl" for="suPin">Crea un PIN de 6 dígitos</label>
+            <input class="input pin" id="suPin" type="password" inputmode="numeric" autocomplete="new-password" maxlength="6" placeholder="••••••" />
+            <label class="lbl" for="suPin2">Repite tu PIN</label>
+            <input class="input pin" id="suPin2" type="password" inputmode="numeric" autocomplete="new-password" maxlength="6" placeholder="••••••" />
+            <div class="formerr" id="su2Err"></div>
+            <button class="btn primary wide" id="su2Btn">Crear cuenta</button>
+            <p class="small" style="text-align:center">Registramos tu CLABE en CoDi con pey. Banxico tarda hasta 5 días hábiles en activarla.</p>
+          </div>
+          <button class="linkish" id="toLogin">Ya tengo cuenta</button>
+        </div>
+      </div></div>
+    </section>
+
+    <!-- ================= ACTIVANDO LA CUENTA EN CODI ================= -->
+    <section class="screen gate" id="activating">
+      <div class="topbar">
+        <span style="width:60px"></span>
+        <span class="din"><img src="/static/logo-din.svg" alt="" />Din</span>
+        <button class="ghost" id="actLogout" style="width:60px;padding:8px 0">Salir</button>
+      </div>
+      <div class="scroll" id="actBody"></div>
+    </section>
 
     <!-- ================= INICIO ================= -->
     <section class="screen" id="home">
@@ -383,7 +502,7 @@
       </div>
     </section>
 
-    <!-- ================= AJUSTES AVANZADOS (con PIN) ================= -->
+    <!-- ================= AJUSTES AVANZADOS ================= -->
     <section class="screen layer" id="advanced">
       <div class="topbar">
         <button class="iconbtn" data-close aria-label="Regresar"><svg class="i"><use href="#i-back"/></svg></button>
@@ -391,16 +510,6 @@
         <span style="width:40px"></span>
       </div>
       <div class="scroll">
-        <div class="adv" id="pinGate" style="display:none">
-          <div class="card" style="text-align:center;padding:26px 18px">
-            <div style="color:var(--brand)"><svg class="i" style="width:34px;height:34px"><use href="#i-lock"/></svg></div>
-            <div style="font-weight:700;font-size:17px;line-height:24px;margin:6px 0 4px">Ajustes protegidos</div>
-            <p class="small" style="margin:0 0 14px">Escribe el PIN del negocio para continuar.</p>
-            <input class="input" id="pinInput" type="password" inputmode="numeric" autocomplete="off" placeholder="PIN" style="text-align:center;letter-spacing:.3em" />
-            <button class="btn primary" id="pinBtn" style="margin-top:10px;width:100%">Entrar</button>
-            <p class="small" id="pinErr" style="color:var(--error)"></p>
-          </div>
-        </div>
         <div class="adv" id="advBody">
           <div class="card"><h4>Estado del servidor</h4><div id="checks" class="small" style="margin:0">Cargando…</div></div>
           <div class="card">
@@ -471,7 +580,7 @@
       <div class="grip"></div>
       <div class="prof-head">
         <div class="avatar" data-initials>MT</div>
-        <div><div class="n" data-biz></div><div class="v"><svg class="i"><use href="#i-verified"/></svg>Cuenta verificada</div></div>
+        <div><div class="n"><span data-biz></span><span class="demo-badge" id="demoBadge" hidden>Demo</span></div><div class="v"><svg class="i"><use href="#i-verified"/></svg><span id="ownerName">Cuenta verificada</span></div></div>
       </div>
       <div class="menu">
         <button class="it" id="openMyQr"><span class="ic"><svg class="i"><use href="#i-qr"/></svg></span><span class="mid">Mi QR<div class="s">Compártelo con tus clientes</div></span><svg class="i end"><use href="#i-chev"/></svg></button>
@@ -484,11 +593,23 @@
           <div class="it sub"><span class="mid">Voz en el celular</span>
             <select id="voiceMode"><option value="elevenlabs">Natural</option><option value="browser">Del teléfono</option></select></div>
           <button class="it sub" id="testVoice"><span class="mid" style="color:var(--brand)">Probar voz</span><svg class="i end" style="color:var(--brand)"><use href="#i-play"/></svg></button>
+          <button class="it sub" id="linkSpk"><span class="mid">Vincular una bocina<div class="s">Escribe el código que muestra la bocina del mostrador</div></span><svg class="i end"><use href="#i-chev"/></svg></button>
+          <a class="it sub" href="/" target="_blank" rel="noopener" style="text-decoration:none;color:inherit"><span class="mid">Abrir la bocina en este navegador<div class="s">Entra con tu misma sesión</div></span><svg class="i end"><use href="#i-chev"/></svg></a>
         </div></div>
       </div>
       <div class="menu">
         <button class="it" id="openAdv"><span class="ic"><svg class="i"><use href="#i-lock"/></svg></span><span class="mid">Ajustes avanzados</span><svg class="i end"><use href="#i-chev"/></svg></button>
       </div>
+      <button class="linkbtn" id="logoutBtn">Cerrar sesión</button>
+    </div>
+
+    <div class="sheet" id="linkSheet">
+      <div class="grip"></div>
+      <h3>Vincular una bocina</h3>
+      <p class="small" style="margin:0 0 12px">Abre la bocina (en una compu, tablet o celular viejo) y escribe aquí el código de 6 dígitos que aparece en pantalla.</p>
+      <input class="input pin" id="linkCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000" />
+      <div class="formerr" id="linkErr"></div>
+      <button class="btn primary wide" id="linkBtn" disabled>Vincular</button>
     </div>
 
     <div class="homebar"></div>
@@ -526,6 +647,7 @@
   const { $, money, esc, api, toast, prefs, setPref, Voice } = Bocina;
   const hhmm = (ts) => new Date(ts * 1000).toLocaleTimeString("es-MX", { hour: "numeric", minute: "2-digit" });
   const ICON = (id, extra = "") => `<svg class="i" ${extra}><use href="#i-${id}"/></svg>`;
+  let me = null, started = false;      // me = /api/me: persona, negocio y estado de su alta en CoDi
   let fixed = null, payments = [], pending = [], lastTop = null, connected = false;
   let pendOpen = null;                 // cobro al celular abierto en la hoja de detalle
   const expiredSeen = new Set();       // para avisar una sola vez cuando vence
@@ -533,7 +655,8 @@
   let amountStr = "", expTimer = null;
 
   // ---------- utilidades ----------
-  const bizName = () => fixed?.name || Bocina.status?.businessName || "Mi tienda";
+  const bizName = () => me?.merchant?.businessName || fixed?.name || "Mi negocio";
+  const depAcc = () => me?.merchant?.depositAccount || "";
   function initials(name) {
     const w = name.split(/\s+/).filter((x) => x.length > 2 || /^[A-ZÁÉÍÓÚÑ]/.test(x));
     return ((w[0]?.[0] || "M") + (w[1]?.[0] || w[0]?.[1] || "")).toUpperCase();
@@ -580,6 +703,9 @@
   function openSheet(id) { closeSheet(); $(id).classList.add("on"); $("sheetbg").classList.add("on"); openSheetId = id; }
   function closeSheet() { if (!openSheetId) return; $(openSheetId).classList.remove("on"); $("sheetbg").classList.remove("on"); openSheetId = null; }
   $("sheetbg").onclick = closeSheet;
+  // Enfocar un campo mientras su hoja sube hace que el navegador "desplace" el teléfono (overflow hidden) y
+  // descuadre todo; el teléfono nunca se desplaza, solo su contenido.
+  $("device").addEventListener("scroll", (e) => { e.target.scrollTop = 0; });
 
   // reloj y QR para abrir en el celular
   // En computadora el celular de muestra se dibuja a tamaño real (390×844) y se escala para caber:
@@ -604,9 +730,11 @@
     $("avatarBtn").textContent = ini;
     document.querySelectorAll("[data-initials]").forEach((e) => (e.textContent = ini));
     document.querySelectorAll("[data-biz]").forEach((e) => (e.textContent = n));
-    const acc = Bocina.status?.depositAccount;
-    $("depAcc").textContent = acc || "Tu cuenta pey · configurada";
+    const acc = depAcc();
+    $("depAcc").textContent = acc || "Tu cuenta pey";
     $("myQrId").textContent = acc || "Cobros CoDi con pey";
+    $("demoBadge").hidden = !me?.merchant?.isDemo;
+    if (me?.user) $("ownerName").textContent = `${me.user.firstName} ${me.user.lastName} · ···· ${me.user.phone4}`;
   }
 
   // ---------- movimientos ----------
@@ -780,7 +908,9 @@
     $("amountStep").style.display = "none"; $("phoneStep").style.display = "";
     $("pushSumAmt").textContent = money(ctx.amount);
     $("pushSumCpt").textContent = ctx.concept || "Sin concepto";
-    $("phone").value = phone; $("pushErr").innerHTML = "";
+    $("phone").value = phone;
+    const dp = me?.demoPush;
+    $("pushErr").innerHTML = dp ? `<div class="alert info">Cuenta demo: te quedan ${dp.session} cobros al celular en esta sesión (máximo ${money(dp.maxAmount)}). Llegan de verdad al celular que escribas.</div>` : "";
     $("phoneBack").style.display = ctx.saleId ? "none" : "";
     syncSendBtn();
     setTimeout(() => $("phone").focus(), 320);
@@ -809,6 +939,8 @@
     const qrBtn = `<button data-act="qr">Generar QR con este monto</button>`;
     const map = {
       bad_phone: [e.message, ""],
+      demo_limit: [e.message, qrBtn],
+      not_active: [e.message, ""],
       codi_disabled: [e.message + " Genera un QR para cobrarle.", qrBtn],
       unavailable: [e.message, `<button data-act="retry">Reintentar</button>${qrBtn}`],
       rejected: [e.message, `<button data-act="retry">Reintentar</button>${qrBtn}`],
@@ -833,6 +965,7 @@
     try {
       const x = await api("/api/push", { method: "POST", body: JSON.stringify({ amount: pushCtx.amount, concept: pushCtx.concept, phone, saleId: pushCtx.saleId }) });
       closeSheet(); closeLayer("charge"); resetAmount();
+      if (me?.demoPush) me.demoPush.session = Math.max(0, me.demoPush.session - 1);
       pending = [x, ...pending.filter((y) => y.saleId !== x.saleId)];
       renderList(); $("homeScroll").scrollTo({ top: 0, behavior: "smooth" });
       toast(`Cobro enviado a ···· ${x.phone4}`, 3500);
@@ -913,7 +1046,7 @@
         <hr/>
         <div class="row"><span>Tipo</span><span>${typeOf(p)}</span></div>
         ${(p.kind === "amount" || p.kind === "push") && p.concept ? `<div class="row"><span>Concepto</span><span>${esc(p.concept)}</span></div>` : ""}
-        <div class="row"><span>Depositado en</span><span>${esc(Bocina.status?.depositAccount || "Tu cuenta pey")}</span></div>
+        <div class="row"><span>Depositado en</span><span>${esc(depAcc() || "Tu cuenta pey")}</span></div>
         <div class="row"><span>Fecha</span><span>${date} · ${hhmm(when(p))}</span></div>
         ${p.trackingKey ? `<div class="row track"><span>Clave de rastreo</span><span class="mono">${esc(p.trackingKey)}</span></div>` : ""}
         ${p.duplicateSale ? `<div class="mismatch">Pago duplicado: esta venta ya se había pagado. Revisa con tu cliente si hay que devolverlo.</div>` : ""}
@@ -954,7 +1087,7 @@
     const qr = await loadImg(svgUrl(svgFix(fixed.qrSvg)));
     const q = 660; g.drawImage(qr, W / 2 - q / 2, fy + 185, q, q);
     g.fillStyle = tk("--ink-muted"); g.font = F(500, 36);
-    g.fillText(Bocina.status?.depositAccount || "Cobros CoDi con pey", W / 2, fy + fh - 95);
+    g.fillText(depAcc() || "Cobros CoDi con pey", W / 2, fy + fh - 95);
     g.fillStyle = tk("--ink"); g.font = F(600, 38);
     g.fillText("Escanea con la app de cualquier banco en CoDi", W / 2, 1318);
     const logo = await loadImg("/static/pey-codi.svg");
@@ -992,24 +1125,8 @@
   $("cajaSound").onchange = (e) => setPref("cajaSound", e.target.checked);
   $("testVoice").onclick = () => Voice.enqueue({ text: "Recibiste 100 pesos", chime: true });
 
-  // ---------- ajustes avanzados (PIN) ----------
-  let advOpen = false;
-  $("openAdv").onclick = () => { closeSheet(); gateAdv(); openLayer("advanced"); };
-  function gateAdv() {
-    const need = Bocina.status.pinRequired && !advOpen;
-    $("pinGate").style.display = need ? "" : "none";
-    $("advBody").style.display = need ? "none" : "";
-    if (need) setTimeout(() => $("pinInput").focus(), 350);
-  }
-  async function tryPin() {
-    const pin = $("pinInput").value.trim(); if (!pin) return;
-    $("pinErr").textContent = ""; $("pinBtn").disabled = true;
-    try { await api("/api/admin/check", { method: "POST", body: JSON.stringify({ pin }) }); Bocina.setPin(pin); advOpen = true; $("pinInput").value = ""; gateAdv(); }
-    catch { $("pinErr").textContent = "PIN incorrecto"; }
-    finally { $("pinBtn").disabled = false; }
-  }
-  $("pinBtn").onclick = tryPin;
-  $("pinInput").addEventListener("keydown", (e) => { if (e.key === "Enter") tryPin(); });
+  // ---------- ajustes avanzados (solo el dueño con sesión llega aquí) ----------
+  $("openAdv").onclick = () => { closeSheet(); openLayer("advanced"); };
   async function initSettings() {
     const st = await Bocina.loadStatus();
     const row = (n, ok, h) => `<div class="set-row"><span>${n}</span><span class="${ok ? "ok-t" : "bad-t"}">${ok ? "✓" : "✕ " + h}</span></div>`;
@@ -1024,11 +1141,7 @@
     $("voiceMode").value = prefs().voiceMode; $("cajaSound").checked = !!p.cajaSound;
     $("expiration").value = p.expiration ?? st.defaultExpiration ?? 0;
     $("bizName").value = bizName();
-    if (st.fixedLocked) { $("newFixed").style.display = "none"; $("bizName").disabled = true; $("fixedNote").textContent = "El QR fijo de tu cuenta está configurado en el servidor."; }
-    if (st.pinRequired && Bocina.getPin()) {
-      try { await api("/api/admin/check", { method: "POST", body: JSON.stringify({ pin: Bocina.getPin() }) }); advOpen = true; }
-      catch { Bocina.setPin(""); }
-    }
+    if (me?.merchant?.isDemo) { $("newFixed").style.display = "none"; $("bizName").disabled = true; $("fixedNote").textContent = "En la cuenta demo el QR fijo no se puede cambiar."; }
     renderIdentity(); syncSpeaker();
   }
   $("expiration").onchange = (e) => setPref("expiration", e.target.value === "" ? 0 : Number(e.target.value));
@@ -1050,7 +1163,7 @@
 
   // ---------- eventos en vivo ----------
   async function loadFixed() { try { fixed = (await api("/api/fixed-qr")).fixed; } catch {} renderIdentity(); }
-  Bocina.connect({
+  const connectLive = () => Bocina.connect({
     hello: () => { loadPayments(); loadFixed(); },
     connection: (on) => { connected = on; syncSpeaker(); },
     payment: (p) => {
@@ -1069,10 +1182,148 @@
     history: () => loadPayments(),   // pago viejo recuperado: entra a la lista sin anunciarse
     fixed: () => loadFixed(),
     pending: () => loadPayments(),
+    account: () => boot(),
   });
 
-  renderAmount(); renderList();
-  loadFixed().then(initSettings);
+  // ---------- cuenta: entrar, crear cuenta, activación, bocina y salir ----------
+  const show = (id, on) => $(id).classList.toggle("on", on);
+  const digits = (el) => el.value.replace(/\D/g, "");
+  const errOf = (e) => e.message || "Algo salió mal. Intenta de nuevo.";
+  const afterLogin = () => { if (EMBED) parent.postMessage("din:login", location.origin); location.reload(); };
+
+  function showAuth(view = "login") {
+    show("auth", true); show("activating", false);
+    $("loginView").hidden = view !== "login"; $("signupView").hidden = view !== "signup";
+    if (view === "signup") suStep(1);
+    renderDemo();
+  }
+  $("toSignup").onclick = () => showAuth("signup");
+  $("toLogin").onclick = () => showAuth("login");
+
+  async function login(phone, pin) {
+    $("loginErr").textContent = ""; $("loginBtn").disabled = true;
+    try { await api("/api/auth/login", { method: "POST", body: JSON.stringify({ phone, pin }), quiet: true }); afterLogin(); }
+    catch (e) { $("loginErr").textContent = errOf(e); $("loginPin").value = ""; $("loginPin").focus(); }
+    finally { $("loginBtn").disabled = false; }
+  }
+  $("loginBtn").onclick = () => login(digits($("loginPhone")), digits($("loginPin")));
+  $("loginPin").addEventListener("input", () => { if (digits($("loginPin")).length === 6 && digits($("loginPhone")).length >= 10) $("loginBtn").click(); });
+  $("loginPhone").addEventListener("keydown", (e) => { if (e.key === "Enter") $("loginPin").focus(); });
+
+  // Cuenta demo: credenciales públicas (en computadora al lado del teléfono; en el celular, un botón)
+  function renderDemo() {
+    const d = Bocina.status?.demo;
+    // En computadora las credenciales ya están al lado del teléfono; el botón dentro del teléfono es para el celular
+    const sideShown = getComputedStyle(document.querySelector(".side")).display !== "none";
+    $("demoBox").hidden = !d || !!me; $("demoCta").hidden = !d || sideShown;
+    if (!d) return;
+    $("demoPhone").textContent = d.phone.replace(/(\d{2})(\d{4})(\d{4})/, "$1 $2 $3");
+    $("demoPin").textContent = d.pin; $("demoName").textContent = d.name;
+    $("demoLimits").textContent = `${d.pushPerSession} por sesión y ${money(d.pushMaxAmount)}`;
+  }
+  const demoLogin = () => { const d = Bocina.status?.demo; if (!d) return; showAuth("login"); $("loginPhone").value = d.phone; $("loginPin").value = d.pin; login(d.phone, d.pin); };
+  $("demoLogin").onclick = demoLogin; $("demoCtaBtn").onclick = demoLogin;
+
+  // Crear cuenta: 1) negocio, nombre y CLABE  2) celular y PIN
+  function suStep(n) { $("su1").hidden = n !== 1; $("su2").hidden = n !== 2; $("dot2").classList.toggle("on", n === 2); }
+  function clabeCheck(c) {
+    const left = 18 - c.length;
+    if (left > 0) return { ok: false, msg: !c.length ? "Ahí te llega el dinero de cada pago." : left === 1 ? "Falta 1 dígito" : `Faltan ${left} dígitos` };
+    const w = [3, 7, 1]; let t = 0;
+    for (let i = 0; i < 17; i++) t += (Number(c[i]) * w[i % 3]) % 10;
+    if ((10 - (t % 10)) % 10 !== Number(c[17])) return { ok: false, bad: true, msg: "Esa CLABE no es válida. Revisa los 18 dígitos." };
+    return { ok: true, msg: `${BANKS[c.slice(0, 3)] || "CLABE válida"} ✓` };
+  }
+  const BANKS = { "002": "Banamex", "012": "BBVA", "014": "Santander", "021": "HSBC", "030": "BanBajío", "036": "Inbursa", "042": "Mifel", "044": "Scotiabank",
+    "058": "Banregio", "062": "Afirme", "072": "Banorte", "127": "Banco Azteca", "130": "Compartamos", "137": "BanCoppel", "166": "Banco del Bienestar",
+    "638": "Nu", "646": "STP", "722": "Mercado Pago" };
+  $("suClabe").addEventListener("input", (e) => {
+    const c = digits(e.target).slice(0, 18);
+    e.target.value = c.replace(/(\d{4})(?=\d)/g, "$1 ");
+    const r = clabeCheck(c);
+    $("clabeHint").textContent = r.msg; $("clabeHint").className = "fieldhint" + (r.ok ? " ok" : r.bad ? " bad" : "");
+  });
+  $("su1Btn").onclick = () => {
+    const biz = $("suBiz").value.trim(), first = $("suFirst").value.trim(), last = $("suLast").value.trim(), c = clabeCheck(digits($("suClabe")).slice(0, 18));
+    $("su1Err").textContent = biz.length < 2 ? "Escribe el nombre de tu negocio." : !first || !last ? "Escribe tu nombre y apellidos." : !c.ok ? (c.bad ? c.msg : "La CLABE debe tener 18 dígitos.") : "";
+    if (!$("su1Err").textContent) { suStep(2); setTimeout(() => $("suPhone").focus(), 50); }
+  };
+  $("su2Back").onclick = () => suStep(1);
+  $("su2Btn").onclick = async () => {
+    const pin = digits($("suPin")), phone = digits($("suPhone"));
+    $("su2Err").textContent = phone.length < 10 ? "El celular debe tener 10 dígitos." : pin.length !== 6 ? "El PIN debe tener 6 dígitos." : pin !== digits($("suPin2")) ? "Los PIN no coinciden." : "";
+    if ($("su2Err").textContent) return;
+    $("su2Btn").disabled = true; $("su2Btn").textContent = "Registrando tu CLABE en CoDi…";
+    try {
+      await api("/api/auth/signup", { method: "POST", quiet: true, body: JSON.stringify({ phone, pin, businessName: $("suBiz").value.trim(),
+        firstName: $("suFirst").value.trim(), lastName: $("suLast").value.trim(), clabe: digits($("suClabe")) }) });
+      afterLogin();
+    } catch (e) {
+      // errores de los datos del paso 1 regresan ahí
+      if (["bad_clabe", "clabe_taken", "bad_name", "bad_business", "rejected"].includes(e.code)) { suStep(1); $("su1Err").textContent = errOf(e); }
+      else $("su2Err").textContent = errOf(e);
+    } finally { $("su2Btn").disabled = false; $("su2Btn").textContent = "Crear cuenta"; }
+  };
+
+  // Mientras Banxico activa la CLABE: línea de tiempo y, si la rechazó, corregirla
+  let actTimer = null;
+  function showActivating() {
+    show("auth", false); show("activating", true);
+    const m = me.merchant, err = m.codiStatus === "ERROR";
+    const step = (cls, icon, title, sub) => `<div class="tl ${cls}"><span class="b">${icon ? ICON(icon) : ""}</span><span class="tx"><b>${title}</b><span>${sub}</span></span></div>`;
+    $("actBody").innerHTML = `
+      <div class="act-card">
+        <div class="biz">${esc(m.businessName)}</div>
+        <div class="acc">${esc(m.depositAccount || "")} · ${esc(m.legalName)}</div>
+        <div class="timeline">
+          ${step("done", "check", "Cuenta creada", "Ya puedes entrar con tu celular y PIN.")}
+          ${err ? step("err", "x", "Banxico no pudo activar tu CLABE", esc(m.codiError || "Revisa que la CLABE y el nombre del titular sean correctos."))
+                : step("now", "clock", "Activando tu CLABE en CoDi", m.codiStatus === "PROCESSING" ? "Banxico la está revisando." : "En fila para Banxico.")}
+          ${step("", "", "Listo para cobrar", "Tu QR aparecerá aquí en cuanto esté activa.")}
+        </div>
+        ${err ? `<div style="margin-top:14px">
+            <div class="row2"><div><label class="lbl" for="fxFirst">Nombre(s)</label><input class="input" id="fxFirst" value="${esc(me.user.firstName)}" /></div>
+            <div><label class="lbl" for="fxLast">Apellidos</label><input class="input" id="fxLast" value="${esc(me.user.lastName)}" /></div></div>
+            <label class="lbl" for="fxClabe">CLABE</label><input class="input mono" id="fxClabe" inputmode="numeric" maxlength="22" />
+            <div class="formerr" id="fxErr"></div><button class="btn primary wide" id="fxBtn">Volver a registrar</button></div>`
+              : `<p class="small">Banxico tarda hasta <b>5 días hábiles</b>. No tienes que hacer nada: esta pantalla cambia sola cuando quede lista.</p>`}
+      </div>`;
+    if (err) $("fxBtn").onclick = async () => {
+      $("fxErr").textContent = ""; $("fxBtn").disabled = true;
+      try { await api("/api/account/bank", { method: "POST", body: JSON.stringify({ firstName: $("fxFirst").value, lastName: $("fxLast").value, clabe: digits($("fxClabe")) }) }); boot(); }
+      catch (e) { $("fxErr").textContent = errOf(e); } finally { $("fxBtn").disabled = false; }
+    };
+    clearInterval(actTimer); actTimer = setInterval(boot, 30000);   // el servidor consulta a pey como mucho cada minuto
+  }
+  async function logout() { try { await api("/api/auth/logout", { method: "POST", quiet: true }); } finally { location.reload(); } }
+  $("actLogout").onclick = logout; $("logoutBtn").onclick = logout;
+
+  // Vincular una bocina con el código que muestra en pantalla
+  $("linkSpk").onclick = () => { $("linkCode").value = ""; $("linkErr").textContent = ""; $("linkBtn").disabled = true; openSheet("linkSheet"); setTimeout(() => $("linkCode").focus(), 320); };
+  $("linkCode").addEventListener("input", (e) => { e.target.value = digits(e.target).slice(0, 6); $("linkBtn").disabled = e.target.value.length !== 6; });
+  $("linkBtn").onclick = async () => {
+    $("linkErr").textContent = ""; $("linkBtn").disabled = true;
+    try { await api("/api/devices/claim", { method: "POST", body: JSON.stringify({ code: $("linkCode").value }) }); closeSheet(); toast("Bocina vinculada ✓ En unos segundos muestra tu QR"); }
+    catch (e) { $("linkErr").textContent = errOf(e); $("linkBtn").disabled = false; }
+  };
+
+  // Si la sesión vence en cualquier llamada, de vuelta a entrar
+  addEventListener("din:auth", () => { if (started) location.reload(); else showAuth("login"); });
+
+  async function boot() {
+    try { me = await api("/api/me", { quiet: true }); }
+    catch (e) { me = null; if (e.status === 401) showAuth("login"); else toast("Sin conexión con el servidor. Reintentando…"); return; }
+    // Navegador con una bocina vinculada pero sin sesión de persona: se entra normal (la bocina sigue vinculada)
+    if (me.device) { me = null; return showAuth("login"); }
+    renderDemo();
+    if (me.merchant.codiStatus !== "ACTIVE") return showActivating();
+    clearInterval(actTimer); show("auth", false); show("activating", false);
+    if (started) { loadFixed(); return; }
+    started = true;
+    renderAmount(); renderList(); connectLive();
+    loadFixed().then(initSettings);
+  }
+  Bocina.loadStatus().then(() => { renderDemo(); boot(); });
 })();
 </script>
 </body>

@@ -17,15 +17,13 @@
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-  const PIN_KEY = "bocina.pin";
-  const getPin = () => { try { return sessionStorage.getItem(PIN_KEY) || ""; } catch { return ""; } };
-  const setPin = (v) => { try { v ? sessionStorage.setItem(PIN_KEY, v) : sessionStorage.removeItem(PIN_KEY); } catch {} };
-
+  // La sesión vive en una cookie httpOnly (la página nunca ve el token). Si el servidor responde 401,
+  // la sesión venció o la bocina se desvinculó: la página escucha "din:auth" y muestra cómo entrar.
   async function api(url, opts = {}) {
     const headers = { "Content-Type": "application/json" };
-    const pin = getPin(); if (pin) headers["X-Admin-Pin"] = pin;
-    const r = await fetch(url, { ...opts, headers: { ...headers, ...(opts.headers || {}) } });
+    const r = await fetch(url, { credentials: "same-origin", ...opts, headers: { ...headers, ...(opts.headers || {}) } });
     const d = await r.json().catch(() => ({}));
+    if (r.status === 401 && !opts.quiet) window.dispatchEvent(new CustomEvent("din:auth"));
     if (!r.ok) {
       // El servidor manda {code, message} en errores de pey para que la página ofrezca la salida correcta
       const det = d.detail;
@@ -169,7 +167,7 @@
       es = new EventSource("/api/events");
       es.addEventListener("hello", () => { beat(); setLive(true, "En vivo"); handlers.hello?.(); });
       es.addEventListener("ping", () => { beat(); if (!isOn) setLive(true, "En vivo"); });
-      for (const type of ["payment", "history", "fixed", "pending"]) {   // history = pago recuperado o tardío, sin voz
+      for (const type of ["payment", "history", "fixed", "pending", "account"]) {   // history = pago recuperado o tardío, sin voz; account = cambió el alta en CoDi
         es.addEventListener(type, (ev) => { beat(); handlers[type]?.(JSON.parse(ev.data)); });
       }
       es.onerror = () => setLive(false, "Reconectando…");
@@ -222,7 +220,7 @@
 
   window.Bocina = {
     drawDinLogo,
-    $, money, hhmm, esc, sleep, api, toast, prefs, setPref, getPin, setPin,
+    $, money, hhmm, esc, sleep, api, toast, prefs, setPref,
     loadStatus, get status() { return status; },
     unlockAudio, chime, Voice, connect, dictate, askAssistant, volume, setVolume,
     get soundUnlocked() { return unlocked; },

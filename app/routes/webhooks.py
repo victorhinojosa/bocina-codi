@@ -7,7 +7,7 @@ from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 from standardwebhooks.webhooks import Webhook
 
-from app import config, timeutil
+from app import config, merchants, timeutil
 from app.db import connect
 from app.payments import record_payment
 
@@ -52,6 +52,10 @@ async def pey_webhook(request: Request) -> JSONResponse:
         if not payload.get("transactionId"):
             payload["transactionId"] = f"wh-{webhook_id}"
         await record_payment(payload, source="webhook")
+    elif event_type == "bank.account.updated" and payload.get("bankAccountId"):
+        # La CLABE de un negocio quedó activa en CoDi: se crea su QR fijo y su App deja la pantalla de espera
+        if not await merchants.set_codi_status(payload["bankAccountId"], payload.get("codiStatus") or "ACTIVE"):
+            log.warning("bank.account.updated de una cuenta que no conocemos: %s", payload["bankAccountId"])
     else:
         log.info("Webhook %s recibido (sin manejador): %s", event_type, raw[:300])
 

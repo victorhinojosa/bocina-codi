@@ -40,6 +40,12 @@ CoDi existe desde 2019: transferencias inmediatas, sin terminal y sin comisión 
 
 **La confirmación nunca viene del cliente.** Un pago solo se anuncia cuando pey lo confirma: por el aviso con firma verificada ([Standard Webhooks](https://www.standardwebhooks.com/)) o, si ese aviso se pierde, consultando directamente la API de pey. Una captura de pantalla no hace sonar la bocina.
 
+**Cuentas.** Cada negocio se registra desde la App con el nombre del negocio, el nombre del titular, su CLABE, su celular y un PIN de 6 dígitos. El servidor registra la CLABE en pey (`POST /bank-account`) y Banxico la activa en CoDi en hasta 5 días hábiles; mientras tanto la App muestra el avance y no permite cobrar. Cuando pey avisa con el webhook `bank.account.updated`, se crea el QR fijo del negocio con su `bankAccountId`, así el dinero de cada pago cae directo en su cuenta. Se entra con celular y PIN (5 intentos fallidos bloquean 15 minutos); la sesión dura 90 días en una cookie segura. Cada negocio solo ve y escucha sus propios pagos.
+
+**Bocina vinculada.** La bocina del mostrador no tiene usuario: muestra un código de 6 dígitos y el dueño lo escribe en su App (Perfil → Bocina → Vincular una bocina). Desde ahí solo anuncia los pagos de esa tienda.
+
+**Cuenta demo.** Con `DEMO_PHONE` y `DEMO_PIN`, en computadora `/app` muestra las credenciales de Ramón al lado del teléfono. Todo es real: la cuenta, el QR y los pagos. El cobro al celular está limitado (3 por sesión, 30 al día, máximo $50) y no se puede cambiar el QR fijo.
+
 **Respaldo del webhook.** Mientras haya una pantalla conectada, el servidor consulta a pey cada 45 s (y en cuanto una pantalla se reconecta) los pagos del QR fijo, de los QR con monto y de los cobros al celular pendientes. El `transactionId` es la clave: un pago nunca se guarda ni se anuncia dos veces, llegue primero por el webhook o por el respaldo. Solo se anuncian en voz los pagos de los últimos 2 minutos; los más viejos entran al historial marcados como *Recuperado*. Cada pago guarda `paid_at` (cuándo pagó, según pey), `received_at` (cuándo llegó el webhook) y `created_at` (cuándo lo registró la app).
 
 ## Cómo funciona
@@ -78,7 +84,10 @@ Cliente escanea el QR (o acepta el cobro en su celular) ──► paga desde su 
 - Comprobante de "Pago recibido" con el monto en letra, el banco de origen y la clave de rastreo.
 - Búsqueda de pagos y asistente por texto o voz en la misma barra: "¿Cuánto vendí hoy?", "Cóbrale 90 de dos tortas".
 - Perfil con Mi QR para compartir como imagen, cuenta de depósito y ajustes de sonido.
-- Ajustes avanzados protegidos con PIN, con el estado del servidor (incluye si el historial está en almacenamiento persistente).
+- Registro con CLABE (validada al escribirla, con el nombre del banco) y entrada con celular y PIN.
+- Pantalla de activación mientras Banxico da de alta la CLABE en CoDi; cambia sola al quedar lista.
+- Vincular la bocina del mostrador con un código de 6 dígitos.
+- Ajustes avanzados con el estado del servidor (incluye si el historial está en almacenamiento persistente).
 - Instalable como app (PWA).
 
 **Demo (`/demo`)**
@@ -167,11 +176,14 @@ ngrok http 8000        # o: cloudflared tunnel --url http://localhost:8000
 |---|---|---|
 | `PEY_API_KEY` | Sí | API key de pey |
 | `PEY_WEBHOOK_SECRET` | Sí | Secreto del webhook (`whsec_...`) |
-| `BUSINESS_NAME` | No | Nombre que ve el cliente al pagar |
-| `DEPOSIT_ACCOUNT_LABEL` | No | Cómo se muestra en el perfil la cuenta donde cae el dinero, ej. `BBVA ···· 2702` |
+| `DEMO_PHONE` / `DEMO_PIN` | Recomendada | Cuenta demo pública (Ramón); sus credenciales se muestran en `/app` en computadora |
+| `DEMO_PUSH_PER_SESSION` / `DEMO_PUSH_PER_DAY` / `DEMO_PUSH_MAX_AMOUNT` | No | Límites del cobro al celular en la demo (3, 30 y $50) |
+| `BUSINESS_NAME` | No | Nombre del negocio demo |
+| `DEPOSIT_ACCOUNT_LABEL` | No | Cómo se muestra la cuenta de depósito de la demo, ej. `BBVA ···· 2702` |
+| `SESSION_DAYS` | No | Días que dura la sesión (por defecto 90) |
+| `ADMIN_TOKEN` | No | Activa `/api/admin/merchants` (ver negocios) y `/api/admin/merchants/link` (ligar una CLABE ya registrada en pey). Vacío = apagado |
 | `PUSH_EXPIRATION` | No | Segundos que dura una solicitud de cobro al celular (mínimo 360; por defecto 900) |
-| `FIXED_QR_ID` / `FIXED_QR_STRING` | No | Amarra el QR fijo a la cuenta; sobrevive reinicios y deploys |
-| `ADMIN_PIN` | Recomendada | PIN para entrar a Ajustes avanzados |
+| `FIXED_QR_ID` / `FIXED_QR_STRING` | No | Amarra el QR fijo de la demo; sobrevive reinicios y deploys |
 | `ELEVENLABS_API_KEY` / `ELEVENLABS_VOICE_ID` | No | Voz natural; sin llave se usa la voz del navegador |
 | `ANTHROPIC_API_KEY` | No | Asistente con lenguaje natural; sin llave usa reglas |
 | `DEFAULT_EXPIRATION` | No | Expiración de los QR con monto en segundos (0 = no expira; mínimo 360) |
@@ -198,7 +210,12 @@ El servidor necesita un proceso siempre activo (para los eventos en vivo) y un d
 | `POST` | `/webhooks/pey` | Recibe pagos de pey (firma verificada e idempotencia) |
 | `GET` | `/api/events` | Eventos en vivo (SSE) |
 | `GET` | `/api/fixed-qr` | QR fijo activo |
-| `POST` | `/api/fixed-qr` | Crea un QR fijo nuevo (requiere PIN) |
+| `POST` | `/api/auth/signup` | Crea la cuenta y registra la CLABE en pey |
+| `POST` | `/api/auth/login` · `/api/auth/logout` | Entrar con celular y PIN · salir |
+| `GET` | `/api/me` | Persona, negocio y estado de su alta en CoDi |
+| `POST` | `/api/account/bank` | Corregir la CLABE si Banxico la rechazó |
+| `POST` | `/api/devices/pair` · `/api/devices/claim` | La bocina pide un código · el dueño lo vincula |
+| `POST` | `/api/fixed-qr` | Crea un QR fijo nuevo (dueño; bloqueado en la demo) |
 | `POST` | `/api/charges` | Crea un QR con monto |
 | `POST` | `/api/push` | Envía un cobro CoDi al celular del cliente |
 | `POST` | `/api/push/{id}/dismiss` | Quita de la lista un cobro al celular pendiente |

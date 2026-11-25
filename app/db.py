@@ -5,7 +5,7 @@ import os
 import sqlite3
 from pathlib import Path
 
-from app import config, timeutil
+from app import config
 
 log = logging.getLogger("bocina")
 
@@ -45,6 +45,71 @@ CREATE TABLE IF NOT EXISTS webhook_events (
     type TEXT,
     payload TEXT NOT NULL
 );
+
+-- Cuentas: un negocio (merchant) tiene una CLABE registrada en pey, una o más tiendas y sus personas.
+CREATE TABLE IF NOT EXISTS users (
+    id TEXT PRIMARY KEY,
+    phone TEXT NOT NULL UNIQUE,       -- 10 dígitos; es el usuario para entrar
+    first_name TEXT NOT NULL,
+    last_name TEXT NOT NULL,
+    pin_hash TEXT NOT NULL,           -- scrypt; nunca el PIN
+    created_at INTEGER NOT NULL
+);
+CREATE TABLE IF NOT EXISTS merchants (
+    id TEXT PRIMARY KEY,
+    business_name TEXT NOT NULL,      -- lo que ve el cliente al pagar
+    legal_name TEXT NOT NULL,         -- titular de la CLABE (se manda a pey como `name`)
+    clabe TEXT,
+    bank_name TEXT,
+    deposit_label TEXT,               -- 'BBVA ···· 2702'
+    pey_bank_account_id TEXT UNIQUE,  -- NULL = cuenta CoDi de la API key (solo el negocio demo)
+    codi_status TEXT NOT NULL,        -- PENDING | PROCESSING | ACTIVE | ERROR
+    codi_error TEXT,
+    codi_checked_at INTEGER,
+    is_demo INTEGER NOT NULL DEFAULT 0,
+    created_at INTEGER NOT NULL
+);
+CREATE TABLE IF NOT EXISTS stores (
+    id TEXT PRIMARY KEY,
+    merchant_id TEXT NOT NULL REFERENCES merchants(id),
+    name TEXT NOT NULL,
+    created_at INTEGER NOT NULL
+);
+CREATE TABLE IF NOT EXISTS memberships (
+    user_id TEXT NOT NULL REFERENCES users(id),
+    merchant_id TEXT NOT NULL REFERENCES merchants(id),
+    role TEXT NOT NULL,               -- owner (seller vendrá después)
+    PRIMARY KEY (user_id, merchant_id)
+);
+CREATE TABLE IF NOT EXISTS sessions (
+    token_hash TEXT PRIMARY KEY,      -- sha256 del token de la cookie
+    user_id TEXT NOT NULL REFERENCES users(id),
+    created_at INTEGER NOT NULL,
+    expires_at INTEGER NOT NULL
+);
+CREATE TABLE IF NOT EXISTS devices (
+    token_hash TEXT PRIMARY KEY,      -- bocina vinculada a una tienda (sin usuario)
+    store_id TEXT NOT NULL REFERENCES stores(id),
+    created_at INTEGER NOT NULL,
+    last_seen INTEGER
+);
+CREATE TABLE IF NOT EXISTS pair_codes (
+    code TEXT PRIMARY KEY,            -- 6 dígitos que muestra la bocina
+    poll_hash TEXT NOT NULL UNIQUE,   -- secreto de la bocina para preguntar si ya la vincularon
+    store_id TEXT,
+    device_token TEXT,                -- se entrega una sola vez a la bocina y se borra
+    expires_at INTEGER NOT NULL
+);
+CREATE TABLE IF NOT EXISTS login_attempts (
+    key TEXT NOT NULL,                -- 'phone:5512345678' o 'ip:1.2.3.4' o 'signup:1.2.3.4'
+    at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS login_attempts_key ON login_attempts(key, at);
+CREATE TABLE IF NOT EXISTS push_sends (
+    merchant_id TEXT NOT NULL,
+    session_hash TEXT,
+    at INTEGER NOT NULL
+);
 """
 
 
@@ -61,6 +126,7 @@ def _add_columns(conn: sqlite3.Connection, table: str, columns: dict[str, str]) 
 def init_db() -> None:
     Path(config.DB_PATH).parent.mkdir(parents=True, exist_ok=True)  # p. ej. el volumen /data en Railway
     with connect() as conn:
+        conn.execute("PRAGMA journal_mode=WAL")  # lecturas (pantallas) no esperan a escrituras (webhooks)
         conn.executescript(SCHEMA)
         # Migraciones (agrega columnas si faltan)
         _add_columns(conn, "charges", {
@@ -68,6 +134,8 @@ def init_db() -> None:
             "qr_string": "TEXT",
             "phone": "TEXT",      # cobro al celular: número del cliente
             "sale_id": "TEXT",    # venta a la que pertenece (para detectar pagos dobles)
+            "merchant_id": "TEXT",
+            "store_id": "TEXT",
         })
         added = _add_columns(conn, "payments", {
             "phone4": "TEXT",
@@ -80,6 +148,8 @@ def init_db() -> None:
             "created_at": "INTEGER",    # cuándo lo registró la app
             "received_at": "INTEGER",   # cuándo llegó el webhook (NULL si solo lo trajo el respaldo)
             "source": "TEXT NOT NULL DEFAULT 'webhook'",  # webhook | recovery | simulation
+            "merchant_id": "TEXT",
+            "store_id": "TEXT",
         })
         if "created_at" in added:
             conn.execute("UPDATE payments SET created_at = paid_at WHERE created_at IS NULL")
@@ -105,25 +175,6 @@ def init_db() -> None:
         )
 
 
-def seed_fixed_qr() -> None:
-    """Si el QR fijo viene en las variables de entorno, lo deja como el QR activo."""
-    if not config.FIXED_LOCKED:
-        return
-    with connect() as conn:
-        row = conn.execute("SELECT status FROM charges WHERE id = ?", (config.FIXED_QR_ID,)).fetchone()
-        conn.execute("UPDATE charges SET status='retired' WHERE kind='fixed' AND status='active' AND id != ?",
-                     (config.FIXED_QR_ID,))
-        if row:
-            conn.execute("UPDATE charges SET status='active', kind='fixed', qr_string=?, concept=? WHERE id=?",
-                         (config.FIXED_QR_STRING, config.BUSINESS_NAME, config.FIXED_QR_ID))
-        else:
-            conn.execute(
-                "INSERT INTO charges (id, amount, concept, num_ref, status, created_at, expiration, kind, qr_string)"
-                " VALUES (?, 0, ?, '0', 'active', ?, 0, 'fixed', ?)",
-                (config.FIXED_QR_ID, config.BUSINESS_NAME, timeutil.now_ts(), config.FIXED_QR_STRING),
-            )
-
-
 def storage_is_persistent() -> bool:
     """¿El historial sobrevive a un nuevo despliegue? En Railway solo si la base vive en un volumen montado."""
     if not os.getenv("RAILWAY_ENVIRONMENT") and not os.getenv("RAILWAY_ENVIRONMENT_NAME"):
@@ -132,8 +183,10 @@ def storage_is_persistent() -> bool:
     return bool(mount) and str(Path(config.DB_PATH).resolve()).startswith(str(Path(mount).resolve()))
 
 
-def fixed_row():
+def fixed_row(store_id: str | None):
+    """QR fijo activo de una tienda."""
     with connect() as conn:
         return conn.execute(
-            "SELECT * FROM charges WHERE kind='fixed' AND status='active' ORDER BY created_at DESC LIMIT 1"
+            "SELECT * FROM charges WHERE kind='fixed' AND status='active' AND store_id IS ? ORDER BY created_at DESC LIMIT 1",
+            (store_id,),
         ).fetchone()

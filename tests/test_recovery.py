@@ -3,7 +3,7 @@
 import asyncio
 
 import pytest
-from conftest import NOW, add_charge, count, payment, qr_payment, run, sign_and_post
+from conftest import NOW, add_charge, add_merchant, count, demo_ids, payment, qr_payment, run, sign_and_post
 
 from app import config, pey
 from app.db import connect
@@ -167,9 +167,13 @@ def test_reconnecting_screen_triggers_recovery(client, monkeypatch):
         async def is_disconnected(self):
             return True
 
-    resp = run(history.events(FakeRequest()))
+    from app.auth import Viewer
+    with connect() as conn:
+        m = conn.execute("SELECT * FROM merchants WHERE is_demo=1").fetchone()
+        st = conn.execute("SELECT * FROM stores WHERE merchant_id=?", (m["id"],)).fetchone()
+    resp = run(history.events(FakeRequest(), Viewer(merchant=m, store=st)))
     assert kicks == [1]
-    bus.queues.clear()  # el generador nunca corrió; quitamos la suscripción
+    bus.subs.clear()  # el generador nunca corrió; quitamos la suscripción
     assert resp.media_type == "text/event-stream"
 
 
@@ -182,9 +186,9 @@ def test_loop_polls_on_kick_only_while_a_screen_is_connected(client, fake_pey, m
         polls = []
         real_poll = rec.poll_once
 
-        async def counted():
-            polls.append(1)
-            return await real_poll()
+        async def counted(merchant_ids=None):
+            polls.append(merchant_ids)
+            return await real_poll(merchant_ids)
         rec.poll_once = counted
         task = asyncio.create_task(rec.run())
         try:
@@ -192,10 +196,10 @@ def test_loop_polls_on_kick_only_while_a_screen_is_connected(client, fake_pey, m
             await asyncio.sleep(0.05)
             assert polls == []  # nadie conectado: no se gasta una consulta a pey
 
-            q = bus.subscribe()
+            q = bus.subscribe(demo_ids()[0])
             rec.kick()
             await asyncio.sleep(0.05)
-            assert polls == [1]
+            assert polls == [{demo_ids()[0]}]
             bus.unsubscribe(q)
         finally:
             task.cancel()
@@ -208,3 +212,38 @@ def test_recovery_is_off_without_api_key(client, fake_pey, monkeypatch):
     monkeypatch.setattr(config, "PEY_API_KEY", "")
     assert run(recovery.poll_once()) == 0
     assert fake_pey["calls"] == []
+
+
+def test_merchant_with_own_clabe_is_recovered_from_its_bank_account(client, fake_pey, monkeypatch):
+    """Un negocio con CLABE propia se revisa con una sola consulta: GET /transaction/bank-account/{id}."""
+    mid, sid = add_merchant(phone="5511112222", bank_account_id="BA_LUPITA")
+    add_charge("QRLUPITA", kind="fixed", merchant=(mid, sid))
+    calls = []
+
+    async def list_account(client, bank_account_id, token=None):
+        calls.append(bank_account_id)
+        return {"items": [
+            {**pey_item("TXQ", 30, NOW - 10), "payableType": "API_CODI_QR", "payableId": "QRLUPITA"},
+            {**pey_item("TXP", 45, NOW - 20), "payableType": "API_CODI_PN", "payableId": "PN1"},
+        ], "nextToken": None}
+
+    monkeypatch.setattr(pey, "list_bank_account_transactions", list_account)
+    assert run(recovery.poll_once({mid})) == 2
+    assert calls == ["BA_LUPITA"]
+    assert payment("TXQ")["merchant_id"] == mid and payment("TXQ")["kind"] == "fixed"
+    assert payment("TXP")["merchant_id"] == mid
+    assert fake_pey["calls"] == []  # la demo no se consultó: no estaba en la lista
+
+
+def test_only_merchants_with_open_screens_are_polled(client, fake_pey, monkeypatch):
+    add_charge("QRFIJO", kind="fixed")
+    mid, _ = add_merchant(phone="5511112222")
+    seen = []
+
+    async def list_account(client, bank_account_id, token=None):
+        seen.append(bank_account_id)
+        return {"items": [], "nextToken": None}
+
+    monkeypatch.setattr(pey, "list_bank_account_transactions", list_account)
+    run(recovery.poll_once({mid}))
+    assert seen == ["BA_LUPITA"] and fake_pey["calls"] == []

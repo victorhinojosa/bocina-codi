@@ -62,7 +62,7 @@
   <main>
     <section class="panel counter">
       <div class="label"><b>1</b>En el mostrador</div>
-      <div class="frame"><iframe src="/?embed=1" title="Bocina en el mostrador" allow="autoplay"></iframe></div>
+      <div class="frame"><iframe id="spkFrame" src="/?embed=1" title="Bocina en el mostrador" allow="autoplay"></iframe></div>
     </section>
     <div class="flow" aria-hidden="true">
       <svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
@@ -78,12 +78,19 @@
   const fit = () => { const w = document.getElementById("screen").clientWidth; document.getElementById("appFrame").style.transform = `scale(${w / 390})`; };
   addEventListener("resize", fit); fit(); new ResizeObserver(fit).observe(document.getElementById("screen"));
 
-  // Botón de simulación solo si el servidor la permite y no pide PIN (útil para probar sin CoDi)
+  // Cuando alguien entra en la App de la derecha, la bocina de la izquierda (misma sesión) carga su QR
+  addEventListener("message", (e) => {
+    if (e.origin === location.origin && e.data === "din:login") document.getElementById("spkFrame").src = "/?embed=1";
+  });
+
+  // Botón de simulación solo si el servidor la permite y hay sesión (útil para probar sin CoDi)
   (async () => {
     try {
       const st = await (await fetch("/api/status")).json();
-      if (!st.allowSimulation || st.pinRequired) return;
-      const fx = (await (await fetch("/api/fixed-qr")).json()).fixed;
+      if (!st.allowSimulation) return;
+      const r = await fetch("/api/fixed-qr");
+      if (!r.ok) return;
+      const fx = (await r.json()).fixed;
       if (!fx) return;
       const b = document.getElementById("sim");
       b.hidden = false;

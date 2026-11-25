@@ -14,6 +14,7 @@ Módulos:
   config     variables de entorno            db         tablas y migraciones
   timeutil   horas en la zona del negocio    speech     montos y frases habladas
   pey        cliente de la API de pey        payments   registrar, anunciar e historial
+  auth       celular + PIN, sesiones, bocinas merchants  alta en pey, activación y demo
   recovery   respaldo del webhook            events     SSE a las pantallas
   routes/    endpoints HTTP
 """
@@ -26,9 +27,9 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 
-from app import config, db
+from app import config, db, merchants
 from app.recovery import recovery
-from app.routes import charges, history, pages, system, voice, webhooks
+from app.routes import account, admin, charges, history, pages, system, voice, webhooks
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger("bocina")
@@ -37,7 +38,7 @@ log = logging.getLogger("bocina")
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     db.init_db()
-    db.seed_fixed_qr()
+    merchants.seed_demo()
     if not db.storage_is_persistent():
         log.warning(
             "⚠ La base de datos (%s) NO está en un volumen: el historial de pagos se borrará en cada despliegue. "
@@ -68,6 +69,6 @@ async def revalidate_static(request: Request, call_next):
     return response
 
 
-for module in (system, charges, history, webhooks, voice, pages):
+for module in (system, account, admin, charges, history, webhooks, voice, pages):
     app.include_router(module.router)
 app.mount("/static", StaticFiles(directory=config.STATIC_DIR), name="static")

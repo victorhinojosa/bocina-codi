@@ -1,12 +1,13 @@
-"""Historial de pagos y eventos en vivo (SSE)."""
+"""Historial de pagos y eventos en vivo (SSE), siempre del negocio de quien está viendo."""
 
 import asyncio
 import json
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Depends, Request
 from fastapi.responses import StreamingResponse
 
-from app import payments, timeutil
+from app import auth, payments, timeutil
+from app.auth import Viewer
 from app.events import bus
 from app.recovery import recovery
 from app.speech import money_words
@@ -15,9 +16,9 @@ router = APIRouter()
 
 
 @router.get("/api/last-payment")
-async def last_payment() -> dict:
-    """Botón 'Último pago' del dispositivo."""
-    r = payments.last_payment()
+async def last_payment(v: Viewer = Depends(auth.viewer)) -> dict:
+    """Botón 'Último pago' del dispositivo (una bocina vinculada solo ve los de su tienda)."""
+    r = payments.last_payment(v.merchant_id, v.store_id if v.is_device else None)
     if not r:
         return {"payment": None, "speech": "Todavía no hay pagos."}
     p = payments.payment_to_dict(r)
@@ -26,13 +27,13 @@ async def last_payment() -> dict:
 
 
 @router.get("/api/payments")
-async def list_payments(limit: int = 50, days: int = 1) -> dict:
-    return payments.today_summary(min(limit, 500), min(days, 90))
+async def list_payments(limit: int = 50, days: int = 1, v: Viewer = Depends(auth.owner)) -> dict:
+    return payments.today_summary(v.merchant_id, min(limit, 500), min(days, 90))
 
 
 @router.get("/api/events")
-async def events(request: Request) -> StreamingResponse:
-    q = bus.subscribe()
+async def events(request: Request, v: Viewer = Depends(auth.viewer)) -> StreamingResponse:
+    q = bus.subscribe(v.merchant_id, v.store_id if v.is_device else None)
     recovery.kick()  # pantalla nueva o reconectada: buscar pagos que se hayan perdido mientras no estaba
 
     async def stream():

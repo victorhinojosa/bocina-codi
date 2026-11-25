@@ -93,6 +93,11 @@
   .setup input:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: transparent; }
   .primary { border: 0; background: var(--brand); color: var(--on-brand); border-radius: var(--radius-full); padding: 13px 24px; font-size: 16px; font-weight: 700; margin-top: 12px; }
   .primary:hover { background: var(--brand-pressed); }
+  .pair-code { font-size: clamp(54px, 11vw, 92px); font-weight: 800; letter-spacing: .14em; font-variant-numeric: tabular-nums; color: var(--brand); margin: 6px 0 4px; }
+  .pair-steps { color: var(--ink-muted); font-size: 16px; line-height: 1.6; max-width: 440px; margin: 10px auto 0; }
+  .pair-steps b { color: var(--ink); }
+  .pair-alt { margin-top: 22px; font-size: 14px; color: var(--ink-muted); }
+  .pair-alt a { color: var(--brand); font-weight: 700; }
 
   .sound-hint { position: fixed; top: 14px; left: 50%; transform: translateX(-50%); z-index: 6; background: var(--ink); color: var(--on-brand);
     padding: 8px 14px; border-radius: var(--radius-full); font-size: 13px; display: none; }
@@ -154,30 +159,24 @@ import { createSoundbox } from "/static/soundbox-display.js";
 
 {
   const { $, money, hhmm, esc, api, toast, Voice } = Bocina;
+  const EMBED = new URLSearchParams(location.search).has("embed");
   let fixed = null;       // QR fijo
+  let me = null;          // /api/me: negocio de esta bocina (por sesión del dueño o por vinculación)
   let bubbleTimer = null;
 
   // ---------- pantalla base: QR fijo o QR con monto ----------
+  const SETUP_ICON = '<div style="color:var(--brand)"><svg class="i" viewBox="0 0 24 24" style="width:48px;height:48px"><rect width="16" height="20" x="4" y="2" rx="2"/><path d="M12 6h.01"/><circle cx="12" cy="14" r="4"/><path d="M12 14h.01"/></svg></div>';
   function renderBase() {
     const setup = $("setup"), device = $("device");
     if (!fixed) {
       device.classList.remove("on");
       setup.style.display = "";
-      setup.innerHTML = `
-        <div class="setup">
-          <div style="color:var(--brand)"><svg class="i" viewBox="0 0 24 24" style="width:48px;height:48px"><path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/><path d="M2 7h20"/><path d="M22 7v3a2 2 0 0 1-2 2a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 16 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 12 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 8 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 4 12a2 2 0 0 1-2-2V7"/></svg></div>
-          <div class="biz" style="margin-top:6px">Crea tu QR fijo</div>
-          <div class="sub" style="max-width:360px;margin:8px auto 18px">El cliente lo escanea con su app bancaria, pone el monto y esta pantalla te avisa en voz alta.</div>
-          <input id="bizName" placeholder="Nombre del negocio" value="${esc(Bocina.status.businessName || "")}" />
-          <div><button class="primary" id="mkFixed">Crear QR fijo</button></div>
-        </div>`;
-      $("mkFixed").onclick = async () => {
-        if (Bocina.status.pinRequired && !Bocina.getPin()) {
-          const pin = prompt("PIN del negocio"); if (!pin) return; Bocina.setPin(pin.trim());
-        }
-        try { fixed = (await api("/api/fixed-qr", { method: "POST", body: JSON.stringify({ name: $("bizName").value.trim() }) })).fixed; renderBase(); }
-        catch (e) { if (/PIN/.test(e.message)) Bocina.setPin(""); toast("No se pudo crear: " + e.message, 6000); }
-      };
+      const st = me?.merchant?.codiStatus;
+      setup.innerHTML = `<div class="setup">${SETUP_ICON}
+          <div class="biz" style="margin-top:6px">${esc(me?.merchant?.businessName || "Tu negocio")}</div>
+          <div class="sub" style="max-width:380px;margin:8px auto 0">${st && st !== "ACTIVE"
+            ? "Tu cuenta se está activando en CoDi (hasta 5 días hábiles). En cuanto quede lista, tu QR aparece aquí solo."
+            : "Preparando tu QR…"}</div></div>`;
       return;
     }
     setup.style.display = "none"; setup.innerHTML = "";
@@ -367,9 +366,45 @@ import { createSoundbox } from "/static/soundbox-display.js";
   }
   Voice.onChange(() => syncLed());
 
+  // ---------- vincular esta bocina a un negocio ----------
+  // Sin sesión del dueño en este navegador, la bocina muestra un código y espera a que lo escriban en la App.
+  let pairTimer = null;
+  async function showPairing() {
+    $("device").classList.remove("on"); $("setup").style.display = "";
+    $("toApp").style.visibility = "hidden";
+    if (EMBED) {   // en /demo la App de al lado es la que entra
+      $("setup").innerHTML = `<div class="setup">${SETUP_ICON}<div class="biz" style="margin-top:6px">Bocina del mostrador</div>
+        <div class="sub" style="max-width:380px;margin:8px auto 0">Entra a la cuenta demo en el celular de la derecha y aquí aparece el QR de la tienda.</div></div>`;
+      return;
+    }
+    let pair;
+    try { pair = await api("/api/devices/pair", { method: "POST", quiet: true }); }
+    catch (e) { $("setup").innerHTML = `<div class="setup"><div class="sub">No se pudo conectar con el servidor. Reintentando…</div></div>`; setTimeout(showPairing, 5000); return; }
+    $("setup").innerHTML = `<div class="setup">${SETUP_ICON}
+        <div class="biz" style="margin-top:6px">Vincula esta bocina</div>
+        <div class="pair-code" aria-label="Código">${pair.code.slice(0, 3)} ${pair.code.slice(3)}</div>
+        <div class="pair-steps">En la <b>App de Din</b> de tu celular: toca tu perfil → <b>Bocina</b> → <b>Vincular una bocina</b> y escribe este código.</div>
+        <div class="pair-alt">¿Es la compu del dueño? <a href="/app">Inicia sesión aquí</a> y vuelve.</div></div>`;
+    clearInterval(pairTimer);
+    pairTimer = setInterval(async () => {
+      try {
+        const r = await api("/api/devices/pair", { quiet: true });
+        if (r.paired) { clearInterval(pairTimer); location.reload(); }
+      } catch (e) { if (e.status === 410) { clearInterval(pairTimer); showPairing(); } }   // venció: código nuevo
+    }, 2500);
+  }
+  addEventListener("din:auth", () => location.reload());   // se desvinculó o la sesión venció
+
+  async function boot() {
+    try { me = await api("/api/me", { quiet: true }); }
+    catch (e) { if (e.status === 401) showPairing(); else setTimeout(boot, 5000); return; }
+    await loadFixed(); renderBase(); connectLive();
+  }
+
   // ---------- eventos ----------
-  Bocina.connect({
-    hello: async () => { await Promise.all([loadFixed(), Bocina.loadStatus()]); renderBase(); syncStatus(); },
+  const connectLive = () => Bocina.connect({
+    hello: async () => { await Promise.all([loadFixed(), Bocina.loadStatus()]); renderBase(); if (fixed) syncStatus(); },
+    account: async () => { try { me = await api("/api/me"); } catch {} await loadFixed(); renderBase(); },
     connection: (on) => {
       const was = connected;
       connected = on;
@@ -425,7 +460,7 @@ import { createSoundbox } from "/static/soundbox-display.js";
 
   // ---------- arranque ----------
   Bocina.onSoundChange((ok) => $("soundHint").classList.toggle("show", !ok));
-  Bocina.loadStatus().then(renderBase);
+  Bocina.loadStatus().then(boot);
 }
 </script>
 </body>
