@@ -169,7 +169,7 @@
       es = new EventSource("/api/events");
       es.addEventListener("hello", () => { beat(); setLive(true, "En vivo"); handlers.hello?.(); });
       es.addEventListener("ping", () => { beat(); if (!isOn) setLive(true, "En vivo"); });
-      for (const type of ["payment", "fixed", "pending"]) {
+      for (const type of ["payment", "history", "fixed", "pending"]) {   // history = pago recuperado o tardío, sin voz
         es.addEventListener(type, (ev) => { beat(); handlers[type]?.(JSON.parse(ev.data)); });
       }
       es.onerror = () => setLive(false, "Reconectando…");

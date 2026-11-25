@@ -341,7 +341,7 @@ import { createSoundbox } from "/static/soundbox-display.js";
     const tx = p.transactionId ? `tx ${String(p.transactionId).slice(0, 10)}…` : "";
     const mismatch = p.expectedAmount != null && Math.abs(p.expectedAmount - p.amount) > 0.001 ? ` · se cobraron ${money(p.expectedAmount)}` : "";
     if (p.simulated) logEvent("sim", `Simulación · ${money(p.amount)}`, `${where} · no es un pago real`);
-    else logEvent("ok", `Pago verificado por pey · ${money(p.amount)}`, `${p.payerBank ? p.payerBank + " · " : ""}${where}${mismatch} · ${tx}`);
+    else logEvent("ok", `${p.recovered ? "Pago recuperado de pey" : "Pago verificado por pey"} · ${money(p.amount)}`, `${p.payerBank ? p.payerBank + " · " : ""}${where}${mismatch} · ${tx}`);
   }
 
   // ---------- estado real: configuración del servidor + conexión en vivo ----------
@@ -383,6 +383,7 @@ import { createSoundbox } from "/static/soundbox-display.js";
       logPayment(p);   // el log se escribe al llegar (aunque la voz esté en fila)
       Voice.enqueue({ text: p.speech, chime: true, gap: 700, onStart: () => { Speaker.payment(p); Speaker.bump(); } });
     },
+    history: (p) => logPayment(p),   // pago viejo recuperado: solo al registro, sin voz
     fixed: async () => { await loadFixed(); renderBase(); },
   });
   async function loadFixed() { try { fixed = (await api("/api/fixed-qr")).fixed; } catch {} }

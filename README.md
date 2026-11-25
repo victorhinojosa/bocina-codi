@@ -38,7 +38,9 @@ CoDi existe desde 2019: transferencias inmediatas, sin terminal y sin comisión 
 - **La bocina (`/`)**: lleva el QR fijo del negocio y anuncia cada pago en voz alta, uno por uno y en orden aunque lleguen varios a la vez. En el demo es un modelo 3D interactivo; en el roadmap, un aparato de bajo costo.
 - **La app del dueño (`/app`)**: los pagos del día y del historial, cobros con monto exacto, cobro directo al celular del cliente y un asistente al que se le pregunta "¿cuánto vendí hoy?".
 
-**La confirmación nunca viene del cliente.** Un pago solo se anuncia cuando pey envía el aviso con firma verificada ([Standard Webhooks](https://www.standardwebhooks.com/)). Una captura de pantalla no hace sonar la bocina.
+**La confirmación nunca viene del cliente.** Un pago solo se anuncia cuando pey lo confirma: por el aviso con firma verificada ([Standard Webhooks](https://www.standardwebhooks.com/)) o, si ese aviso se pierde, consultando directamente la API de pey. Una captura de pantalla no hace sonar la bocina.
+
+**Respaldo del webhook.** Mientras haya una pantalla conectada, el servidor consulta a pey cada 45 s (y en cuanto una pantalla se reconecta) los pagos del QR fijo, de los QR con monto y de los cobros al celular pendientes. El `transactionId` es la clave: un pago nunca se guarda ni se anuncia dos veces, llegue primero por el webhook o por el respaldo. Solo se anuncian en voz los pagos de los últimos 2 minutos; los más viejos entran al historial marcados como *Recuperado*. Cada pago guarda `paid_at` (cuándo pagó, según pey), `received_at` (cuándo llegó el webhook) y `created_at` (cuándo lo registró la app).
 
 ## Cómo funciona
 
@@ -50,6 +52,8 @@ Cliente escanea el QR (o acepta el cobro en su celular) ──► paga desde su 
                                  ├─ verifica la firma
                                  ├─ descarta duplicados (webhook-id / transactionId)
                                  └─ guarda el pago
+                       respaldo: si el webhook no llega, el servidor consulta
+                       GET /transaction/codi/qr/{id} cada 45 s y al reconectar
                                          │
                                   Server-Sent Events
                          ┌───────────────┴───────────────┐
@@ -92,7 +96,16 @@ Cliente escanea el QR (o acepta el cobro en su celular) ──► paga desde su 
 
 ```
 app/
-  main.py            API, webhook de pey, SSE, voz y asistente
+  main.py            Arma la app: rutas, arranque y respaldo en segundo plano
+  config.py          Variables de entorno
+  db.py              Tablas SQLite y migraciones
+  timeutil.py        Horas en la zona del negocio (BUSINESS_TZ) y horas habladas
+  speech.py          Montos en letra y frases para la voz
+  pey.py             Cliente de la API de pey
+  payments.py        Registrar un pago (una sola vez), anunciarlo e historial
+  recovery.py        Respaldo del webhook: recupera pagos consultando a pey
+  events.py          Eventos en vivo (SSE)
+  routes/            Endpoints: cobros, historial, webhook, voz, páginas, estado
   static/
     index.html       Mostrador: bocina 3D interactiva
     app.html         App del dueño
@@ -103,7 +116,9 @@ app/
     common.js        Fila de voz, eventos en vivo y utilidades compartidas
     icon.svg
 docs/demo.gif        GIF del demo para este README
+tests/               Pruebas (pytest)
 requirements.txt
+requirements-dev.txt Dependencias para las pruebas
 Procfile             Comando de arranque
 railway.json         Configuración de despliegue en Railway
 .env.example         Variables de entorno
@@ -124,6 +139,15 @@ uvicorn app.main:app --reload --port 8000
 - Bocina: http://localhost:8000
 - App del dueño: http://localhost:8000/app
 - Demo: http://localhost:8000/demo
+
+### Pruebas
+
+```bash
+pip install -r requirements-dev.txt
+pytest
+```
+
+Cubren firma inválida, webhooks duplicados, monto incorrecto, dos pagos de la misma venta, webhook que llega después de recuperar el pago, el respaldo al reconectar y las horas en la zona del negocio. No llaman a pey ni usan las llaves del `.env`.
 
 ### Conectar el webhook
 
@@ -151,6 +175,9 @@ ngrok http 8000        # o: cloudflared tunnel --url http://localhost:8000
 | `ELEVENLABS_API_KEY` / `ELEVENLABS_VOICE_ID` | No | Voz natural; sin llave se usa la voz del navegador |
 | `ANTHROPIC_API_KEY` | No | Asistente con lenguaje natural; sin llave usa reglas |
 | `DEFAULT_EXPIRATION` | No | Expiración de los QR con monto en segundos (0 = no expira; mínimo 360) |
+| `BUSINESS_TZ` | No | Zona horaria del negocio para decir las horas y calcular "hoy" (por defecto `America/Mexico_City`) |
+| `RECOVERY_POLL_SECONDS` | No | Cada cuántos segundos el respaldo consulta a pey si hay pantallas conectadas (por defecto 45; 0 = apagado) |
+| `ANNOUNCE_WINDOW_SECONDS` | No | Solo se anuncian en voz los pagos de los últimos N segundos (por defecto 120) |
 | `DB_PATH` | No | Ruta de la base SQLite (en Railway: `/data/bocina.db`) |
 | `ALLOW_SIMULATION` | No | Permite simular pagos para pruebas; dejar en `false` en producción |
 

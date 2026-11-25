@@ -556,6 +556,7 @@
     const t = [];
     if (p.duplicateSale) t.push(`<span class="tag dup">Pago duplicado</span>`);
     if (p.simulated) t.push(`<span class="tag sim">Simulación</span>`);
+    if (p.recovered) t.push(`<span class="tag">Recuperado</span>`);
     if (p.kind === "amount") t.push(`<span class="tag">${esc(payerOf(p) && p.concept ? p.concept : "Cobro con monto")}</span>`);
     if (p.kind === "push") t.push(`<span class="tag">Al celular${payerOf(p) && p.concept ? " · " + esc(p.concept) : ""}</span>`);
     if (p.kind === "external") t.push(`<span class="tag gone">QR externo</span>`);
@@ -1065,6 +1066,7 @@
       else toast(`${p.simulated ? "Simulación · " : "✓ "}${money(p.amount)} recibido`, 3500);
       if (prefs().cajaSound && !EMBED) Voice.enqueue({ text: p.speech, chime: true, gap: 700 });
     },
+    history: () => loadPayments(),   // pago viejo recuperado: entra a la lista sin anunciarse
     fixed: () => loadFixed(),
     pending: () => loadPayments(),
   });
