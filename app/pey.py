@@ -93,6 +93,51 @@ async def push(amount: float, phone: str, concept: str, expiration: int, metadat
     return data
 
 
+# --- Link de pago ----------------------------------------------------------------
+async def create_payment_link(amount: float, success_url: str, back_url: str, reference: str, metadata: dict) -> dict:
+    """POST /payment-link/create: página de pago de pey (tarjeta o CoDi) para mandar por WhatsApp.
+    Ojo: no acepta bankAccountId; el dinero cae en la cuenta de la API key. Devuelve {id, url}."""
+    if not config.PEY_API_KEY:
+        raise PeyError(503, "config", "Falta PEY_API_KEY en el servidor.")
+    payload = {"amount": amount, "successUrl": success_url, "backUrl": back_url, "hasTip": False,
+               "clientReferenceId": reference[:255], "metadata": metadata, "isMultiplePayments": False}
+    try:
+        async with httpx.AsyncClient(timeout=20) as client:
+            r = await client.post(f"{config.PEY_BASE_URL}/payment-link/create", headers=_headers(), json=payload)
+    except httpx.HTTPError as e:
+        log.warning("No se pudo contactar a pey (link): %s", e)
+        raise PeyError(503, "unavailable", "No pudimos conectar con pey. Intenta de nuevo.") from e
+    if r.status_code >= 400:
+        log.warning("pey payment-link respondió %s: %s", r.status_code, r.text[:500])
+        if r.status_code >= 500 or r.status_code == 429:
+            raise PeyError(503, "unavailable", "pey no está respondiendo en este momento. Intenta de nuevo.")
+        raise PeyError(502, "rejected", "pey no pudo crear el link. Intenta de nuevo o usa el QR.")
+    data = r.json()
+    if not data.get("id") or not data.get("url"):
+        raise PeyError(502, "rejected", "pey respondió algo inesperado. Intenta de nuevo o usa el QR.")
+    return data
+
+
+async def get_payment_link(client: httpx.AsyncClient, link_id: str) -> dict:
+    """GET /payment-link/{id}: estado (PENDING | PROCESSING | PAID | PARTIAL) y transacciones pagadas."""
+    r = await client.get(f"{config.PEY_BASE_URL}/payment-link/{link_id}", headers=_headers())
+    r.raise_for_status()
+    return r.json()
+
+
+def link_transaction_payload(link_id: str, tx: dict, bank_account_id: str | None = None) -> dict:
+    """Una transacción pagada de un link -> el formato que entiende record_payment.
+    El monto es lo que recibe el negocio (base + propina); la comisión al cliente no es suya."""
+    br = tx.get("amountBreakdown") or {}
+    amount = round(float(br.get("base") or 0) + float(br.get("tip") or 0), 2) if br.get("base") else tx.get("amount")
+    payload = {"type": "payment_link.payment", "transactionId": tx.get("transactionId") or tx.get("id"),
+               "codiQrId": link_id, "amount": amount, "datePaid": tx.get("datePaid"),
+               "paymentMethod": tx.get("paymentMethod"), "metadata": tx.get("metadata") or {}}
+    if bank_account_id:
+        payload["bankAccountId"] = bank_account_id
+    return payload
+
+
 # --- Cuentas bancarias de los negocios ---------------------------------------
 async def register_bank_account(alias: str, name: str, clabe: str) -> dict:
     """POST /bank-account: registra la CLABE del negocio. Queda PENDING; pey la da de alta en Banxico

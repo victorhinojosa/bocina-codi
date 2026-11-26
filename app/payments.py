@@ -51,6 +51,7 @@ def payment_to_dict(r: sqlite3.Row) -> dict:
         "createdAt": r["created_at"],
         "receivedAt": r["received_at"],
         "source": r["source"],
+        "method": r["method"] or "CODI",
         "recovered": r["source"] == "recovery",
         "simulated": bool(r["simulated"]),
         "phone4": r["phone4"],
@@ -59,6 +60,15 @@ def payment_to_dict(r: sqlite3.Row) -> dict:
         "payerClabe4": r["payer_clabe4"],
         "trackingKey": r["tracking_key"],
     }
+
+
+def link_to_dict(r: sqlite3.Row) -> dict:
+    return {"id": r["id"], "kind": "link", "amount": r["amount"], "concept": r["concept"], "url": r["link_url"],
+            "saleId": r["sale_id"] or r["id"], "createdAt": r["created_at"], "status": "pending"}
+
+
+def pending_to_dict(r: sqlite3.Row) -> dict:
+    return link_to_dict(r) if r["kind"] == "link" else push_to_dict(r)
 
 
 def push_to_dict(r: sqlite3.Row) -> dict:
@@ -91,15 +101,15 @@ def today_summary(merchant_id: str, limit: int = 50, days: int = 1) -> dict:
             "SELECT COALESCE(SUM(amount),0) FROM payments WHERE merchant_id=? AND paid_at >= ? AND paid_at < ? AND simulated = 0",
             (merchant_id, yesterday_start, today),
         ).fetchone()[0]
-        # Cobros al celular sin pagar de las últimas 24 h (los vencidos siguen visibles para reenviar)
+        # Cobros al celular y links sin pagar de las últimas 24 h (los vencidos siguen visibles para reenviar)
         pend = conn.execute(
-            "SELECT * FROM charges WHERE merchant_id=? AND kind='push' AND status='pending' AND created_at >= ?"
+            "SELECT * FROM charges WHERE merchant_id=? AND kind IN ('push', 'link') AND status='pending' AND created_at >= ?"
             " ORDER BY created_at DESC",
             (merchant_id, timeutil.now_ts() - 86400),
         ).fetchall()
     return {
         "payments": [payment_to_dict(r) for r in rows],
-        "pending": [push_to_dict(r) for r in pend],
+        "pending": [pending_to_dict(r) for r in pend],
         "todayTotal": round(total, 2), "todayCount": count, "yesterdayTotal": round(yesterday, 2),
     }
 
@@ -165,11 +175,12 @@ async def record_payment(payload: dict, *, source: str = "webhook") -> dict:
                               (merchant_id,)).fetchone() if m else None
             store_id = st["id"] if st else None
         kind = row["kind"] if row else "external"
-        charge_has_amount = bool(row) and kind in ("amount", "push")
+        charge_has_amount = bool(row) and kind in ("amount", "push", "link")
         expected = row["amount"] if charge_has_amount else None
         # Preferimos el concepto que guardamos nosotros (el webhook puede traer "Negocio · concepto")
         concept = row["concept"] if row else (payload.get("concept") or payload.get("description") or "")
         phone4 = (row["phone"] or "")[-4:] if row and kind == "push" else None
+        method = (payload.get("paymentMethod") or "CODI").upper()
         payer_bank, payer_clabe4, tracking_key = payer_from(payload.get("metadata") or {})
         # ¿Esta venta ya estaba pagada? (p. ej. pagó el QR de respaldo y también la solicitud al celular)
         sale_id = (row["sale_id"] or row["id"]) if charge_has_amount else None
@@ -180,9 +191,9 @@ async def record_payment(payload: dict, *, source: str = "webhook") -> dict:
         inserted = conn.execute(
             "INSERT OR IGNORE INTO payments (transaction_id, codi_qr_id, kind, amount, expected_amount, concept,"
             " paid_at, created_at, received_at, source, simulated, phone4, duplicate_sale, payer_bank, payer_clabe4,"
-            " tracking_key, merchant_id, store_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            " tracking_key, merchant_id, store_id, method) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             (tx_id, qr_id, kind, amount, expected, concept, paid_at, now, received_at, source, int(simulated),
-             phone4, int(dup_sale), payer_bank, payer_clabe4, tracking_key, merchant_id, store_id),
+             phone4, int(dup_sale), payer_bank, payer_clabe4, tracking_key, merchant_id, store_id, method),
         ).rowcount == 1
         if not inserted:
             if received_at:
@@ -206,7 +217,8 @@ async def record_payment(payload: dict, *, source: str = "webhook") -> dict:
         "source": source,
         "recovered": source == "recovery",
         "chargeId": qr_id,
-        "kind": kind,  # fixed | amount | push | external
+        "kind": kind,  # fixed | amount | push | link | external
+        "method": method,
         "phone4": phone4,
         "duplicateSale": dup_sale,
         "payerBank": payer_bank,

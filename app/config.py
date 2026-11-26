@@ -68,3 +68,7 @@ SESSION_DAYS = int(env("SESSION_DAYS", "90"))
 
 # Administración de la plataforma (/api/admin/...). Vacío = apagada. Usa un valor largo y aleatorio.
 ADMIN_TOKEN = env("ADMIN_TOKEN")
+
+# URL pública del servidor (https://...) para las páginas de regreso del link de pago.
+# Vacío = se toma del proxy (Railway). Útil con ngrok.
+PUBLIC_URL = env("PUBLIC_URL")

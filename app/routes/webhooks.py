@@ -7,8 +7,9 @@ from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 from standardwebhooks.webhooks import Webhook
 
-from app import config, merchants, timeutil
+from app import config, merchants, pey, timeutil
 from app.db import connect
+from app.events import bus
 from app.payments import record_payment
 
 log = logging.getLogger("bocina")
@@ -52,6 +53,16 @@ async def pey_webhook(request: Request) -> JSONResponse:
         if not payload.get("transactionId"):
             payload["transactionId"] = f"wh-{webhook_id}"
         await record_payment(payload, source="webhook")
+    elif event_type == "payment_link.status_updated" and payload.get("paymentLinkId"):
+        # Link de pago: cada transacción pagada entra como un pago (una sola vez por transactionId)
+        for tx in payload.get("transactions") or []:
+            if tx.get("transactionId"):
+                await record_payment(pey.link_transaction_payload(payload["paymentLinkId"], tx), source="webhook")
+        if payload.get("status") == "PROCESSING":  # el cliente está pagando: la App refresca el pendiente
+            with connect() as conn:
+                row = conn.execute("SELECT merchant_id FROM charges WHERE id=?", (payload["paymentLinkId"],)).fetchone()
+            if row:
+                await bus.publish({"type": "pending"}, row["merchant_id"])
     elif event_type == "bank.account.updated" and payload.get("bankAccountId"):
         # La CLABE de un negocio quedó activa en CoDi: se crea su QR fijo y su App deja la pantalla de espera
         if not await merchants.set_codi_status(payload["bankAccountId"], payload.get("codiStatus") or "ACTIVE"):

@@ -46,6 +46,10 @@ CoDi existe desde 2019: transferencias inmediatas, sin terminal y sin comisión 
 
 **Cuenta demo.** Con `DEMO_PHONE` y `DEMO_PIN`, en computadora `/app` muestra las credenciales de Ramón al lado del teléfono. Todo es real: la cuenta, el QR y los pagos. El cobro al celular está limitado (3 por sesión, 30 al día, máximo $50) y no se puede cambiar el QR fijo.
 
+**Link de pago.** Desde "Agregar monto", "Mandar link de pago" crea una página de pago de pey (tarjeta o CoDi) para mandarla por WhatsApp a quien no está enfrente. El pago llega con el webhook `payment_link.status_updated` (y el respaldo lo revisa con `GET /payment-link/{id}`), se anuncia con sonido y entra al historial como *Link de pago*; el monto es la base más la propina, sin la comisión que paga el cliente. pey no permite elegir la cuenta de depósito del link, así que por ahora solo está disponible en la cuenta que cobra en la cuenta de la API key (la demo): a un negocio con CLABE propia nunca se le cobra en nuestra cuenta. Necesita HTTPS (Railway o `PUBLIC_URL`).
+
+**Sonido de pago.** Cada pago suena con un "ka-ching" sintetizado en la bocina y, por defecto, también en el celular del dueño (se puede apagar en Perfil → Bocina).
+
 **Respaldo del webhook.** Mientras haya una pantalla conectada, el servidor consulta a pey cada 45 s (y en cuanto una pantalla se reconecta) los pagos del QR fijo, de los QR con monto y de los cobros al celular pendientes. El `transactionId` es la clave: un pago nunca se guarda ni se anuncia dos veces, llegue primero por el webhook o por el respaldo. Solo se anuncian en voz los pagos de los últimos 2 minutos; los más viejos entran al historial marcados como *Recuperado*. Cada pago guarda `paid_at` (cuándo pagó, según pey), `received_at` (cuándo llegó el webhook) y `created_at` (cuándo lo registró la app).
 
 ## Cómo funciona
@@ -181,6 +185,7 @@ ngrok http 8000        # o: cloudflared tunnel --url http://localhost:8000
 | `BUSINESS_NAME` | No | Nombre del negocio demo |
 | `DEPOSIT_ACCOUNT_LABEL` | No | Cómo se muestra la cuenta de depósito de la demo, ej. `BBVA ···· 2702` |
 | `SESSION_DAYS` | No | Días que dura la sesión (por defecto 90) |
+| `PUBLIC_URL` | No | URL pública `https://` para las páginas de regreso del link de pago (por defecto la del proxy) |
 | `ADMIN_TOKEN` | No | Activa `/api/admin/merchants` (ver negocios) y `/api/admin/merchants/link` (ligar una CLABE ya registrada en pey). Vacío = apagado |
 | `PUSH_EXPIRATION` | No | Segundos que dura una solicitud de cobro al celular (mínimo 360; por defecto 900) |
 | `FIXED_QR_ID` / `FIXED_QR_STRING` | No | Amarra el QR fijo de la demo; sobrevive reinicios y deploys |
@@ -219,6 +224,7 @@ El servidor necesita un proceso siempre activo (para los eventos en vivo) y un d
 | `POST` | `/api/charges` | Crea un QR con monto |
 | `POST` | `/api/push` | Envía un cobro CoDi al celular del cliente |
 | `POST` | `/api/push/{id}/dismiss` | Quita de la lista un cobro al celular pendiente |
+| `POST` | `/api/links` | Crea un link de pago (tarjeta o CoDi) para mandar por WhatsApp |
 | `GET` | `/api/payments` | Pagos, cobros al celular pendientes y totales de hoy y ayer |
 | `GET` | `/api/last-payment` | Último pago, con la frase para anunciarlo |
 | `POST` | `/api/assistant` | Asistente: responde sobre las ventas o genera un cobro |

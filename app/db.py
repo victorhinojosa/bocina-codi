@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS charges (
 CREATE TABLE IF NOT EXISTS payments (
     transaction_id TEXT PRIMARY KEY,  -- id de pey: clave de idempotencia entre webhook y respaldo
     codi_qr_id TEXT,
-    kind TEXT,                    -- fixed | amount | push | external
+    kind TEXT,                    -- fixed | amount | push | link | external
     amount REAL NOT NULL,
     concept TEXT,
     paid_at INTEGER NOT NULL,     -- cuándo se pagó, según pey (datePaid)
@@ -136,6 +136,7 @@ def init_db() -> None:
             "sale_id": "TEXT",    # venta a la que pertenece (para detectar pagos dobles)
             "merchant_id": "TEXT",
             "store_id": "TEXT",
+            "link_url": "TEXT",   # link de pago: la página de pey para mandar por WhatsApp
         })
         added = _add_columns(conn, "payments", {
             "phone4": "TEXT",
@@ -148,6 +149,7 @@ def init_db() -> None:
             "created_at": "INTEGER",    # cuándo lo registró la app
             "received_at": "INTEGER",   # cuándo llegó el webhook (NULL si solo lo trajo el respaldo)
             "source": "TEXT NOT NULL DEFAULT 'webhook'",  # webhook | recovery | simulation
+            "method": "TEXT",           # CODI | CARD (los links de pago aceptan tarjeta)
             "merchant_id": "TEXT",
             "store_id": "TEXT",
         })

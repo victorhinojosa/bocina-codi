@@ -28,8 +28,9 @@ MIN_GAP_SECONDS = 10      # dos reconexiones seguidas no disparan dos consultas
 MAX_BACKOFF_SECONDS = 300
 
 
-def _targets(merchant_ids: set[str] | None) -> tuple[list[str], list[str], list[str]]:
-    """(cuentas bancarias a listar, QR a listar, cobros al celular a consultar) de esos negocios (None = todos)."""
+def _targets(merchant_ids: set[str] | None) -> tuple[list[str], list[str], list[str], list[str]]:
+    """(cuentas bancarias a listar, QR a listar, cobros al celular a consultar, links de pago a consultar)
+    de esos negocios (None = todos)."""
     since = timeutil.now_ts() - LOOKBACK_SECONDS
     with connect() as conn:
         merchants = [m for m in conn.execute("SELECT * FROM merchants WHERE codi_status='ACTIVE'")
@@ -37,7 +38,7 @@ def _targets(merchant_ids: set[str] | None) -> tuple[list[str], list[str], list[
         accounts = [m["pey_bank_account_id"] for m in merchants if m["pey_bank_account_id"]]
         legacy = [m["id"] for m in merchants if not m["pey_bank_account_id"]]
         if not legacy:
-            return accounts, [], []
+            return accounts, [], [], []
         marks = ",".join("?" * len(legacy))
         qrs = [r["id"] for r in conn.execute(
             f"SELECT id FROM charges WHERE merchant_id IN ({marks}) AND simulated = 0 AND ("
@@ -48,7 +49,11 @@ def _targets(merchant_ids: set[str] | None) -> tuple[list[str], list[str], list[
             f"SELECT id FROM charges WHERE merchant_id IN ({marks}) AND kind='push' AND status='pending' AND created_at >= ?",
             (*legacy, since),
         )]
-    return accounts, qrs, pushes
+        links = [r["id"] for r in conn.execute(
+            f"SELECT id FROM charges WHERE merchant_id IN ({marks}) AND kind='link' AND status='pending' AND created_at >= ?",
+            (*legacy, since),
+        )]
+    return accounts, qrs, pushes, links
 
 
 def _known(tx_ids: list[str]) -> set[str]:
@@ -121,6 +126,16 @@ async def _recover_push(client: httpx.AsyncClient, tx_id: str) -> int:
     return 0 if event["duplicate"] else 1
 
 
+async def _recover_link(client: httpx.AsyncClient, link_id: str) -> int:
+    link = await pey.get_payment_link(client, link_id)
+    found = 0
+    for tx in link.get("transactions") or []:
+        if tx.get("transactionId"):
+            event = await record_payment(pey.link_transaction_payload(link_id, tx), source="recovery")
+            found += not event["duplicate"]
+    return found
+
+
 class Recovery:
     def __init__(self) -> None:
         self._lock = asyncio.Lock()
@@ -139,17 +154,17 @@ class Recovery:
             return 0
         async with self._lock:
             self.last_run = timeutil.now_ts()
-            accounts, qrs, pushes = _targets(merchant_ids)
+            accounts, qrs, pushes, links = _targets(merchant_ids)
             found, errors = 0, 0
             async with httpx.AsyncClient(timeout=15) as client:
-                for fn, ids in ((_recover_account, accounts), (_recover_qr, qrs), (_recover_push, pushes)):
+                for fn, ids in ((_recover_account, accounts), (_recover_qr, qrs), (_recover_push, pushes), (_recover_link, links)):
                     for target in ids:
                         try:
                             found += await fn(client, target)
                         except (httpx.HTTPError, ValueError, KeyError) as e:
                             errors += 1
                             log.warning("Respaldo: no se pudo consultar %s en pey: %s", target, e)
-            self.failures = self.failures + 1 if errors and errors == len(accounts) + len(qrs) + len(pushes) else 0
+            self.failures = self.failures + 1 if errors and errors == len(accounts) + len(qrs) + len(pushes) + len(links) else 0
             if found:
                 log.info("Respaldo: %d pago(s) recuperado(s) que no llegaron por webhook", found)
             return found

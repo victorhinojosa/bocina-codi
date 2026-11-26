@@ -29,7 +29,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app import config, db, merchants
 from app.recovery import recovery
-from app.routes import account, admin, charges, history, pages, system, voice, webhooks
+from app.routes import account, admin, charges, history, links, pages, system, voice, webhooks
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger("bocina")
@@ -69,6 +69,6 @@ async def revalidate_static(request: Request, call_next):
     return response
 
 
-for module in (system, account, admin, charges, history, webhooks, voice, pages):
+for module in (system, account, admin, charges, links, history, webhooks, voice, pages):
     app.include_router(module.router)
 app.mount("/static", StaticFiles(directory=config.STATIC_DIR), name="static")

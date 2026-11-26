@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field
 from app import auth, config, merchants, pey, timeutil
 from app.auth import Viewer
 from app.db import connect
+from app.routes.links import links_enabled
 
 log = logging.getLogger("bocina")
 router = APIRouter()
@@ -111,7 +112,8 @@ def demo_push_left(v: Viewer) -> dict | None:
 @router.get("/api/me")
 async def me(v: Viewer = Depends(auth.viewer)) -> dict:
     m = await merchants.refresh_status(v.merchant)  # mientras se activa, consulta a pey como respaldo del webhook
-    out = {"merchant": merchants.merchant_dict(m), "store": {"id": v.store_id, "name": v.store["name"]}, "device": v.is_device}
+    out = {"merchant": {**merchants.merchant_dict(m), "linksEnabled": links_enabled(m)},
+           "store": {"id": v.store_id, "name": v.store["name"]}, "device": v.is_device}
     if not v.is_device:
         out.update(user={"firstName": v.user["first_name"], "lastName": v.user["last_name"], "phone4": v.user["phone"][-4:]},
                    role=v.role, demoPush=demo_push_left(v))

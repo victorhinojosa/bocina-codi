@@ -135,6 +135,9 @@
   .pend-amt { font-size: 40px; line-height: 44px; font-weight: 800; letter-spacing: -1px; text-align: center; margin-top: 4px; }
   .pend-sub { text-align: center; color: var(--ink-muted); font-size: 14px; }
   .pend-state { display: flex; justify-content: center; margin: 12px 0 4px; }
+  .linkbox { display: flex; gap: 8px; align-items: center; background: var(--bg); border-radius: var(--radius-md); padding: 10px 12px; margin: 12px 0 4px; }
+  .linkbox span { flex: 1; min-width: 0; font-size: 13px; color: var(--ink-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .btn.wa { background: #1fa855; border-color: #1fa855; color: #fff; }
   .linkbtn { border: 0; background: none; color: var(--error); font-weight: 600; font-size: 14px; padding: 10px; width: 100%; }
   .stack { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
   .mv .a { font-size: 16px; line-height: 20px; font-weight: 700; color: var(--success); white-space: nowrap; }
@@ -559,6 +562,7 @@
         <button class="btn ghostblue nowrap" id="pushBtn" disabled><svg class="i"><use href="#i-phone"/></svg>Enviar al celular</button>
         <button class="btn primary" id="chargeBtn" disabled><svg class="i"><use href="#i-qr"/></svg>Generar QR</button>
       </div>
+      <button class="btn wide" id="payLinkBtn" style="margin-top:8px" disabled hidden><svg class="i"><use href="#i-link"/></svg>Mandar link de pago</button>
       </div>
       <div id="phoneStep" style="display:none">
         <div class="step-head"><button class="iconbtn" id="phoneBack" aria-label="Regresar"><svg class="i"><use href="#i-back"/></svg></button><h3 style="margin:0">Enviar al celular</h3></div>
@@ -569,6 +573,11 @@
         <div id="pushErr"></div>
         <button class="btn primary" id="sendPush" style="width:100%;margin-top:14px" disabled>Enviar cobro</button>
       </div>
+    </div>
+
+    <div class="sheet" id="payLinkSheet">
+      <div class="grip"></div>
+      <div id="payLinkBody"></div>
     </div>
 
     <div class="sheet" id="pendSheet">
@@ -589,7 +598,8 @@
       <div class="menu" id="spkMenu">
         <button class="it" id="spkToggle" aria-expanded="false"><span class="ic"><svg class="i"><use href="#i-speaker"/></svg></span><span class="mid">Bocina<div class="s" id="spkState">Conectando…</div></span><svg class="i end chev"><use href="#i-chev"/></svg></button>
         <div class="fold" id="spkFold"><div class="fold-in">
-          <label class="it sub"><span class="mid">Sonar también en el celular<div class="s">Escucha los pagos aunque no estés en el mostrador</div></span><input type="checkbox" class="switch" id="cajaSound" /></label>
+          <label class="it sub"><span class="mid">Sonido al recibir un pago<div class="s">Un "ka-ching" en este celular con cada pago</div></span><input type="checkbox" class="switch" id="notifySound" /></label>
+          <label class="it sub"><span class="mid">Decir el monto en voz alta<div class="s">Escucha los pagos aunque no estés en el mostrador</div></span><input type="checkbox" class="switch" id="cajaSound" /></label>
           <div class="it sub"><span class="mid">Voz en el celular</span>
             <select id="voiceMode"><option value="elevenlabs">Natural</option><option value="browser">Del teléfono</option></select></div>
           <button class="it sub" id="testVoice"><span class="mid" style="color:var(--brand)">Probar voz</span><svg class="i end" style="color:var(--brand)"><use href="#i-play"/></svg></button>
@@ -636,6 +646,7 @@
   <symbol id="i-play" viewBox="0 0 24 24"><path d="M6 3 20 12 6 21Z"/></symbol>
   <symbol id="i-lock" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
   <symbol id="i-receipt" viewBox="0 0 24 24"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 17.5v-11"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></symbol>
   <symbol id="i-phone" viewBox="0 0 24 24"><rect width="14" height="20" x="5" y="2" rx="2"/><path d="M12 18h.01"/></symbol>
   <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol>
   <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></symbol>
@@ -671,8 +682,9 @@
     return d.toLocaleDateString("es-MX", { weekday: "short", day: "numeric", month: "short" });
   }
   // Quién pagó: banco y últimos 4 de su CLABE (vienen en el aviso de pey; los pagos viejos no los tienen)
-  const payerOf = (p) => p.payerBank ? `${p.payerBank}${p.payerClabe4 ? " ···· " + p.payerClabe4 : ""}` : "";
+  const payerOf = (p) => p.payerBank ? `${p.payerBank}${p.payerClabe4 ? " ···· " + p.payerClabe4 : ""}` : p.method === "CARD" ? "Tarjeta" : "";
   const titleOf = (p) => payerOf(p) || (p.kind === "amount" ? (p.concept || "Cobro con monto") : p.kind === "push" ? (p.concept || "Cobro al celular")
+    : p.kind === "link" ? (p.concept || "Link de pago")
     : p.kind === "fixed" ? "Pago CoDi" : "Pago CoDi externo");
   // Etiquetas solo para lo que no es el caso normal (el QR fijo no lleva etiqueta)
   const tagOf = (p) => {
@@ -682,12 +694,13 @@
     if (p.recovered) t.push(`<span class="tag">Recuperado</span>`);
     if (p.kind === "amount") t.push(`<span class="tag">${esc(payerOf(p) && p.concept ? p.concept : "Cobro con monto")}</span>`);
     if (p.kind === "push") t.push(`<span class="tag">Al celular${payerOf(p) && p.concept ? " · " + esc(p.concept) : ""}</span>`);
+    if (p.kind === "link") t.push(`<span class="tag">Link de pago${payerOf(p) && p.concept ? " · " + esc(p.concept) : ""}</span>`);
     if (p.kind === "external") t.push(`<span class="tag gone">QR externo</span>`);
     return t.join(" ");
   };
-  const typeOf = (p) => ({ amount: "Cobro con monto", push: "Cobro al celular", fixed: "QR fijo" })[p.kind] || "QR externo";
+  const typeOf = (p) => ({ amount: "Cobro con monto", push: "Cobro al celular", link: "Link de pago", fixed: "QR fijo" })[p.kind] || "QR externo";
   const mmss = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
-  const leftOf = (x) => Math.max(0, x.expiresAt - Math.floor(Date.now() / 1000));
+  const leftOf = (x) => x.kind === "link" ? 1 : Math.max(0, x.expiresAt - Math.floor(Date.now() / 1000));   // los links no vencen
 
   // ---------- capas y hojas ----------
   const layers = [];
@@ -758,6 +771,12 @@
     return q.split(/\s+/).every((w) => hay.includes(w));
   }
   function pendingRow(x) {
+    if (x.kind === "link") return `<button class="mv" data-pend="${esc(x.id)}">
+      <span class="ic pend">${ICON("link")}</span>
+      <span class="mid"><div class="c">${esc(x.concept || "Link de pago")}</div>
+        <div class="t">Enviado ${hhmm(x.createdAt)}</div><span class="tag wait">Link enviado · esperando pago</span></span>
+      <span class="a pend tabular">${money(x.amount)}</span>
+    </button>`;
     const left = leftOf(x), live = left > 0;
     return `<button class="mv" data-pend="${esc(x.id)}">
       <span class="ic ${live ? "pend" : "gone"}">${ICON(live ? "clock" : "phone")}</span>
@@ -870,7 +889,7 @@
   function renderAmount() {
     $("amountView").innerHTML = `<small>$</small>${amountStr || "0"}`;
     const ok = parseFloat(amountStr) > 0;
-    $("chargeBtn").disabled = !ok; $("pushBtn").disabled = !ok;
+    $("chargeBtn").disabled = !ok; $("pushBtn").disabled = !ok; $("payLinkBtn").disabled = !ok;
   }
   $("keypad").addEventListener("click", (e) => {
     const b = e.target.closest("button"); if (!b) return;
@@ -972,9 +991,51 @@
     } catch (e) { pushError(e); syncSendBtn(); }
   };
 
+  // ---------- link de pago (tarjeta o CoDi, para mandar por WhatsApp) ----------
+  const linkText = (x) => `Hola, este es tu link para pagar ${money(x.amount)}${x.concept ? " (" + x.concept + ")" : ""} a ${bizName()} con tarjeta o CoDi: ${x.url}`;
+  function showPayLink(x) {
+    pendOpen = x.id;
+    $("payLinkBody").innerHTML = `
+      <h3 style="text-align:center;margin-bottom:0">Link de pago</h3>
+      <div class="pend-amt tabular">${money(x.amount)}</div>
+      <div class="pend-sub">${x.concept ? esc(x.concept) + " · " : ""}Tarjeta o CoDi</div>
+      <div class="linkbox">${ICON("link")}<span>${esc(x.url)}</span></div>
+      <p class="small" style="margin:6px 0 0">Mándaselo a tu cliente. Te avisamos aquí, con sonido, en cuanto pague.</p>
+      <div class="stack">
+        <a class="btn wa" id="plWa" href="https://wa.me/?text=${encodeURIComponent(linkText(x))}" target="_blank" rel="noopener" style="text-decoration:none">Mandar por WhatsApp</a>
+        <div style="display:flex;gap:8px">
+          <button class="btn" id="plShare">${ICON("share")}Compartir</button>
+          <button class="btn" id="plCopy">Copiar link</button>
+        </div>
+        <button class="linkbtn" id="plDismiss">Quitar de la lista</button>
+      </div>`;
+    $("plShare").onclick = async () => {
+      try { if (navigator.share) await navigator.share({ title: bizName(), text: linkText(x) }); else { await navigator.clipboard.writeText(linkText(x)); toast("Mensaje copiado"); } }
+      catch (e) { if (e?.name !== "AbortError") toast("No se pudo compartir"); }
+    };
+    $("plCopy").onclick = async () => { try { await navigator.clipboard.writeText(x.url); toast("Link copiado"); } catch { toast(x.url, 6000); } };
+    $("plDismiss").onclick = () => {
+      closeSheet(); pending = pending.filter((y) => y.id !== x.id); renderList();
+      api(`/api/links/${encodeURIComponent(x.id)}/dismiss`, { method: "POST" }).catch(() => {});
+    };
+    openSheet("payLinkSheet");
+  }
+  $("payLinkBtn").onclick = async () => {
+    const amount = parseFloat(amountStr); if (!(amount > 0)) return;
+    $("payLinkBtn").disabled = true; $("payLinkBtn").textContent = "Creando link…";
+    try {
+      const x = await api("/api/links", { method: "POST", body: JSON.stringify({ amount, concept: $("concept").value.trim() }) });
+      closeLayer("charge"); resetAmount();
+      pending = [x, ...pending]; renderList();
+      showPayLink(x);
+    } catch (e) { toast(e.message || "No se pudo crear el link", 6000); }
+    finally { $("payLinkBtn").innerHTML = `${ICON("link")}Mandar link de pago`; renderAmount(); }
+  };
+
   // ---------- detalle de un cobro al celular pendiente ----------
   function openPending(id) {
     const x = pending.find((y) => y.id === id); if (!x) return;
+    if (x.kind === "link") { showPayLink(x); return; }
     pendOpen = id; renderPending(); openSheet("pendSheet");
   }
   function renderPending() {
@@ -1010,6 +1071,7 @@
   // cuenta regresiva en la lista y en el detalle; aviso único al vencer
   setInterval(() => {
     for (const x of pending) {
+      if (x.kind === "link") continue;
       const left = leftOf(x), el = document.querySelector(`[data-left="${CSS.escape(x.id)}"]`);
       if (el) el.textContent = `···· ${x.phone4} · ${left > 0 ? "vence en " + mmss(left) : "venció"}`;
       if (left <= 0 && !expiredSeen.has(x.id)) {
@@ -1123,6 +1185,7 @@
   };
   $("voiceMode").onchange = (e) => setPref("voiceMode", e.target.value);
   $("cajaSound").onchange = (e) => setPref("cajaSound", e.target.checked);
+  $("notifySound").onchange = (e) => { setPref("notifySound", e.target.checked); if (e.target.checked) Bocina.chime(); };
   $("testVoice").onclick = () => Voice.enqueue({ text: "Recibiste 100 pesos", chime: true });
 
   // ---------- ajustes avanzados (solo el dueño con sesión llega aquí) ----------
@@ -1138,7 +1201,8 @@
     $("simCard").style.display = st.allowSimulation ? "" : "none";
     const p = prefs();
     if (p.voiceMode === "off") setPref("voiceMode", "elevenlabs");   // "Silencio" ya no existe: para no sonar, se apaga el interruptor
-    $("voiceMode").value = prefs().voiceMode; $("cajaSound").checked = !!p.cajaSound;
+    $("voiceMode").value = prefs().voiceMode; $("cajaSound").checked = !!p.cajaSound; $("notifySound").checked = p.notifySound !== false;
+    $("payLinkBtn").hidden = !me?.merchant?.linksEnabled;
     $("expiration").value = p.expiration ?? st.defaultExpiration ?? 0;
     $("bizName").value = bizName();
     if (me?.merchant?.isDemo) { $("newFixed").style.display = "none"; $("bizName").disabled = true; $("fixedNote").textContent = "En la cuenta demo el QR fijo no se puede cambiar."; }
@@ -1170,14 +1234,19 @@
       loadPayments();
       // el pago es del QR que está en pantalla → el comprobante toma la pantalla
       const onScreen = (shown && (shown.kind === "fixed" ? p.chargeId === fixed?.id : p.chargeId === shown.id))
-        || p.kind === "push";   // el cobro al celular se confirma aunque estés en otra pantalla
-      if (p.kind === "push") { pending = pending.filter((x) => x.id !== p.chargeId); if (pendOpen === p.chargeId) closeSheet(); renderList(); }
+        || p.kind === "push" || p.kind === "link";   // cobro al celular y link se confirman aunque estés en otra pantalla
+      if (p.kind === "push" || p.kind === "link") { pending = pending.filter((x) => x.id !== p.chargeId); if (pendOpen === p.chargeId) closeSheet(); renderList(); }
       if (EMBED) {   // en /demo cada pago imprime su ticket y se cierra solo
         showReceipt(p, { fresh: true });
         clearTimeout(window._demoClose); window._demoClose = setTimeout(() => closeLayer("receipt"), 9000);
       } else if (onScreen && !$("receipt").classList.contains("on")) showReceipt(p, { fresh: true });
       else toast(`${p.simulated ? "Simulación · " : "✓ "}${money(p.amount)} recibido`, 3500);
-      if (prefs().cajaSound && !EMBED) Voice.enqueue({ text: p.speech, chime: true, gap: 700 });
+      // Voz con ka-ching, o solo el ka-ching (en /demo suena la bocina, no el celular)
+      if (!EMBED) {
+        if (prefs().cajaSound) Voice.enqueue({ text: p.speech, chime: true, gap: 700 });
+        else if (prefs().notifySound !== false) Bocina.chime();
+        if (navigator.vibrate) navigator.vibrate([60, 40, 60]);
+      }
     },
     history: () => loadPayments(),   // pago viejo recuperado: entra a la lista sin anunciarse
     fixed: () => loadFixed(),

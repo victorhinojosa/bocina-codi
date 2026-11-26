@@ -64,18 +64,35 @@
   const volume = () => Math.max(0, Math.min(1, Number(prefs().volume ?? 0.8)));
   function setVolume(v) { setPref("volume", Math.round(Math.max(0, Math.min(1, v)) * 10) / 10); return volume(); }
 
+  // Sonido de pago: "ka-ching" de caja registradora, sintetizado (sin archivos de audio).
+  // Un golpecito metálico (ka) y dos campanadas brillantes que se desvanecen (ching).
   function chime() {
     try {
       audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
-      const ctx = audioCtx;
-      [880, 1320].forEach((f, i) => {
-        const o = ctx.createOscillator(), g = ctx.createGain();
-        o.frequency.value = f; o.connect(g); g.connect(ctx.destination);
-        const t = ctx.currentTime + i * 0.12;
-        g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(Math.max(0.0002, 0.3 * volume()), t + 0.02);
-        g.gain.exponentialRampToValueAtTime(0.0001, t + 0.25);
-        o.start(t); o.stop(t + 0.3);
-      });
+      const ctx = audioCtx, vol = volume();
+      if (vol === 0) return;
+      const out = ctx.createGain(); out.gain.value = 0.9 * vol; out.connect(ctx.destination);
+      const t0 = ctx.currentTime + 0.01;
+      // ka: ruido corto filtrado, como la palanca de la caja
+      const len = Math.floor(ctx.sampleRate * 0.05), buf = ctx.createBuffer(1, len, ctx.sampleRate), d = buf.getChannelData(0);
+      for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3);
+      const noise = ctx.createBufferSource(); noise.buffer = buf;
+      const bp = ctx.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = 2800; bp.Q.value = 1.2;
+      const ng = ctx.createGain(); ng.gain.value = 0.5;
+      noise.connect(bp); bp.connect(ng); ng.connect(out); noise.start(t0);
+      // ching: dos campanadas con parciales metálicos
+      const bell = (t, base, peak) => {
+        [[1, 1], [2.76, 0.35], [5.4, 0.12]].forEach(([mult, amp]) => {
+          const o = ctx.createOscillator(), g = ctx.createGain();
+          o.type = "sine"; o.frequency.value = base * mult;
+          g.gain.setValueAtTime(0.0001, t);
+          g.gain.exponentialRampToValueAtTime(peak * amp, t + 0.008);
+          g.gain.exponentialRampToValueAtTime(0.0001, t + (mult === 1 ? 0.9 : 0.35));
+          o.connect(g); g.connect(out); o.start(t); o.stop(t + 1);
+        });
+      };
+      bell(t0 + 0.05, 1318.5, 0.32);   // Mi6
+      bell(t0 + 0.17, 1975.5, 0.26);   // Si6
     } catch {}
   }
 
@@ -134,7 +151,7 @@
         notify();
         try {
           it.onStart?.(queue.length);
-          if (it.chime) { chime(); await sleep(300); }
+          if (it.chime) { chime(); await sleep(650); }   // que suene el ka-ching antes de la voz
           await sayNow(it.text);
           await sleep(it.gap ?? 500); // pausa entre anuncios para que se distingan
           it.onEnd?.();
