@@ -50,6 +50,12 @@ CoDi existe desde 2019: transferencias inmediatas, sin terminal y sin comisión 
 
 **Sonido de pago.** Cada pago suena con un "ka-ching" sintetizado en la bocina y, por defecto, también en el celular del dueño (se puede apagar en Perfil → Bocina).
 
+**Voz pregenerada.** Los anuncios no llaman a ElevenLabs: se arman con 148 audios cortos generados una sola vez ("Recibiste" · "cincuenta" · "pesos" · "con" · "veinte" · "centavos"). Cubren cualquier monto hasta $99,999.99, el botón "Último pago" con su hora y los avisos ("Sin conexión"). El servidor manda en cada aviso la lista de piezas (`speechParts`) y el navegador las reproduce seguidas con Web Audio. Si falta algún audio o el monto es mayor, se usa ElevenLabs en vivo o la voz del teléfono. Las respuestas del asistente sí se generan en vivo, solo cuando se pregunta por voz. Para generar la voz (una vez, con `ELEVENLABS_API_KEY` en el `.env`):
+
+```bash
+python scripts/generate_voice.py          # genera lo que falte en app/static/voice/<voz>/
+```
+
 **Respaldo del webhook.** Mientras haya una pantalla conectada, el servidor consulta a pey cada 45 s (y en cuanto una pantalla se reconecta) los pagos del QR fijo, de los QR con monto y de los cobros al celular pendientes. El `transactionId` es la clave: un pago nunca se guarda ni se anuncia dos veces, llegue primero por el webhook o por el respaldo. Solo se anuncian en voz los pagos de los últimos 2 minutos; los más viejos entran al historial marcados como *Recuperado*. Cada pago guarda `paid_at` (cuándo pagó, según pey), `received_at` (cuándo llegó el webhook) y `created_at` (cuándo lo registró la app).
 
 ## Cómo funciona

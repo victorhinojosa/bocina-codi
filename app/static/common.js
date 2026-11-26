@@ -44,6 +44,7 @@
   let status = {};
   async function loadStatus() {
     try { status = await api("/api/status"); } catch { status = {}; }
+    Clips.init();   // si hay voz pregenerada, empieza a descargarla
     return status;
   }
 
@@ -120,12 +121,85 @@
     } finally { URL.revokeObjectURL(url); }
   }
 
+  // ---------- VOZ PREGENERADA ----------
+  // Los anuncios se arman con audios cortos ("Recibiste" · "cincuenta" · "pesos"…) generados una sola vez con
+  // ElevenLabs. Se descargan una vez (el navegador los guarda), se les quita el silencio de las orillas y se
+  // reproducen seguidos con Web Audio. Así un pago nunca llama a ElevenLabs.
+  const Clips = (() => {
+    let manifest = null, base = "", started = false;
+    const buffers = new Map();
+    const ctx = () => (audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)());
+
+    // AJUSTES DEL ARMADO (todo lo que decide cómo suena la frase). Se pueden probar en vivo desde la
+    // consola del navegador, p. ej.:  Bocina.Clips.tuning.gaps.ultimo_pago = 0.3   y presionar "Último pago".
+    const tuning = {
+      threshold: 0.006,   // volumen bajo el cual se considera silencio al recortar las orillas de cada audio
+      leadMs: 45,         // aire que se deja ANTES de la voz (más = no se come el inicio suave: "s", "f", "c")
+      tailMs: 25,         // aire que se deja DESPUÉS de la voz
+      fadeMs: 6,          // entrada/salida suave de cada audio para que no haga "clic"
+      gap: 0.04,          // pausa normal entre palabras (segundos)
+      gaps: { simulacion: 0.28, ultimo_pago: 0.05 },   // pausa después de estas piezas (los números empiezan en
+                                                       // seco: tras una pausa larga suenan cortados)
+      beforeTime: 0.18,   // pausa antes de la hora ("…pesos · a las siete…"), como una coma
+    };
+    // Recorta el silencio de las orillas según los ajustes (se hace al reproducir: así un cambio en
+    // `tuning` se escucha de inmediato)
+    function trimmed(buf) {
+      const d = buf.getChannelData(0), sr = buf.sampleRate;
+      let a = 0, b = d.length - 1;
+      while (a < b && Math.abs(d[a]) < tuning.threshold) a++;
+      while (b > a && Math.abs(d[b]) < tuning.threshold) b--;
+      return { offset: Math.max(0, a - sr * tuning.leadMs / 1000) / sr, end: Math.min(d.length - 1, b + sr * tuning.tailMs / 1000) / sr };
+    }
+    async function load(key) {
+      if (buffers.has(key)) return;
+      const c = manifest.clips[key];
+      const data = await (await fetch(`${base}${c.file}?v=${c.hash}`)).arrayBuffer();
+      buffers.set(key, await ctx().decodeAudioData(data));
+    }
+    async function init() {
+      if (started || !status.voice?.clips) return;
+      started = true;
+      base = `/static/voice/${encodeURIComponent(status.voice.id)}/`;
+      try { manifest = await (await fetch(base + "manifest.json", { cache: "no-cache" })).json(); }
+      catch { manifest = null; return; }
+      const keys = Object.keys(manifest.clips || {});   // en segundo plano, de 8 en 8
+      for (let i = 0; i < keys.length; i += 8) await Promise.all(keys.slice(i, i + 8).map((k) => load(k).catch(() => {})));
+    }
+    const has = (parts) => !!(manifest && parts?.length && parts.every((p) => manifest.clips?.[p]));
+    const gapAfter = (p, next) => tuning.gaps[p] ?? (next?.startsWith("a_la") ? tuning.beforeTime : tuning.gap);
+    async function play(parts) {
+      await Promise.all(parts.map(load));
+      const c = ctx();
+      if (c.state !== "running") { try { await c.resume(); } catch {} }
+      if (c.state !== "running") { markBlocked(); return; }
+      const out = c.createGain(); out.gain.value = volume(); out.connect(c.destination);
+      let t = c.currentTime + 0.05;
+      const fade = tuning.fadeMs / 1000;
+      parts.forEach((p, i) => {
+        const buf = buffers.get(p), { offset, end } = trimmed(buf), len = end - offset;
+        const src = c.createBufferSource(), g = c.createGain();
+        src.buffer = buf; src.connect(g); g.connect(out);
+        g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(1, t + fade);
+        g.gain.setValueAtTime(1, t + len - fade); g.gain.linearRampToValueAtTime(0, t + len);
+        src.start(t, offset, len);
+        t += len + gapAfter(p, parts[i + 1]);
+      });
+      await sleep((t - c.currentTime) * 1000);
+    }
+    return { init, has, play, tuning, get ready() { return !!manifest; } };
+  })();
+
   // Dice UN texto completo y resuelve cuando terminó de sonar.
-  async function sayNow(text) {
+  // `parts`: piezas de la voz pregenerada; si están todas, se usan (sin llamar a ElevenLabs).
+  async function sayNow(text, parts) {
     const mode = prefs().voiceMode;
     if (mode === "off" || volume() === 0) { await sleep(2200); return; } // sin voz, igual damos tiempo a ver la pantalla
     const guard = sleep(Math.max(6000, text.length * 150)); // por si el audio se atora, la cola no se congela
     const speak = (async () => {
+      if (mode === "elevenlabs" && Clips.has(parts)) {
+        try { await Clips.play(parts); return; } catch (e) { console.warn("Voz pregenerada falló, uso respaldo:", e.message); }
+      }
       if (mode === "elevenlabs" && status.elevenlabs) {
         try { await elevenSay(text); return; } catch (e) { console.warn("ElevenLabs falló, uso voz del navegador:", e.message); }
       }
@@ -152,7 +226,7 @@
         try {
           it.onStart?.(queue.length);
           if (it.chime) { chime(); await sleep(650); }   // que suene el ka-ching antes de la voz
-          await sayNow(it.text);
+          await sayNow(it.text, it.parts);
           await sleep(it.gap ?? 500); // pausa entre anuncios para que se distingan
           it.onEnd?.();
         } catch (e) { console.warn("Error en la cola de voz", e); }
@@ -239,7 +313,7 @@
     drawDinLogo,
     $, money, hhmm, esc, sleep, api, toast, prefs, setPref,
     loadStatus, get status() { return status; },
-    unlockAudio, chime, Voice, connect, dictate, askAssistant, volume, setVolume,
+    unlockAudio, chime, Voice, Clips, connect, dictate, askAssistant, volume, setVolume,
     get soundUnlocked() { return unlocked; },
     onSoundChange(fn) { soundListeners.add(fn); fn(unlocked); },
   };

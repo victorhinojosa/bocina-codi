@@ -4,7 +4,7 @@ import logging
 import re
 import sqlite3
 
-from app import config, timeutil
+from app import config, timeutil, voice
 from app.db import connect
 from app.events import bus
 from app.speech import amount_letters, speech_for_amount
@@ -232,6 +232,7 @@ async def record_payment(payload: dict, *, source: str = "webhook") -> dict:
         "transactionId": tx_id,
         "datePaid": paid_at,
         "speech": speech_for_amount(amount, simulated),
+        "speechParts": voice.payment_parts(amount, simulated),  # voz pregenerada (None = usar `speech`)
     }
     event["merchantId"], event["storeId"] = merchant_id, store_id
     await bus.publish(event, merchant_id, store_id)

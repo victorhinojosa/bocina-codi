@@ -1,5 +1,7 @@
 """Texto hablado: "Recibiste 100 pesos" y montos en letra para el comprobante."""
 
+import re
+
 from num2words import num2words
 
 
@@ -28,8 +30,11 @@ def money_words(amount: float) -> str:
 
 
 def _words_apocope(n: int) -> str:
-    """Número en letra listo para ir antes de un sustantivo: 'un', 'veintiún', 'treinta y un'."""
+    """Número en letra listo para ir antes de un sustantivo: 'un', 'veintiún', 'treinta y un'.
+    También antes de 'mil': num2words dice 'veintiuno mil', lo correcto es 'veintiún mil'."""
     words = num2words(n, lang="es")
+    words = re.sub(r"\bveintiuno mil\b", "veintiún mil", words)
+    words = re.sub(r"\buno mil\b", "un mil", words)
     if words.endswith("veintiuno"):
         return words[:-len("veintiuno")] + "veintiún"
     if words == "uno" or words.endswith(" uno"):

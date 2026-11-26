@@ -6,7 +6,7 @@ import json
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import StreamingResponse
 
-from app import auth, payments, timeutil
+from app import auth, payments, timeutil, voice
 from app.auth import Viewer
 from app.events import bus
 from app.recovery import recovery
@@ -20,10 +20,11 @@ async def last_payment(v: Viewer = Depends(auth.viewer)) -> dict:
     """Botón 'Último pago' del dispositivo (una bocina vinculada solo ve los de su tienda)."""
     r = payments.last_payment(v.merchant_id, v.store_id if v.is_device else None)
     if not r:
-        return {"payment": None, "speech": "Todavía no hay pagos."}
+        return {"payment": None, "speech": "Todavía no hay pagos.", "speechParts": ["sin_pagos"]}
     p = payments.payment_to_dict(r)
     sim = "Simulación. " if p["simulated"] else ""
-    return {"payment": p, "speech": f"{sim}Último pago: {money_words(p['amount'])}, {timeutil.spoken_time(p['paidAt'])}."}
+    return {"payment": p, "speech": f"{sim}Último pago: {money_words(p['amount'])}, {timeutil.spoken_time(p['paidAt'])}.",
+            "speechParts": voice.last_payment_parts(p["amount"], p["paidAt"], p["simulated"])}
 
 
 @router.get("/api/payments")

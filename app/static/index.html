@@ -411,13 +411,13 @@ import { createSoundbox } from "/static/soundbox-display.js";
       connected = on;
       if ($("statusBadge")) syncStatus();
       if (on && !was) logEvent("info", "Conectado · escuchando pagos", wasEverConnected ? "conexión restablecida" : "");
-      if (!on && was) { logEvent("warn", "Sin conexión con el servidor", "reintentando…"); Voice.enqueue({ text: "Sin conexión", gap: 200 }); }
+      if (!on && was) { logEvent("warn", "Sin conexión con el servidor", "reintentando…"); Voice.enqueue({ text: "Sin conexión", parts: ["sin_conexion"], gap: 200 }); }
       if (on) wasEverConnected = true;
     },
     payment: (p) => {
       // cada pago entra a la fila; se anuncia completo y en orden
       logPayment(p);   // el log se escribe al llegar (aunque la voz esté en fila)
-      Voice.enqueue({ text: p.speech, chime: true, gap: 700, onStart: () => { Speaker.payment(p); Speaker.bump(); } });
+      Voice.enqueue({ text: p.speech, parts: p.speechParts, chime: true, gap: 700, onStart: () => { Speaker.payment(p); Speaker.bump(); } });
     },
     history: (p) => logPayment(p),   // pago viejo recuperado: solo al registro, sin voz
     fixed: async () => { await loadFixed(); renderBase(); },
@@ -436,7 +436,7 @@ import { createSoundbox } from "/static/soundbox-display.js";
       const d = await api("/api/last-payment");
       const p = d.payment;
       const msg = p ? `Último pago: ${money(p.amount)} · ${hhmm(p.paidAt)}${p.simulated ? " · simulación" : ""}` : "Todavía no hay pagos";
-      Voice.enqueue({ text: d.speech, gap: 300, onStart: () => showBubble("", msg, 6000) });
+      Voice.enqueue({ text: d.speech, parts: d.speechParts, gap: 300, onStart: () => showBubble("", msg, 6000) });
     } catch (e) { toast(e.message); }
   }
 

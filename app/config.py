@@ -39,7 +39,8 @@ RECOVERY_POLL_SECONDS = int(env("RECOVERY_POLL_SECONDS", "45"))
 ANNOUNCE_WINDOW_SECONDS = int(env("ANNOUNCE_WINDOW_SECONDS", "120"))
 
 ELEVENLABS_API_KEY = env("ELEVENLABS_API_KEY")
-ELEVENLABS_VOICE_ID = env("ELEVENLABS_VOICE_ID", "21m00Tcm4TlvDq8ikWAM")
+# Voz de Din: la misma para los audios pregenerados (app/static/voice/<voz>/) y para lo que se genera en vivo
+ELEVENLABS_VOICE_ID = env("ELEVENLABS_VOICE_ID", "ewn5JTa3lNPY8QVuZJi6")
 ELEVENLABS_MODEL = env("ELEVENLABS_MODEL", "eleven_flash_v2_5")
 
 ANTHROPIC_API_KEY = env("ANTHROPIC_API_KEY")

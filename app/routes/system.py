@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter
 
-from app import config, db
+from app import config, db, voice
 
 router = APIRouter()
 
@@ -20,6 +20,8 @@ async def status() -> dict:
         "timezone": config.BUSINESS_TZ,
         "recoveryPollSeconds": config.RECOVERY_POLL_SECONDS,
         "webhookPath": "/webhooks/pey",
+        # Voz pregenerada: si están todos los audios de esta voz, el navegador arma los anuncios con ellos
+        "voice": {"id": config.ELEVENLABS_VOICE_ID, "clips": voice.available()},
         # La cuenta demo es pública a propósito: se muestra en /app en computadora para que cualquiera entre
         "demo": {"phone": config.DEMO_PHONE, "pin": config.DEMO_PIN, "name": config.DEMO_FIRST_NAME,
                  "pushPerSession": config.DEMO_PUSH_PER_SESSION, "pushMaxAmount": config.DEMO_PUSH_MAX_AMOUNT}

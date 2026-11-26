@@ -64,7 +64,10 @@ async def revalidate_static(request: Request, call_next):
     """Los JS/CSS propios se revalidan (304 si no cambiaron); three.js sí se cachea."""
     response = await call_next(request)
     path = request.url.path
-    if path.startswith("/static/") and not path.startswith("/static/vendor/"):
+    if path.startswith("/static/voice/") and path.endswith(".mp3"):
+        # los audios se piden con ?v=<hash>: si se regeneran cambia la URL, así que se pueden guardar para siempre
+        response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+    elif path.startswith("/static/") and not path.startswith("/static/vendor/"):
         response.headers["Cache-Control"] = "no-cache"
     return response
 

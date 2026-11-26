@@ -1,0 +1,753 @@
+{
+ "voice": "ewn5JTa3lNPY8QVuZJi6",
+ "model": "eleven_multilingual_v2",
+ "settings": {
+  "stability": 0.6,
+  "similarity_boost": 0.8,
+  "style": 0.0,
+  "use_speaker_boost": true
+ },
+ "generatedAt": "2026-11-26T04:17:48+00:00",
+ "clips": {
+  "recibiste": {
+   "file": "recibiste.mp3",
+   "text": "Recibiste",
+   "hash": "1b986ce0be"
+  },
+  "simulacion": {
+   "file": "simulacion.mp3",
+   "text": "Simulación.",
+   "hash": "a1eb236886"
+  },
+  "peso": {
+   "file": "peso.mp3",
+   "text": "peso",
+   "hash": "7bf4760ad5"
+  },
+  "pesos": {
+   "file": "pesos.mp3",
+   "text": "pesos",
+   "hash": "9d1ac7dc17"
+  },
+  "peso_fin": {
+   "file": "peso_fin.mp3",
+   "text": "peso.",
+   "hash": "dcf0f4f25e"
+  },
+  "pesos_fin": {
+   "file": "pesos_fin.mp3",
+   "text": "pesos.",
+   "hash": "f30397c195"
+  },
+  "con": {
+   "file": "_con.mp3",
+   "text": "con",
+   "hash": "838fb96e42"
+  },
+  "centavo": {
+   "file": "centavo.mp3",
+   "text": "centavo.",
+   "hash": "7be6b9b819"
+  },
+  "centavos": {
+   "file": "centavos.mp3",
+   "text": "centavos.",
+   "hash": "1f85db5b90"
+  },
+  "n1": {
+   "file": "n1.mp3",
+   "text": "uno",
+   "hash": "d39875e940"
+  },
+  "n2": {
+   "file": "n2.mp3",
+   "text": "dos",
+   "hash": "cd733764c5"
+  },
+  "n3": {
+   "file": "n3.mp3",
+   "text": "tres",
+   "hash": "3b06169fc9"
+  },
+  "n4": {
+   "file": "n4.mp3",
+   "text": "cuatro",
+   "hash": "d8d2914299"
+  },
+  "n5": {
+   "file": "n5.mp3",
+   "text": "cinco",
+   "hash": "6e025780b8"
+  },
+  "n6": {
+   "file": "n6.mp3",
+   "text": "seis",
+   "hash": "3a460d5843"
+  },
+  "n7": {
+   "file": "n7.mp3",
+   "text": "siete",
+   "hash": "23a945006f"
+  },
+  "n8": {
+   "file": "n8.mp3",
+   "text": "ocho",
+   "hash": "3961b7fb71"
+  },
+  "n9": {
+   "file": "n9.mp3",
+   "text": "nueve",
+   "hash": "0a64452c03"
+  },
+  "n10": {
+   "file": "n10.mp3",
+   "text": "diez",
+   "hash": "664453aafc"
+  },
+  "n11": {
+   "file": "n11.mp3",
+   "text": "once",
+   "hash": "3528d58128"
+  },
+  "n12": {
+   "file": "n12.mp3",
+   "text": "doce",
+   "hash": "7fab598f02"
+  },
+  "n13": {
+   "file": "n13.mp3",
+   "text": "trece",
+   "hash": "fbc562ecda"
+  },
+  "n14": {
+   "file": "n14.mp3",
+   "text": "catorce",
+   "hash": "d8da8a1806"
+  },
+  "n15": {
+   "file": "n15.mp3",
+   "text": "quince",
+   "hash": "85fb1c74f9"
+  },
+  "n16": {
+   "file": "n16.mp3",
+   "text": "dieciséis",
+   "hash": "93394d1764"
+  },
+  "n17": {
+   "file": "n17.mp3",
+   "text": "diecisiete",
+   "hash": "581cf0aee6"
+  },
+  "n18": {
+   "file": "n18.mp3",
+   "text": "dieciocho",
+   "hash": "f2799e7a32"
+  },
+  "n19": {
+   "file": "n19.mp3",
+   "text": "diecinueve",
+   "hash": "ccacb2fc3d"
+  },
+  "n20": {
+   "file": "n20.mp3",
+   "text": "veinte",
+   "hash": "4e80a3755c"
+  },
+  "n21": {
+   "file": "n21.mp3",
+   "text": "veintiuno",
+   "hash": "19c566fe8b"
+  },
+  "n22": {
+   "file": "n22.mp3",
+   "text": "veintidós",
+   "hash": "bbc81d1089"
+  },
+  "n23": {
+   "file": "n23.mp3",
+   "text": "veintitrés",
+   "hash": "e093c64782"
+  },
+  "n24": {
+   "file": "n24.mp3",
+   "text": "veinticuatro",
+   "hash": "67dd1fe75c"
+  },
+  "n25": {
+   "file": "n25.mp3",
+   "text": "veinticinco",
+   "hash": "02b64a31fa"
+  },
+  "n26": {
+   "file": "n26.mp3",
+   "text": "veintiséis",
+   "hash": "1d998cc62a"
+  },
+  "n27": {
+   "file": "n27.mp3",
+   "text": "veintisiete",
+   "hash": "6ac8e1d23f"
+  },
+  "n28": {
+   "file": "n28.mp3",
+   "text": "veintiocho",
+   "hash": "e3200fcb6a"
+  },
+  "n29": {
+   "file": "n29.mp3",
+   "text": "veintinueve",
+   "hash": "10a1203fd7"
+  },
+  "n30": {
+   "file": "n30.mp3",
+   "text": "treinta",
+   "hash": "85b9a85989"
+  },
+  "n31": {
+   "file": "n31.mp3",
+   "text": "treinta y uno",
+   "hash": "c24528be4a"
+  },
+  "n32": {
+   "file": "n32.mp3",
+   "text": "treinta y dos",
+   "hash": "49a679021d"
+  },
+  "n33": {
+   "file": "n33.mp3",
+   "text": "treinta y tres",
+   "hash": "59e8eb12e6"
+  },
+  "n34": {
+   "file": "n34.mp3",
+   "text": "treinta y cuatro",
+   "hash": "9b4cff9c5b"
+  },
+  "n35": {
+   "file": "n35.mp3",
+   "text": "treinta y cinco",
+   "hash": "32198f64d8"
+  },
+  "n36": {
+   "file": "n36.mp3",
+   "text": "treinta y seis",
+   "hash": "3756d690a7"
+  },
+  "n37": {
+   "file": "n37.mp3",
+   "text": "treinta y siete",
+   "hash": "a077e617fb"
+  },
+  "n38": {
+   "file": "n38.mp3",
+   "text": "treinta y ocho",
+   "hash": "10aec00a24"
+  },
+  "n39": {
+   "file": "n39.mp3",
+   "text": "treinta y nueve",
+   "hash": "43129b7ace"
+  },
+  "n40": {
+   "file": "n40.mp3",
+   "text": "cuarenta",
+   "hash": "634576b1f3"
+  },
+  "n41": {
+   "file": "n41.mp3",
+   "text": "cuarenta y uno",
+   "hash": "efcd14b492"
+  },
+  "n42": {
+   "file": "n42.mp3",
+   "text": "cuarenta y dos",
+   "hash": "c012137d32"
+  },
+  "n43": {
+   "file": "n43.mp3",
+   "text": "cuarenta y tres",
+   "hash": "86a3de5263"
+  },
+  "n44": {
+   "file": "n44.mp3",
+   "text": "cuarenta y cuatro",
+   "hash": "a2d8ec9e55"
+  },
+  "n45": {
+   "file": "n45.mp3",
+   "text": "cuarenta y cinco",
+   "hash": "4ea0f03c4e"
+  },
+  "n46": {
+   "file": "n46.mp3",
+   "text": "cuarenta y seis",
+   "hash": "fd885297b2"
+  },
+  "n47": {
+   "file": "n47.mp3",
+   "text": "cuarenta y siete",
+   "hash": "f38e3edd28"
+  },
+  "n48": {
+   "file": "n48.mp3",
+   "text": "cuarenta y ocho",
+   "hash": "c4a15f34d1"
+  },
+  "n49": {
+   "file": "n49.mp3",
+   "text": "cuarenta y nueve",
+   "hash": "7dfc7d73a8"
+  },
+  "n50": {
+   "file": "n50.mp3",
+   "text": "cincuenta",
+   "hash": "497d48de83"
+  },
+  "n51": {
+   "file": "n51.mp3",
+   "text": "cincuenta y uno",
+   "hash": "9951a8e0b5"
+  },
+  "n52": {
+   "file": "n52.mp3",
+   "text": "cincuenta y dos",
+   "hash": "64f7e73bc5"
+  },
+  "n53": {
+   "file": "n53.mp3",
+   "text": "cincuenta y tres",
+   "hash": "1dc06dbd1b"
+  },
+  "n54": {
+   "file": "n54.mp3",
+   "text": "cincuenta y cuatro",
+   "hash": "a093855f14"
+  },
+  "n55": {
+   "file": "n55.mp3",
+   "text": "cincuenta y cinco",
+   "hash": "4d99daefc1"
+  },
+  "n56": {
+   "file": "n56.mp3",
+   "text": "cincuenta y seis",
+   "hash": "29eea77f3a"
+  },
+  "n57": {
+   "file": "n57.mp3",
+   "text": "cincuenta y siete",
+   "hash": "acd7df88e7"
+  },
+  "n58": {
+   "file": "n58.mp3",
+   "text": "cincuenta y ocho",
+   "hash": "6f2f6df2af"
+  },
+  "n59": {
+   "file": "n59.mp3",
+   "text": "cincuenta y nueve",
+   "hash": "6f6ca0a5d1"
+  },
+  "n60": {
+   "file": "n60.mp3",
+   "text": "sesenta",
+   "hash": "6ef0e73d41"
+  },
+  "n61": {
+   "file": "n61.mp3",
+   "text": "sesenta y uno",
+   "hash": "c0ae3af3da"
+  },
+  "n62": {
+   "file": "n62.mp3",
+   "text": "sesenta y dos",
+   "hash": "0cfc71cef0"
+  },
+  "n63": {
+   "file": "n63.mp3",
+   "text": "sesenta y tres",
+   "hash": "451bbafe38"
+  },
+  "n64": {
+   "file": "n64.mp3",
+   "text": "sesenta y cuatro",
+   "hash": "ad060924ef"
+  },
+  "n65": {
+   "file": "n65.mp3",
+   "text": "sesenta y cinco",
+   "hash": "f48a7bc011"
+  },
+  "n66": {
+   "file": "n66.mp3",
+   "text": "sesenta y seis",
+   "hash": "1d242c9174"
+  },
+  "n67": {
+   "file": "n67.mp3",
+   "text": "sesenta y siete",
+   "hash": "b632632e78"
+  },
+  "n68": {
+   "file": "n68.mp3",
+   "text": "sesenta y ocho",
+   "hash": "83ef78c7c3"
+  },
+  "n69": {
+   "file": "n69.mp3",
+   "text": "sesenta y nueve",
+   "hash": "bb5f1eda46"
+  },
+  "n70": {
+   "file": "n70.mp3",
+   "text": "setenta",
+   "hash": "6eec8342f4"
+  },
+  "n71": {
+   "file": "n71.mp3",
+   "text": "setenta y uno",
+   "hash": "4768a19f8f"
+  },
+  "n72": {
+   "file": "n72.mp3",
+   "text": "setenta y dos",
+   "hash": "0ee9aa8014"
+  },
+  "n73": {
+   "file": "n73.mp3",
+   "text": "setenta y tres",
+   "hash": "c931ded33a"
+  },
+  "n74": {
+   "file": "n74.mp3",
+   "text": "setenta y cuatro",
+   "hash": "47587227b7"
+  },
+  "n75": {
+   "file": "n75.mp3",
+   "text": "setenta y cinco",
+   "hash": "f1cf3fefd5"
+  },
+  "n76": {
+   "file": "n76.mp3",
+   "text": "setenta y seis",
+   "hash": "bd0d28b010"
+  },
+  "n77": {
+   "file": "n77.mp3",
+   "text": "setenta y siete",
+   "hash": "598acff0b9"
+  },
+  "n78": {
+   "file": "n78.mp3",
+   "text": "setenta y ocho",
+   "hash": "2d16b7378b"
+  },
+  "n79": {
+   "file": "n79.mp3",
+   "text": "setenta y nueve",
+   "hash": "439d8959cc"
+  },
+  "n80": {
+   "file": "n80.mp3",
+   "text": "ochenta",
+   "hash": "7739f24287"
+  },
+  "n81": {
+   "file": "n81.mp3",
+   "text": "ochenta y uno",
+   "hash": "a9b0b1abec"
+  },
+  "n82": {
+   "file": "n82.mp3",
+   "text": "ochenta y dos",
+   "hash": "9151290d6b"
+  },
+  "n83": {
+   "file": "n83.mp3",
+   "text": "ochenta y tres",
+   "hash": "5a5c6f8f02"
+  },
+  "n84": {
+   "file": "n84.mp3",
+   "text": "ochenta y cuatro",
+   "hash": "726ea9cb59"
+  },
+  "n85": {
+   "file": "n85.mp3",
+   "text": "ochenta y cinco",
+   "hash": "bcb3b037fa"
+  },
+  "n86": {
+   "file": "n86.mp3",
+   "text": "ochenta y seis",
+   "hash": "2af90c3717"
+  },
+  "n87": {
+   "file": "n87.mp3",
+   "text": "ochenta y siete",
+   "hash": "2fd73c0c25"
+  },
+  "n88": {
+   "file": "n88.mp3",
+   "text": "ochenta y ocho",
+   "hash": "a9ff5044ae"
+  },
+  "n89": {
+   "file": "n89.mp3",
+   "text": "ochenta y nueve",
+   "hash": "0355443f16"
+  },
+  "n90": {
+   "file": "n90.mp3",
+   "text": "noventa",
+   "hash": "8882c07d90"
+  },
+  "n91": {
+   "file": "n91.mp3",
+   "text": "noventa y uno",
+   "hash": "d867e1c561"
+  },
+  "n92": {
+   "file": "n92.mp3",
+   "text": "noventa y dos",
+   "hash": "0022e9d6c9"
+  },
+  "n93": {
+   "file": "n93.mp3",
+   "text": "noventa y tres",
+   "hash": "21c47f1152"
+  },
+  "n94": {
+   "file": "n94.mp3",
+   "text": "noventa y cuatro",
+   "hash": "c8beb94170"
+  },
+  "n95": {
+   "file": "n95.mp3",
+   "text": "noventa y cinco",
+   "hash": "029f137efb"
+  },
+  "n96": {
+   "file": "n96.mp3",
+   "text": "noventa y seis",
+   "hash": "8b710910c7"
+  },
+  "n97": {
+   "file": "n97.mp3",
+   "text": "noventa y siete",
+   "hash": "41281a95a9"
+  },
+  "n98": {
+   "file": "n98.mp3",
+   "text": "noventa y ocho",
+   "hash": "e8a1a6f7be"
+  },
+  "n99": {
+   "file": "n99.mp3",
+   "text": "noventa y nueve",
+   "hash": "a55439fdf9"
+  },
+  "u1": {
+   "file": "u1.mp3",
+   "text": "un",
+   "hash": "01f7650b0c"
+  },
+  "u21": {
+   "file": "u21.mp3",
+   "text": "veintiún",
+   "hash": "6f586bd46a"
+  },
+  "u31": {
+   "file": "u31.mp3",
+   "text": "treinta y un",
+   "hash": "c78195c796"
+  },
+  "u41": {
+   "file": "u41.mp3",
+   "text": "cuarenta y un",
+   "hash": "92d85a2d11"
+  },
+  "u51": {
+   "file": "u51.mp3",
+   "text": "cincuenta y un",
+   "hash": "1c628f5af8"
+  },
+  "u61": {
+   "file": "u61.mp3",
+   "text": "sesenta y un",
+   "hash": "2e6dba541f"
+  },
+  "u71": {
+   "file": "u71.mp3",
+   "text": "setenta y un",
+   "hash": "d4a42a0cb1"
+  },
+  "u81": {
+   "file": "u81.mp3",
+   "text": "ochenta y un",
+   "hash": "905d792f54"
+  },
+  "u91": {
+   "file": "u91.mp3",
+   "text": "noventa y un",
+   "hash": "6f5dcb8bb9"
+  },
+  "h100": {
+   "file": "h100.mp3",
+   "text": "cien",
+   "hash": "dfe8d34bae"
+  },
+  "h1": {
+   "file": "h1.mp3",
+   "text": "ciento",
+   "hash": "c68c1c0616"
+  },
+  "h2": {
+   "file": "h2.mp3",
+   "text": "doscientos",
+   "hash": "cfeae65333"
+  },
+  "h3": {
+   "file": "h3.mp3",
+   "text": "trescientos",
+   "hash": "90a20ad997"
+  },
+  "h4": {
+   "file": "h4.mp3",
+   "text": "cuatrocientos",
+   "hash": "a8e8cbce33"
+  },
+  "h5": {
+   "file": "h5.mp3",
+   "text": "quinientos",
+   "hash": "e47bd5e264"
+  },
+  "h6": {
+   "file": "h6.mp3",
+   "text": "seiscientos",
+   "hash": "18480074b7"
+  },
+  "h7": {
+   "file": "h7.mp3",
+   "text": "setecientos",
+   "hash": "c92a0319aa"
+  },
+  "h8": {
+   "file": "h8.mp3",
+   "text": "ochocientos",
+   "hash": "b8bc82f6bf"
+  },
+  "h9": {
+   "file": "h9.mp3",
+   "text": "novecientos",
+   "hash": "7a82ad62ea"
+  },
+  "mil": {
+   "file": "mil.mp3",
+   "text": "mil",
+   "hash": "174e97740a"
+  },
+  "ultimo_pago": {
+   "file": "ultimo_pago.mp3",
+   "text": "Último pago",
+   "hash": "be4c974e51"
+  },
+  "a_la_una": {
+   "file": "a_la_una.mp3",
+   "text": "a la una",
+   "hash": "6aaa306f0f"
+  },
+  "a_las_2": {
+   "file": "a_las_2.mp3",
+   "text": "a las dos",
+   "hash": "ea2039a866"
+  },
+  "a_las_3": {
+   "file": "a_las_3.mp3",
+   "text": "a las tres",
+   "hash": "48b426b3e2"
+  },
+  "a_las_4": {
+   "file": "a_las_4.mp3",
+   "text": "a las cuatro",
+   "hash": "bc8a12fd90"
+  },
+  "a_las_5": {
+   "file": "a_las_5.mp3",
+   "text": "a las cinco",
+   "hash": "5abd7d3353"
+  },
+  "a_las_6": {
+   "file": "a_las_6.mp3",
+   "text": "a las seis",
+   "hash": "450fcb1b45"
+  },
+  "a_las_7": {
+   "file": "a_las_7.mp3",
+   "text": "a las siete",
+   "hash": "07e24b2abd"
+  },
+  "a_las_8": {
+   "file": "a_las_8.mp3",
+   "text": "a las ocho",
+   "hash": "de67940a73"
+  },
+  "a_las_9": {
+   "file": "a_las_9.mp3",
+   "text": "a las nueve",
+   "hash": "c9a19f9172"
+  },
+  "a_las_10": {
+   "file": "a_las_10.mp3",
+   "text": "a las diez",
+   "hash": "f644b2f02b"
+  },
+  "a_las_11": {
+   "file": "a_las_11.mp3",
+   "text": "a las once",
+   "hash": "4d1d78a060"
+  },
+  "a_las_12": {
+   "file": "a_las_12.mp3",
+   "text": "a las doce",
+   "hash": "409b0352e2"
+  },
+  "y": {
+   "file": "y.mp3",
+   "text": "y",
+   "hash": "1327b29d2a"
+  },
+  "en_punto": {
+   "file": "en_punto.mp3",
+   "text": "en punto",
+   "hash": "298f788d5a"
+  },
+  "de_la_manana": {
+   "file": "de_la_manana.mp3",
+   "text": "de la mañana.",
+   "hash": "298d77a9d8"
+  },
+  "de_la_tarde": {
+   "file": "de_la_tarde.mp3",
+   "text": "de la tarde.",
+   "hash": "6060303e8c"
+  },
+  "de_la_noche": {
+   "file": "de_la_noche.mp3",
+   "text": "de la noche.",
+   "hash": "0f787a2e18"
+  },
+  "sin_conexion": {
+   "file": "sin_conexion.mp3",
+   "text": "Sin conexión.",
+   "hash": "e8101baa38"
+  },
+  "sin_pagos": {
+   "file": "sin_pagos.mp3",
+   "text": "Todavía no hay pagos.",
+   "hash": "bfb7992f8b"
+  }
+ }
+}

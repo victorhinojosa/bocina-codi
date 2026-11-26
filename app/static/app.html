@@ -829,7 +829,7 @@
       <div class="q">"${esc(q)}"</div><div class="a"><span class="pl">Din</span>${esc(a)}</div></div>`;
     $("answer").querySelector(".x").onclick = () => { $("answer").innerHTML = ""; };
   }
-  async function ask(text) {
+  async function ask(text, byVoice = false) {   // byVoice: preguntó con el micrófono -> contesta en voz alta
     showAnswer(text, "…");
     try {
       const d = await Bocina.askAssistant(text);
@@ -840,7 +840,7 @@
       } else {
         showAnswer(text, d.answer || "No te entendí, ¿me lo repites?");
         $("q").value = ""; renderList();
-        if (prefs().cajaSound && !EMBED && d.answer) Voice.enqueue({ text: d.answer, gap: 200 });
+        if ((byVoice || prefs().cajaSound) && !EMBED && d.answer) Voice.enqueue({ text: d.answer, gap: 200 });
       }
     } catch (e) { showAnswer(text, "No pude responder: " + e.message); }
   }
@@ -853,7 +853,7 @@
       onPartial: (t) => { $("q").value = t; },
       onEnd: () => { rec = null; $("micBtn").classList.remove("on"); },
       onError: (err) => toast("No te escuché (" + err + ")"),
-      onFinal: (t) => { $("q").value = t; ask(t); },
+      onFinal: (t) => { $("q").value = t; ask(t, true); },
     });
   };
 
@@ -1186,7 +1186,7 @@
   $("voiceMode").onchange = (e) => setPref("voiceMode", e.target.value);
   $("cajaSound").onchange = (e) => setPref("cajaSound", e.target.checked);
   $("notifySound").onchange = (e) => { setPref("notifySound", e.target.checked); if (e.target.checked) Bocina.chime(); };
-  $("testVoice").onclick = () => Voice.enqueue({ text: "Recibiste 100 pesos", chime: true });
+  $("testVoice").onclick = () => Voice.enqueue({ text: "Recibiste 100 pesos", parts: ["recibiste", "h100", "pesos_fin"], chime: true });
 
   // ---------- ajustes avanzados (solo el dueño con sesión llega aquí) ----------
   $("openAdv").onclick = () => { closeSheet(); openLayer("advanced"); };
@@ -1243,7 +1243,7 @@
       else toast(`${p.simulated ? "Simulación · " : "✓ "}${money(p.amount)} recibido`, 3500);
       // Voz con ka-ching, o solo el ka-ching (en /demo suena la bocina, no el celular)
       if (!EMBED) {
-        if (prefs().cajaSound) Voice.enqueue({ text: p.speech, chime: true, gap: 700 });
+        if (prefs().cajaSound) Voice.enqueue({ text: p.speech, parts: p.speechParts, chime: true, gap: 700 });
         else if (prefs().notifySound !== false) Bocina.chime();
         if (navigator.vibrate) navigator.vibrate([60, 40, 60]);
       }
