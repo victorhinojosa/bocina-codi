@@ -8,6 +8,9 @@
 <link rel="icon" href="/static/icon.svg" type="image/svg+xml" />
 <link rel="icon" href="/static/icons/favicon-32.png" sizes="32x32" type="image/png" />
 <link rel="apple-touch-icon" href="/static/icons/apple-touch-icon.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" />
 <link rel="stylesheet" href="/static/tokens.css" />
 <title>Din · Mostrador</title>
 <style>
@@ -152,10 +155,7 @@
 } }
 </script>
 <script type="module">
-import * as THREE from "three";
-import { OrbitControls } from "three/addons/OrbitControls.js";
-import { RoomEnvironment } from "three/addons/RoomEnvironment.js";
-import { createSoundbox } from "/static/soundbox-display.js";
+import { createDinStage } from "/static/din-stage.js";
 
 {
   const { $, money, hhmm, esc, api, toast, Voice } = Bocina;
@@ -187,109 +187,28 @@ import { createSoundbox } from "/static/soundbox-display.js";
 
   // ---------- bocina 3D ----------
   const Speaker = (() => {
-    let sb = null, renderer, scene, camera, controls, clock, qrLoaded = null, homeDist = 0.34;
-    const TARGET = new THREE.Vector3(0, 0.05, 0);
-    const HOME_DIR = new THREE.Vector3(0.38, 0.32, 1).normalize();   // 3/4 de frente, un poco desde arriba
-    const BACK_DIR = new THREE.Vector3(-0.25, 0.55, -1).normalize(); // lado del comerciante: pantalla y botones
-    let tween = null;
+    let st = null, sb = null, qrLoaded = null;
 
     function init() {
-      const stage = $("stage");
-      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-      renderer.outputColorSpace = THREE.SRGBColorSpace;
-      renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 1.05;
-      renderer.shadowMap.enabled = true;
-      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-      stage.appendChild(renderer.domElement);
-
-      scene = new THREE.Scene();
-      const pmrem = new THREE.PMREMGenerator(renderer);
-      scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-      pmrem.dispose();
-      const key = new THREE.DirectionalLight(0xffffff, 1.6);
-      key.position.set(0.35, 0.6, 0.45);
-      key.castShadow = true;
-      key.shadow.mapSize.set(2048, 2048);
-      Object.assign(key.shadow.camera, { left: -0.2, right: 0.2, top: 0.2, bottom: -0.2, near: 0.05, far: 2 });
-      key.shadow.bias = -0.0004; key.shadow.normalBias = 0.002;
-      scene.add(key);
-      // el modelo trae su propia sombra de contacto; no agregamos piso con sombra dura
-
-      camera = new THREE.PerspectiveCamera(30, 1, 0.01, 10);
-      controls = new OrbitControls(camera, renderer.domElement);
-      controls.target.copy(TARGET);
-      controls.enableDamping = true; controls.dampingFactor = 0.08;
-      controls.enablePan = false;
-      controls.minDistance = 0.14; controls.maxDistance = 0.7;
-      controls.maxPolarAngle = Math.PI * 0.53;   // no ver por debajo del piso
-      controls.addEventListener("start", () => setView(null));
-
-      sb = createSoundbox(THREE, { businessName: fixed ? fixed.name : "Mi negocio" });
-      scene.add(sb.group);
-      sb.enableInteraction(renderer.domElement, camera);
+      st = createDinStage($("stage"), {
+        businessName: fixed ? fixed.name : "Mi negocio",
+        isSpeaking: () => Voice.busy,          // la rejilla late mientras suena la voz
+        onUserMove: () => setView(null),
+      });
+      sb = st.sb;
       sb.onButton(onDeviceButton);
       sb.setVolume(Math.round(Bocina.volume() * 10));
-
       // el módulo detiene el evento en los botones 3D: desbloqueamos el audio antes, en captura
       window.addEventListener("pointerdown", () => Bocina.unlockAudio(), { capture: true });
-
-      new ResizeObserver(resize).observe(stage);
-      resize();
-      camera.position.copy(TARGET).addScaledVector(HOME_DIR, homeDist);
-      camera.lookAt(TARGET);
-      clock = new THREE.Clock();
-      renderer.setAnimationLoop(frame);
       $("stageLoading").remove();
-    }
-
-    function resize() {
-      const st = $("stage"), w = st.clientWidth || 1, h = st.clientHeight || 1;
-      renderer.setSize(w, h, false);
-      camera.aspect = w / h;
-      camera.updateProjectionMatrix();
-      // distancia para que el aparato (~16 cm con margen) quepa en la vista
-      const half = THREE.MathUtils.degToRad(camera.fov / 2);
-      homeDist = Math.max(0.17 / 2 / Math.tan(half), 0.19 / 2 / (Math.tan(half) * camera.aspect));
-      controls.maxDistance = Math.max(0.7, homeDist * 1.6);
-    }
-
-    function frame() {
-      const dt = clock.getDelta();
-      if (tween) stepTween(dt);
-      controls.update();
-      sb.setSpeaking(Voice.busy);   // la rejilla late mientras suena la voz
-      sb.update(dt);
-      renderer.render(scene, camera);
-    }
-
-    // vuelo de cámara propio (vista 3D y botones); el QR usa focusQR del módulo
-    function flyTo(dir, dist) {
-      const startOffset = camera.position.clone().sub(controls.target);
-      tween = { t: 0, d: 0.85, startTarget: controls.target.clone(), startOffset, endOffset: dir.clone().multiplyScalar(dist) };
-      controls.enabled = false;
-    }
-    const ease = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
-    const _q = new THREE.Quaternion(), _qi = new THREE.Quaternion(), _a = new THREE.Vector3(), _b = new THREE.Vector3();
-    function stepTween(dt) {
-      tween.t += dt;
-      const k = ease(Math.min(1, tween.t / tween.d));
-      controls.target.lerpVectors(tween.startTarget, TARGET, k);
-      _a.copy(tween.startOffset).normalize(); _b.copy(tween.endOffset).normalize();
-      _q.setFromUnitVectors(_a, _b); _qi.identity().slerp(_q, k);
-      const len = THREE.MathUtils.lerp(tween.startOffset.length(), tween.endOffset.length(), k);
-      camera.position.copy(controls.target).add(_a.applyQuaternion(_qi).multiplyScalar(len));
-      camera.lookAt(controls.target);
-      if (k >= 1) { tween = null; controls.enabled = true; }
     }
 
     function setView(name) {
       ["viewDefault", "viewQr", "viewBack"].forEach((id) => $(id).classList.toggle("on", id === name));
     }
-    function home() { setView("viewDefault"); flyTo(HOME_DIR, homeDist); }
-    function back() { setView("viewBack"); flyTo(BACK_DIR, homeDist * 0.95); }
-    function scanQr() { tween = null; setView("viewQr"); sb.focusQR(camera, controls, { fill: 0.5 }); }
+    function home() { setView("viewDefault"); st.home(); }
+    function back() { setView("viewBack"); st.back(); }
+    function scanQr() { setView("viewQr"); st.scanQr(0.5); }
 
     function onDeviceButton(name) {
       if (name === "vol-") changeVolume(-0.1);

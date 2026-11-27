@@ -3,10 +3,10 @@
 import io
 
 import segno
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse, Response
 
-from app import config
+from app import auth, config
 
 router = APIRouter()
 
@@ -15,9 +15,28 @@ NO_CACHE = {"Cache-Control": "no-cache"}
 
 
 @router.get("/")
+async def home(request: Request) -> FileResponse:
+    """La landing de Din. Una bocina ya vinculada (cookie de dispositivo) sigue abriendo la bocina aquí."""
+    v = auth.current_viewer(request)
+    if v and v.is_device:
+        return FileResponse(config.STATIC_DIR / "index.html", headers=NO_CACHE)
+    return FileResponse(config.STATIC_DIR / "landing.html", headers=NO_CACHE)
+
+
+@router.get("/bocina")
 async def mostrador() -> FileResponse:
-    """La bocina: solo el QR y el botón de voz."""
+    """La bocina (Din Box): solo el QR y el botón de voz."""
     return FileResponse(config.STATIC_DIR / "index.html", headers=NO_CACHE)
+
+
+@router.get("/api/demo-qr.svg", include_in_schema=False)
+async def demo_qr() -> Response:
+    """QR fijo real de la cuenta demo, para pagar $1 desde la landing. 404 si no hay demo configurada."""
+    if not config.FIXED_QR_STRING:
+        raise HTTPException(404, "Sin QR demo")
+    buf = io.BytesIO()
+    segno.make(config.FIXED_QR_STRING, error="m").save(buf, kind="svg", scale=6, border=2, dark="#0B1A33")
+    return Response(buf.getvalue(), media_type="image/svg+xml", headers={"Cache-Control": "public, max-age=3600"})
 
 
 @router.get("/app")

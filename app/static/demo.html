@@ -6,6 +6,9 @@
 <link rel="icon" href="/static/icon.svg" type="image/svg+xml" />
 <link rel="icon" href="/static/icons/favicon-32.png" sizes="32x32" type="image/png" />
 <link rel="apple-touch-icon" href="/static/icons/apple-touch-icon.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" />
 <link rel="stylesheet" href="/static/tokens.css" />
 <title>Din · demo</title>
 <style>
@@ -62,7 +65,7 @@
   <main>
     <section class="panel counter">
       <div class="label"><b>1</b>En el mostrador</div>
-      <div class="frame"><iframe id="spkFrame" src="/?embed=1" title="Bocina en el mostrador" allow="autoplay"></iframe></div>
+      <div class="frame"><iframe id="spkFrame" src="/bocina?embed=1" title="Bocina en el mostrador" allow="autoplay"></iframe></div>
     </section>
     <div class="flow" aria-hidden="true">
       <svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
@@ -80,7 +83,7 @@
 
   // Cuando alguien entra en la App de la derecha, la bocina de la izquierda (misma sesión) carga su QR
   addEventListener("message", (e) => {
-    if (e.origin === location.origin && e.data === "din:login") document.getElementById("spkFrame").src = "/?embed=1";
+    if (e.origin === location.origin && e.data === "din:login") document.getElementById("spkFrame").src = "/bocina?embed=1";
   });
 
   // Botón de simulación solo si el servidor la permite y hay sesión (útil para probar sin CoDi)

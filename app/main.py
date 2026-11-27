@@ -25,6 +25,7 @@ import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from app import config, db, merchants
@@ -67,10 +68,18 @@ async def revalidate_static(request: Request, call_next):
     if path.startswith("/static/voice/") and path.endswith(".mp3"):
         # los audios se piden con ?v=<hash>: si se regeneran cambia la URL, así que se pueden guardar para siempre
         response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
-    elif path.startswith("/static/") and not path.startswith("/static/vendor/"):
+    elif path.startswith("/static/vendor/"):
+        # three.js y GSAP no cambian entre despliegues
+        response.headers["Cache-Control"] = "public, max-age=604800"
+    elif path.startswith("/static/landing/") and path.endswith(".webp"):
+        response.headers["Cache-Control"] = "public, max-age=86400"
+    elif path.startswith("/static/"):
         response.headers["Cache-Control"] = "no-cache"
     return response
 
+
+# Comprime HTML/CSS/JS/SVG. Starlette no comprime text/event-stream, así que los avisos en vivo no se retrasan.
+app.add_middleware(GZipMiddleware, minimum_size=1024)
 
 for module in (system, account, admin, charges, links, history, webhooks, voice, pages):
     app.include_router(module.router)

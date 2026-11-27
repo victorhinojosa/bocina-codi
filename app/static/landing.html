@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Din · Cobra con CoDi y escucha cada pago</title>
+<meta name="description" content="Tu cliente escanea, paga desde su banco y Din te dice en voz alta cuánto recibiste. Sin terminal y sin comisión por tarjeta." />
+<meta name="theme-color" content="#F4F6FA" />
+<meta property="og:title" content="Din · Cobra con CoDi y escucha cada pago" />
+<meta property="og:description" content="Tu cliente escanea, paga desde su banco y Din te dice en voz alta cuánto recibiste." />
+<meta property="og:type" content="website" />
+<link rel="icon" href="/static/icon.svg" type="image/svg+xml" />
+<link rel="icon" href="/static/icons/favicon-32.png" sizes="32x32" type="image/png" />
+<link rel="apple-touch-icon" href="/static/icons/apple-touch-icon.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'" />
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" /></noscript>
+<link rel="stylesheet" href="/static/tokens.css" />
+<link rel="stylesheet" href="/static/landing/landing.css" />
+<link rel="preload" as="image" href="/static/landing/din-box.webp" imagesrcset="/static/landing/din-box-480.webp 480w, /static/landing/din-box-720.webp 720w, /static/landing/din-box.webp 946w" imagesizes="(min-width: 1024px) 480px, 86vw" fetchpriority="high" />
+</head>
+<body>
+<a class="skip" href="#main">Saltar al contenido</a>
+
+<!-- Íconos Lucide (trazo 1.75) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-volume" viewBox="0 0 24 24"><path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z"/><path d="M16 9a5 5 0 0 1 0 6"/><path d="M19.364 18.364a9 9 0 0 0 0-12.728"/></symbol>
+  <symbol id="i-qr" viewBox="0 0 24 24"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></symbol>
+  <symbol id="i-percent" viewBox="0 0 24 24"><line x1="19" x2="5" y1="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></symbol>
+  <symbol id="i-landmark" viewBox="0 0 24 24"><line x1="3" x2="21" y1="22" y2="22"/><line x1="6" x2="6" y1="18" y2="11"/><line x1="10" x2="10" y1="18" y2="11"/><line x1="14" x2="14" y1="18" y2="11"/><line x1="18" x2="18" y1="18" y2="11"/><polygon points="12 2 20 7 4 7"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+  <symbol id="i-store" viewBox="0 0 24 24"><path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/><path d="M2 7h20"/><path d="M22 7v3a2 2 0 0 1-2 2a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 16 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 12 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 8 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 4 12a2 2 0 0 1-2-2V7"/></symbol>
+  <symbol id="i-coffee" viewBox="0 0 24 24"><path d="M10 2v2"/><path d="M14 2v2"/><path d="M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1h14a4 4 0 1 1 0 8h-1"/><path d="M6 2v2"/></symbol>
+  <symbol id="i-utensils" viewBox="0 0 24 24"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></symbol>
+  <symbol id="i-laptop" viewBox="0 0 24 24"><path d="M20 16V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9m16 0H4m16 0 1.28 2.55a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45L4 16"/></symbol>
+  <symbol id="i-mic" viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol>
+  <symbol id="i-left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+  <symbol id="i-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></symbol>
+</svg>
+
+<!-- 1. Nav -->
+<header class="nav" id="nav">
+  <div class="wrap nav-in">
+    <a class="logo" href="/" aria-label="Din, inicio"><img src="/static/logo-din.svg" alt="" width="24" height="24" />Din</a>
+    <nav class="nav-links" aria-label="Secciones">
+      <a href="#como-funciona">Cómo funciona</a>
+      <a href="#la-app">La app</a>
+      <a href="#vision">Visión</a>
+    </nav>
+    <a class="btn btn-primary btn-sm" href="/demo">Pruébalo en vivo</a>
+  </div>
+</header>
+
+<main id="main">
+
+<!-- 2. Hero -->
+<section class="hero" aria-labelledby="hero-t">
+  <div class="wrap hero-grid">
+    <div>
+      <h1 id="hero-t"><span>Cobra con CoDi.</span> <span>Escucha cada pago.</span></h1>
+      <p class="lead">Tu cliente escanea, paga desde su banco y Din te dice en voz alta cuánto recibiste. Sin terminal y sin comisión por tarjeta.</p>
+      <div class="btn-row">
+        <a class="btn btn-primary" href="/demo">Paga $1 y escúchalo</a>
+        <a class="btn btn-ghost" href="#como-funciona">Ver cómo funciona</a>
+      </div>
+      <div class="powered">Powered by <img src="/static/pey-codi.svg" alt="pey y CoDi" width="49" height="16" /></div>
+    </div>
+
+    <div class="stage" id="stage">
+      <div class="box" id="box">
+        <img src="/static/landing/din-box.webp" srcset="/static/landing/din-box-480.webp 480w, /static/landing/din-box-720.webp 720w, /static/landing/din-box.webp 946w" sizes="(min-width: 1024px) 480px, 86vw" alt="Din Box: la bocina de mostrador con el QR de CoDi del negocio" width="946" height="924" fetchpriority="high" />
+      </div>
+      <div class="emit" aria-hidden="true"><span></span><span></span><span></span></div>
+      <div class="cust" aria-hidden="true">
+        <div class="phone sm">
+          <div class="scr">
+            <div class="bank" data-st="done" id="bank">
+              <div class="bank-st st-scan">
+                <div class="hd">Escanea el código</div>
+                <div class="finder"><svg class="i"><use href="#i-qr"/></svg><i class="scanline"></i></div>
+                <div class="lbl">Apunta al QR del mostrador</div>
+              </div>
+              <div class="bank-st st-pay">
+                <div class="hd">Pagar con CoDi</div>
+                <div class="to">Abarrotes Doña Mari</div>
+                <div class="lbl">Monto</div>
+                <div class="amt">$85.00</div>
+                <div class="done pay">Pagar</div>
+              </div>
+              <div class="bank-st st-done">
+                <div class="hd">Tu banco</div>
+                <div class="seal"><svg class="i"><use href="#i-check"/></svg></div>
+                <div class="lbl">Pago enviado con CoDi</div>
+                <div class="amt">$85.00</div>
+                <div class="to">Abarrotes Doña Mari</div>
+                <div class="done">Listo</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="toast" id="toast" aria-hidden="true">
+        <span class="seal"><svg class="i"><use href="#i-check"/></svg></span>
+        <span><b class="tabular">Recibiste $85</b><small>Santander, ahora</small></span>
+      </div>
+      <button class="listen" id="listen" type="button" aria-pressed="false">
+        <span class="ic"><svg class="i"><use href="#i-volume"/></svg></span>
+        <span class="lbl-t">Toca para escuchar</span>
+        <svg class="wave" data-wave="18" viewBox="0 0 54 18" aria-hidden="true"></svg>
+      </button>
+      <p class="sr-only" id="listenSaid" aria-live="polite"></p>
+    </div>
+  </div>
+</section>
+
+<!-- 3. El problema -->
+<section class="band sec problem" aria-labelledby="problem-t">
+  <div class="wrap problem-grid">
+    <div>
+      <h2 id="problem-t">¿De verdad me pagaron?</h2>
+      <p class="lead">Una captura de pantalla se falsifica en segundos. Y con fila, nadie tiene tiempo de abrir la app del banco para revisar.</p>
+    </div>
+    <figure class="shot" aria-label="Ejemplo de captura de una transferencia, sin confirmar">
+      <div class="top"><span>Comprobante</span><span>2:04 p.m.</span></div>
+      <div class="seal"><svg class="i"><use href="#i-check"/></svg></div>
+      <div class="ttl">Transferencia enviada</div>
+      <div class="amt tabular">$850.00</div>
+      <dl>
+        <div><dt>Para</dt><dd>Abarrotes Doña Mari</dd></div>
+        <div><dt>Concepto</dt><dd>Despensa</dd></div>
+        <div><dt>Folio</dt><dd class="tabular">7720 4419 0093</dd></div>
+      </dl>
+      <div class="stamp">No confirmado</div>
+    </figure>
+  </div>
+</section>
+
+<!-- 4. Cómo funciona -->
+<section class="sec how" id="como-funciona" aria-labelledby="how-t">
+  <div class="wrap how-grid">
+    <div>
+      <h2 class="h2" id="how-t">Tres pasos y lo escuchas.</h2>
+      <ol class="steps" id="steps">
+        <li class="step" data-step="0">
+          <span class="n">1</span>
+          <div><h3>Escanea</h3><p>Tu cliente abre la app de su banco y escanea el QR de tu mostrador.</p></div>
+        </li>
+        <li class="step" data-step="1">
+          <span class="n">2</span>
+          <div><h3>Paga desde su banco</h3><p>Escribe el monto y paga con CoDi. El dinero llega en segundos.</p></div>
+        </li>
+        <li class="step" data-step="2">
+          <span class="n">3</span>
+          <div><h3>Din lo dice</h3><p>En cuanto pey confirma el pago, la Din Box lo anuncia en voz alta.</p></div>
+        </li>
+      </ol>
+      <p class="trust"><svg class="i"><use href="#i-shield"/></svg>Solo anunciamos pagos que pey confirma. Una captura nunca hace sonar a Din.</p>
+    </div>
+
+    <div class="flow" id="flow" data-step="2" aria-hidden="true">
+      <div class="flow-track">
+        <div class="flow-line"><i></i></div>
+        <div class="station">
+          <div class="vis">
+            <div class="phone sm"><div class="scr"><div class="bank"><div class="finder"><svg class="i"><use href="#i-qr"/></svg><i class="scanline"></i></div><div class="lbl">Escanea para pagar</div></div></div></div>
+          </div>
+          <div class="cap">El cliente escanea</div>
+        </div>
+        <div class="station">
+          <div class="vis"><div class="verify"><i class="ring"></i><svg class="i"><use href="#i-shield"/></svg></div></div>
+          <div class="cap">pey confirma el pago</div>
+        </div>
+        <div class="station">
+          <div class="vis"><div class="mini-box"><svg class="wave" data-wave="26" viewBox="0 0 90 26"></svg><img src="/static/landing/din-box-480.webp" alt="" width="480" height="469" loading="lazy" /></div></div>
+          <div class="cap">Din lo anuncia</div>
+        </div>
+      </div>
+      <div class="flow-said"><svg class="i"><use href="#i-volume"/></svg>“Recibiste 85 pesos”</div>
+    </div>
+  </div>
+</section>
+
+<!-- 5. La app del dueño -->
+<section class="sec owner" id="la-app" aria-labelledby="app-t">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2 class="h2" id="app-t">Todo tu día, en tu celular.</h2>
+      <p class="lead">La app del dueño ve cada pago al instante, aunque no estés en el negocio.</p>
+    </div>
+    <div class="owner-grid">
+      <div class="owner-phone" aria-hidden="true">
+        <div class="phone"><div class="scr" id="ownerScr">
+
+          <!-- Hoy -->
+          <div class="app on" data-screen="0">
+            <div class="app-bar"><span class="av">DM</span><span class="mark"><img src="/static/logo-din.svg" alt="" width="16" height="16" />Din</span><span class="sp"></span></div>
+            <div class="app-search"><svg class="i"><use href="#i-search"/></svg><span>Busca un pago o pregúntale a Din</span><span class="mic"><svg class="i"><use href="#i-mic"/></svg></span></div>
+            <div class="app-today">
+              <div class="k"><span>Hoy</span><span>Ayer $980.00</span></div>
+              <div class="total tabular" data-count="1285.50">$1,285.50</div>
+              <div class="sub"><span>14 pagos</span><span class="live"><i></i>Bocina conectada</span></div>
+            </div>
+            <div class="app-day"><span>Hoy</span><span class="tabular">$1,285.50</span></div>
+            <div class="app-list">
+              <div class="app-row"><span class="ic"><svg class="i"><use href="#i-qr"/></svg></span><span class="mid"><div class="t">BBVA ···· 2281</div><div class="m">2:04 p.m.</div></span><span class="amt">+$85.00</span></div>
+              <div class="app-row"><span class="ic"><svg class="i"><use href="#i-qr"/></svg></span><span class="mid"><div class="t">Santander ···· 6460</div><div class="m">1:51 p.m.</div><span class="app-tag">Despensa</span></span><span class="amt">+$250.00</span></div>
+              <div class="app-row"><span class="ic"><svg class="i"><use href="#i-qr"/></svg></span><span class="mid"><div class="t">Banorte ···· 0917</div><div class="m">1:38 p.m.</div></span><span class="amt">+$38.50</span></div>
+              <div class="app-row"><span class="ic"><svg class="i"><use href="#i-link"/></svg></span><span class="mid"><div class="t">Nu ···· 5532</div><div class="m">12:15 p.m.</div><span class="app-tag">Link de pago</span></span><span class="amt">+$480.00</span></div>
+            </div>
+            <div class="app-fab"><svg class="i"><use href="#i-qr"/></svg>Cobrar</div>
+          </div>
+
+          <!-- Cobrar con monto -->
+          <div class="app white" data-screen="1">
+            <div class="app-top"><svg class="i x"><use href="#i-x"/></svg>Cobrar</div>
+            <div class="app-qr">
+              <div class="mark"><img src="/static/logo-din.svg" alt="" width="16" height="16" />Din</div>
+              <div class="biz">Abarrotes Doña Mari</div>
+              <div class="amt">$250.00</div>
+              <img class="qr" src="/api/qr.svg?text=Din%20%C2%B7%20ejemplo" alt="" width="200" height="200" loading="lazy" />
+              <img class="pw" src="/static/pey-codi.svg" alt="" width="43" height="14" />
+            </div>
+            <div class="app-note">Escanea con la app de tu banco, en la sección CoDi</div>
+            <div class="app-pill"><span>Esperando pago…</span></div>
+          </div>
+
+          <!-- Link de pago -->
+          <div class="app" data-screen="2">
+            <div class="app-top"><svg class="i x"><use href="#i-left"/></svg>Lupita · Pedido</div>
+            <div class="chat">
+              <span class="day">Hoy</span>
+              <div class="msg them">¿Me pasas para pagar el pedido de mañana?</div>
+              <div class="msg me">Claro, aquí está tu cobro.
+                <div class="paylink"><b>$480.00</b><span>Abarrotes Doña Mari · Pedido</span><span class="go">Pagar</span></div>
+                <small>12:10 p.m.</small>
+              </div>
+              <div class="msg them">Listo, ya pagué.</div>
+            </div>
+          </div>
+
+          <!-- Pregúntale a Din -->
+          <div class="app" data-screen="3">
+            <div class="app-top"><svg class="i x"><use href="#i-x"/></svg>Pregúntale a Din</div>
+            <div class="chat">
+              <div class="msg me">¿Cuánto vendí hoy?</div>
+              <div class="msg them">Hoy llevas <b class="tabular">$1,285.50</b> en 14 pagos. El más grande fue de <b class="tabular">$480.00</b>, con link de pago.</div>
+              <div class="msg me">¿Y el último?</div>
+              <div class="msg them"><b class="tabular">$85.00</b> de BBVA a las 2:04 p.m.</div>
+            </div>
+            <div class="chat-in"><span>Pregunta con tu voz</span><span class="mic"><svg class="i"><use href="#i-mic"/></svg></span></div>
+          </div>
+
+        </div></div>
+      </div>
+
+      <div class="feats">
+        <article class="feat" data-feat="0">
+          <h3>Tus ventas del día, al instante.</h3>
+          <p>Cada pago aparece en tu celular en cuanto llega, con el banco de quien te pagó. El total de hoy se actualiza solo.</p>
+          <div class="shot-m" data-clone="0"></div>
+        </article>
+        <article class="feat" data-feat="1">
+          <h3>Cobra con monto exacto.</h3>
+          <p>Escribe el monto y Din crea un QR solo para ese cobro. Ideal para pedidos y tickets grandes.</p>
+          <div class="shot-m" data-clone="1"></div>
+        </article>
+        <article class="feat" data-feat="2">
+          <h3>Cobra a distancia.</h3>
+          <p>Manda un link de pago por WhatsApp a quien no está en tu mostrador. Cuando paga, Din te avisa igual.</p>
+          <div class="shot-m" data-clone="2"></div>
+        </article>
+        <article class="feat" data-feat="3">
+          <h3>Pregúntale a Din.</h3>
+          <p>“¿Cuánto vendí hoy?” Pregunta con tu voz y Din te responde con tus pagos reales.</p>
+          <div class="shot-m" data-clone="3"></div>
+        </article>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 6. Confianza -->
+<section class="sec trust-sec" aria-labelledby="trust-t">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2 class="h2" id="trust-t">Hecho para que confíes en lo que escuchas.</h2>
+    </div>
+    <div class="bento">
+      <article class="tile hero-tile t-a">
+        <div>
+          <span class="ic"><svg class="i"><use href="#i-shield"/></svg></span>
+          <h3 style="margin-top:var(--space-4)">Solo suena cuando pey confirma el pago.</h3>
+          <p style="margin-top:var(--space-3)">Cada aviso de pago llega firmado por pey. Din revisa la firma antes de anunciar nada. Lo que no viene de pey, no suena.</p>
+        </div>
+        <div class="ver-log" aria-label="Ejemplo de avisos revisados">
+          <div><span>Aviso de pey, $85.00<small>Firma verificada</small></span><span class="ok"><svg class="i"><use href="#i-check"/></svg>Se anuncia</span></div>
+          <div><span>Captura de pantalla<small>No viene de pey</small></span><span class="no"><svg class="i"><use href="#i-x"/></svg>No suena</span></div>
+          <div><span>Mismo aviso, repetido<small>Ya se había anunciado</small></span><span class="no"><svg class="i"><use href="#i-x"/></svg>No suena</span></div>
+        </div>
+      </article>
+      <article class="tile t-b">
+        <span class="ic"><svg class="i"><use href="#i-refresh"/></svg></span>
+        <h3>Respaldo si el aviso se pierde.</h3>
+        <p>Si un aviso no llega, Din le pregunta directo a pey y recupera el pago.</p>
+      </article>
+      <article class="tile dark t-c">
+        <span class="ic"><svg class="i"><use href="#i-percent"/></svg></span>
+        <h3>Sin comisión por tarjeta.</h3>
+        <p>Con CoDi no hay tarjeta de por medio: es una transferencia de banco a banco.</p>
+      </article>
+      <article class="tile t-d">
+        <span class="ic"><svg class="i"><use href="#i-landmark"/></svg></span>
+        <h3>El dinero cae directo en tu cuenta.</h3>
+        <p>Registras tu CLABE y cada pago llega a tu banco. Din no se queda con tu dinero.</p>
+      </article>
+      <article class="tile t-e">
+        <span class="ic"><svg class="i"><use href="#i-lock"/></svg></span>
+        <h3>Cada negocio solo ve sus pagos.</h3>
+        <p>Entras con tu celular y un PIN. Tu bocina y tu app solo muestran lo tuyo.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- 7. Para quién -->
+<section class="sec who-sec" aria-labelledby="who-t">
+  <div class="wrap">
+    <div class="who-head sec-head">
+      <h2 class="h2" id="who-t">Para cualquier mostrador.</h2>
+      <div class="rail-nav">
+        <button type="button" data-rail="-1" aria-label="Anterior"><svg class="i"><use href="#i-left"/></svg></button>
+        <button type="button" data-rail="1" aria-label="Siguiente"><svg class="i"><use href="#i-right"/></svg></button>
+      </div>
+    </div>
+    <div class="rail" id="rail" tabindex="0" role="region" aria-label="Negocios para los que sirve Din">
+      <article class="who">
+        <span class="ic"><svg class="i"><use href="#i-store"/></svg></span>
+        <h3>Tiendas</h3>
+        <p>Son las 2 p.m. y hay fila. Escuchas el pago y sigues despachando, sin pedir que te enseñen el celular.</p>
+        <div class="said"><svg class="wave" data-wave="16" viewBox="0 0 40 16" aria-hidden="true"></svg>“Recibiste 38 pesos”</div>
+      </article>
+      <article class="who">
+        <span class="ic"><svg class="i"><use href="#i-coffee"/></svg></span>
+        <h3>Cafés</h3>
+        <p>Preparas el café mientras el cliente paga. Antes de entregarlo, ya sabes que llegó.</p>
+        <div class="said"><svg class="wave" data-wave="16" viewBox="0 0 40 16" aria-hidden="true"></svg>“Recibiste 65 pesos”</div>
+      </article>
+      <article class="who">
+        <span class="ic"><svg class="i"><use href="#i-utensils"/></svg></span>
+        <h3>Restaurantes</h3>
+        <p>La mesa paga desde su lugar y lo oyes desde la caja. Nadie espera la terminal.</p>
+        <div class="said"><svg class="wave" data-wave="16" viewBox="0 0 40 16" aria-hidden="true"></svg>“Recibiste 420 pesos”</div>
+      </article>
+      <article class="who">
+        <span class="ic"><svg class="i"><use href="#i-laptop"/></svg></span>
+        <h3>Freelancers</h3>
+        <p>Mandas un link de pago por WhatsApp y te enteras en cuanto te pagan, estés donde estés.</p>
+        <div class="said"><svg class="wave" data-wave="16" viewBox="0 0 40 16" aria-hidden="true"></svg>“Recibiste 1,500 pesos”</div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- 8. Demo en vivo -->
+<section class="sec live-sec" id="demo" aria-labelledby="live-t">
+  <div class="wrap live-grid">
+    <div class="live-qr">
+      <div class="card">
+        <div class="mark"><img src="/static/logo-din.svg" alt="" width="16" height="16" />Din</div>
+        <div class="biz">Abarrotes Doña Mari</div>
+        <div class="hint">Tú escribes el monto en tu banco</div>
+        <img class="qr" src="/api/demo-qr.svg" alt="QR de CoDi real de la cuenta demo de Din" width="300" height="300" loading="lazy" />
+        <a class="qr-off" href="/demo" hidden>El QR está en el demo en vivo. Ábrelo para pagar $1.</a>
+        <img class="pw" src="/static/pey-codi.svg" alt="pey y CoDi" width="43" height="14" />
+      </div>
+      <span class="status"><i></i>En producción, con pagos reales</span>
+    </div>
+    <div>
+      <h2 class="h2" id="live-t">Esto no es una simulación.</h2>
+      <p class="lead">Este QR cobra de verdad. Paga un peso y escucha a Din anunciarlo.</p>
+      <ol class="how-to">
+        <li><span>Abre <b>el demo</b> en tu computadora y toca la bocina una vez para activar el sonido.</span></li>
+        <li><span>Escanea este QR con la app de tu banco, en la sección <b>CoDi</b>.</span></li>
+        <li><span>Paga <b>$1</b>. En segundos Din dice “Recibiste un peso”.</span></li>
+      </ol>
+      <a class="btn btn-primary" href="/demo">Abrir el demo</a>
+      <p class="fine">El pago es real y llega a la cuenta del proyecto.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 9. Visión -->
+<section class="sec vision" id="vision" aria-labelledby="vision-t">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2 class="h2" id="vision-t">Empieza con una bocina. No termina ahí.</h2>
+      <p class="lead">Escuchar cada pago es la primera pieza. Lo que sigue es hacer que cobrar y pagar en México sea así de simple.</p>
+    </div>
+    <ol class="road" id="road">
+      <i class="draw" aria-hidden="true"></i>
+      <li class="mile now">
+        <div class="when">Hoy</div>
+        <h3>Din web y app del dueño</h3>
+        <p>En producción, con pagos reales de CoDi a través de pey.</p>
+        <span class="tag"><i></i>En producción</span>
+      </li>
+      <li class="mile">
+        <div class="when">Siguiente</div>
+        <h3>Din Box física y QR impreso</h3>
+        <p>Una bocina WiFi de bajo costo para el mostrador, lista para conectar.</p>
+      </li>
+      <li class="mile">
+        <div class="when">Después</div>
+        <h3>Más herramientas para el negocio</h3>
+        <p>Corte del día, varias sucursales y reportes que se entienden.</p>
+      </li>
+      <li class="mile vision">
+        <div class="when">Visión</div>
+        <h3>La forma más simple de cobrar y pagar en México</h3>
+        <p>Para negocios y, después, para personas.</p>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- 10. Cierre -->
+<section class="band sec close" aria-labelledby="close-t">
+  <div class="wrap">
+    <svg class="wave" data-wave="56" viewBox="0 0 420 56" aria-hidden="true"></svg>
+    <h2 id="close-t">Que cada pago se escuche.</h2>
+    <p class="lead">Prueba Din con un pago real de $1, o crea la cuenta de tu negocio.</p>
+    <div class="btn-row">
+      <a class="btn btn-white" href="/demo">Pruébalo en vivo</a>
+      <a class="btn btn-outline-white" href="/app">Crear mi cuenta</a>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- 11. Footer -->
+<footer class="foot">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <a class="logo" href="/" aria-label="Din, inicio"><img src="/static/logo-din.svg" alt="" width="24" height="24" />Din</a>
+      </div>
+      <nav aria-label="Enlaces">
+        <a href="/demo">Demo en vivo</a>
+        <a href="/app">App del dueño</a>
+        <a href="/bocina">Din Box 3D</a>
+      </nav>
+    </div>
+    <div class="bottom"><span class="powered">Powered by <img src="/static/pey-codi.svg" alt="pey y CoDi" width="68" height="22" /></span></div>
+  </div>
+</footer>
+
+<script type="importmap">
+{ "imports": { "three": "/static/vendor/three/three.module.min.js", "three/addons/": "/static/vendor/three/addons/" } }
+</script>
+<script src="/static/landing/landing.js" defer></script>
+</body>
+</html>

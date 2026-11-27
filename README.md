@@ -19,7 +19,7 @@ Esto no es una simulación: está en producción y cobra con CoDi de verdad a tr
 3. Paga cualquier monto, por ejemplo **$1**.
 4. En segundos la bocina dice **"Recibiste un peso"** y el celular del dueño imprime el comprobante con tu banco y la clave de rastreo.
 
-El pago es real y llega a la cuenta del proyecto. También puedes abrir por separado la [bocina 3D](https://web-production-e9e63f91.up.railway.app/) o la [app del dueño](https://web-production-e9e63f91.up.railway.app/app).
+El pago es real y llega a la cuenta del proyecto. También puedes abrir por separado la [bocina 3D](https://web-production-e9e63f91.up.railway.app/bocina) o la [app del dueño](https://web-production-e9e63f91.up.railway.app/app).
 
 ---
 
@@ -35,7 +35,7 @@ CoDi existe desde 2019: transferencias inmediatas, sin terminal y sin comisión 
 |---|---|---|
 | Escanea el QR con la app de su banco, pone el monto y paga. Nada que instalar. | Escucha "Recibiste 85 pesos" y sigue atendiendo. Nada que revisar. | Ve cada pago al instante en su celular, con el banco de quien pagó, y cobra a distancia. |
 
-- **La bocina (`/`)**: lleva el QR fijo del negocio y anuncia cada pago en voz alta, uno por uno y en orden aunque lleguen varios a la vez. En el demo es un modelo 3D interactivo; en el roadmap, un aparato de bajo costo.
+- **La bocina (`/bocina`)**: lleva el QR fijo del negocio y anuncia cada pago en voz alta, uno por uno y en orden aunque lleguen varios a la vez. En el demo es un modelo 3D interactivo; en el roadmap, un aparato de bajo costo.
 - **La app del dueño (`/app`)**: los pagos del día y del historial, cobros con monto exacto, cobro directo al celular del cliente y un asistente al que se le pregunta "¿cuánto vendí hoy?".
 
 **La confirmación nunca viene del cliente.** Un pago solo se anuncia cuando pey lo confirma: por el aviso con firma verificada ([Standard Webhooks](https://www.standardwebhooks.com/)) o, si ese aviso se pierde, consultando directamente la API de pey. Una captura de pantalla no hace sonar la bocina.
@@ -155,7 +155,8 @@ cp .env.example .env             # agrega tu PEY_API_KEY
 uvicorn app.main:app --reload --port 8000
 ```
 
-- Bocina: http://localhost:8000
+- Landing: http://localhost:8000
+- Bocina: http://localhost:8000/bocina
 - App del dueño: http://localhost:8000/app
 - Demo: http://localhost:8000/demo
 
