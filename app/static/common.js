@@ -56,6 +56,8 @@
   const soundListeners = new Set();
   const notifySound = () => soundListeners.forEach((fn) => fn(unlocked));
   function unlockAudio() {
+    // iPhone: sin esto el switch de silencio apaga Web Audio (Safari 16.4+)
+    try { if (navigator.audioSession) navigator.audioSession.type = "playback"; } catch {}
     try { audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)(); audioCtx.resume(); } catch {}
     try { speechSynthesis.speak(new SpeechSynthesisUtterance(" ")); } catch {}
     if (!unlocked) { unlocked = true; notifySound(); }

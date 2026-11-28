@@ -42,16 +42,17 @@
     async function fetchRaw() {
       if (raw) return raw;
       if (!loading) loading = (async () => {
-        const st = await (await fetch("/api/status")).json();
+        const get = async (u) => { const r = await fetch(u); if (!r.ok) throw new Error(`${u}: ${r.status}`); return r; };
+        const st = await (await get("/api/status")).json();
         if (!st?.voice?.clips) return (raw = []);
         const base = `/static/voice/${encodeURIComponent(st.voice.id)}/`;
-        const man = await (await fetch(base + "manifest.json")).json();
+        const man = await (await get(base + "manifest.json")).json();
         raw = await Promise.all(PHRASE.map(async (k) => {
           const c = man.clips[k];
-          return (await fetch(`${base}${c.file}?v=${c.hash}`)).arrayBuffer();
+          return (await get(`${base}${c.file}?v=${c.hash}`)).arrayBuffer();
         }));
         return raw;
-      })().catch(() => (raw = []));
+      })().catch(() => { loading = null; return []; });   // sin red: se reintenta en el siguiente toque
       return loading;
     }
     function trim(buf) {
@@ -81,18 +82,42 @@
       bell(t0 + 0.17, 1975.5, 0.26);
       return t0 + 0.75;   // la voz entra cuando la campana ya bajó
     }
+    // iPhone: Web Audio sale por el canal "ambiente", que el switch de silencio apaga. Con la sesión en
+    // "playback" (Safari 16.4+) suena como un video; en iOS más viejos un <audio> mudo en el toque hace lo mismo.
+    let keepAlive = null;
+    function audioSessionPlayback() {
+      try { if (navigator.audioSession) { navigator.audioSession.type = "playback"; return; } } catch {}
+      try {
+        if (!keepAlive) {
+          // 0.1 s de silencio en WAV (8 kHz, 8 bits)
+          const n = 800, b = new Uint8Array(44 + n), v = new DataView(b.buffer), w = (o, t) => [...t].forEach((c, i) => (b[o + i] = c.charCodeAt(0)));
+          w(0, "RIFF"); v.setUint32(4, 36 + n, true); w(8, "WAVEfmt "); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+          v.setUint32(24, 8000, true); v.setUint32(28, 8000, true); v.setUint16(32, 1, true); v.setUint16(34, 8, true); w(36, "data"); v.setUint32(40, n, true);
+          b.fill(128, 44);
+          keepAlive = new Audio(URL.createObjectURL(new Blob([b], { type: "audio/wav" })));
+          keepAlive.setAttribute("playsinline", ""); keepAlive.loop = true;
+        }
+        keepAlive.play().catch(() => {});
+      } catch {}
+    }
     // Reproduce ka-ching + frase. onProgress(0..1) mientras habla la voz; resuelve al terminar.
+    // Todo lo que desbloquea el audio pasa antes del primer await: iOS solo lo permite dentro del toque.
     async function play({ onStart, onProgress } = {}) {
       if (playing) return;
       playing = true;
       try {
+        audioSessionPlayback();
         ctx = ctx || new (window.AudioContext || window.webkitAudioContext)();
-        if (ctx.state !== "running") await ctx.resume();
-        const r = await fetchRaw();
-        if (!r.length) { onStart?.(); await speakFallback(); return; }
-        decoded = decoded || await Promise.all(r.map((ab) => ctx.decodeAudioData(ab.slice(0))));
+        const resumed = ctx.state === "running" ? null : ctx.resume();
+        const pending = fetchRaw();   // la voz se baja mientras suena la campana
+        if (resumed) await resumed;
         const out = ctx.createGain(); out.gain.value = 0.9; out.connect(ctx.destination);
-        let t = chime(ctx, out);
+        const chimeEnd = chime(ctx, out);
+        onStart?.();
+        const r = await pending;
+        if (!r.length) { await speakFallback(); return; }
+        decoded = decoded || await Promise.all(r.map((ab) => new Promise((res, rej) => ctx.decodeAudioData(ab.slice(0), res, rej))));
+        let t = Math.max(chimeEnd, ctx.currentTime + 0.05);
         const vStart = t, fade = T.fadeMs / 1000;
         decoded.forEach((buf) => {
           const { offset, end } = trim(buf), len = end - offset;
@@ -103,7 +128,6 @@
           src.start(t, offset, len);
           t += len + T.gap;
         });
-        onStart?.();
         await new Promise((res) => {
           const tick = () => {
             const k = (ctx.currentTime - vStart) / (t - vStart);
@@ -112,7 +136,10 @@
           };
           tick();
         });
-      } finally { playing = false; onProgress?.(-1); }
+      } catch (e) {
+        console.warn("Sin audio:", e);
+        await speakFallback();
+      } finally { playing = false; keepAlive?.pause(); onProgress?.(-1); }
     }
     function speakFallback() {
       return new Promise((res) => {
@@ -137,12 +164,6 @@
     const copy = src.cloneNode(true); copy.classList.add("on");
     scr.appendChild(copy); phone.appendChild(scr); slot.appendChild(phone);
   });
-
-  // QR real del demo: si la cuenta demo no está configurada, se manda al demo en vez de mostrar una imagen rota
-  const liveQr = $(".live-qr img.qr");
-  const qrOff = () => { liveQr.hidden = true; $(".qr-off").hidden = false; };
-  if (liveQr.complete && liveQr.naturalWidth === 0 && liveQr.currentSrc) qrOff();
-  liveQr.addEventListener("error", qrOff);
 
   // Carrusel "Para quién"
   const rail = $("#rail");

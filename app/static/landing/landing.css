@@ -93,7 +93,7 @@ html { scrollbar-color: var(--ink-muted) var(--bg); }
 .toast .seal .i { width: 18px; height: 18px; stroke-width: 2.5; }
 .toast b { display: block; font-size: 16px; line-height: 20px; font-weight: 800; }
 .toast small { display: block; font-size: 12px; line-height: 16px; color: var(--ink-muted); }
-.listen { position: absolute; left: 58%; bottom: 0; transform: translateX(-50%); white-space: nowrap; display: inline-flex; align-items: center; gap: var(--space-3);
+.listen { position: absolute; left: 58%; bottom: 0; transform: translateX(-50%); width: max-content; max-width: 100%; white-space: nowrap; display: inline-flex; align-items: center; gap: var(--space-3);
   min-height: 44px; padding: 0 var(--space-4) 0 var(--space-3); border-radius: var(--radius-full); border: 1px solid var(--line); background: var(--surface);
   color: var(--ink); font-size: 15px; font-weight: 700; }
 .listen:hover { border-color: var(--brand); }
@@ -101,6 +101,23 @@ html { scrollbar-color: var(--ink-muted) var(--bg); }
 .listen[aria-pressed="true"] .ic { background: var(--brand-pressed); }
 .listen .ic { flex-shrink: 0; width: 30px; height: 30px; border-radius: var(--radius-full); background: var(--brand); color: var(--on-brand); display: grid; place-items: center; }
 .listen .wave { height: 18px; width: 54px; flex-shrink: 0; color: var(--brand); }
+
+/* Celular y tablet: escena más alta para que el teléfono, la caja, el aviso y el botón no se encimen */
+@media (max-width: 1023px) {
+  .stage { aspect-ratio: 1 / 1.12; max-width: 480px; }
+  .stage::before { inset: 6% 0 18%; }
+  .stage .box { inset: 9% -6% 19% 17%; }
+  .stage .cust { width: 33%; bottom: 15%; }
+  .emit { left: 61%; top: 45%; width: 72%; }
+  .toast { top: 2%; right: 0; max-width: 78%; padding: var(--space-2) var(--space-3) var(--space-2) var(--space-2); gap: var(--space-2); }
+  .toast .seal { width: 28px; height: 28px; flex-shrink: 0; }
+  .toast b { font-size: 15px; }
+  .listen { left: 50%; }
+}
+@media (max-width: 360px) {
+  .listen { gap: var(--space-2); padding-right: var(--space-3); font-size: 14px; }
+  .listen .wave { width: 40px; }
+}
 
 /* soundwave (barras dibujadas desde la voz real) */
 .wave { display: block; }
@@ -196,6 +213,8 @@ html { scrollbar-color: var(--ink-muted) var(--bg); }
 /* ---------- 3. problema (banda brand) ---------- */
 .band { background: var(--brand); color: var(--on-brand); }
 .band .lead { color: var(--brand-tint); }
+/* el sello entra desde 2.6x: sin recorte se sale de la pantalla y en celular la página se mueve de lado */
+.problem { overflow-x: clip; }
 .problem-grid { display: grid; gap: var(--space-12); align-items: center; }
 .problem h2 { font-size: clamp(48px, 9vw, 96px); line-height: .98; font-weight: 800; letter-spacing: -0.04em; max-width: 9ch; }
 .problem .lead { margin-top: var(--space-6); font-size: 18px; max-width: 40ch; }
@@ -328,9 +347,7 @@ html { scrollbar-color: var(--ink-muted) var(--bg); }
 .live-qr .card .mark img { width: 18px; height: 18px; }
 .live-qr .card .biz { font-weight: 700; margin-top: var(--space-1); font-size: 15px; }
 .live-qr .card .hint { font-size: 12px; color: var(--ink-muted); }
-.live-qr .card img.qr { width: 100%; aspect-ratio: 1; margin-top: var(--space-3); image-rendering: pixelated; }
 .qr-off { display: grid; place-items: center; aspect-ratio: 1; margin-top: var(--space-3); padding: var(--space-6); border-radius: var(--radius-md); background: var(--brand-tint); color: var(--brand); font-weight: 700; text-decoration: none; }
-.qr-off[hidden] { display: none; }
 .live-qr .card .pw { height: 14px; width: auto; margin: var(--space-3) auto 0; }
 .live-qr .status { display: inline-flex; align-items: center; gap: var(--space-2); margin-top: var(--space-4); font-size: 13px; font-weight: 600; color: var(--success); background: var(--success-bg); padding: 6px 12px; border-radius: var(--radius-full); }
 .live-qr .status i { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
